@@ -1558,29 +1558,69 @@
     async function resetItemCost(projectId, itemId) {
       if (!sb) return;
       try {
-        await sb.from('item_cost_transactions').delete().eq('item_id', itemId);
-        await sb
+        // 1. تحديث البند فوراً في الذاكرة المحلية لتستجيب الواجهة لحظياً
+        STATE.transactions = STATE.transactions.filter((t) => t.item_id !== itemId);
+        STATE.items = STATE.items.map((it) =>
+          it.id === itemId
+            ? {
+                ...it,
+                materials_cost: 0,
+                labor_cost: 0,
+                staging_cost: 0,
+                total_cost: 0,
+                completion_percentage: 0
+              }
+            : it
+        );
+        closeModal();
+        renderCurrentView();
+
+        // 2. حذف جميع حركات التكلفة المرتبطة بالبند في قاعدة البيانات
+        const { error: delErr } = await sb
+          .from('item_cost_transactions')
+          .delete()
+          .eq('item_id', itemId);
+        if (delErr) throw delErr;
+
+        // 3. تصفير الحقول القابلة للتعديل في جدول بنود المشروع (دون تمرير total_cost إذا كان عموداً محسوباً تلقائياً)
+        const { error: updErr } = await sb
           .from('project_items')
           .update({
             materials_cost: 0,
             labor_cost: 0,
             staging_cost: 0,
-            total_cost: 0,
             completion_percentage: 0
           })
           .eq('id', itemId);
-        closeModal();
+
+        if (updErr) {
+          // محاولة ثانية تشمل total_cost في حال لم يكن عموداً محسوباً تلقائياً
+          await sb
+            .from('project_items')
+            .update({
+              materials_cost: 0,
+              labor_cost: 0,
+              staging_cost: 0,
+              total_cost: 0,
+              completion_percentage: 0
+            })
+            .eq('id', itemId);
+        }
+
         await refreshAllData();
         showToast('تم تصفير تكاليف البند وحركاته إلى 0 ج.م بنجاح.');
       } catch (err) {
-        showToast(translateError(err, 'تعذر تصفير البند حالياً.'), 'error');
+        await refreshAllData();
+        showToast(translateError(err, 'تعذر تصفير البند في قاعدة البيانات، تأكد من صلاحية الحذف والتعديل.'), 'error');
       }
     }
 
     async function deleteCostTransaction(txId, itemId) {
       if (!sb) return;
       try {
-        await sb.from('item_cost_transactions').delete().eq('id', txId);
+        const { error: delErr } = await sb.from('item_cost_transactions').delete().eq('id', txId);
+        if (delErr) throw delErr;
+
         const { data: remainingTxs } = await sb
           .from('item_cost_transactions')
           .select('*')
@@ -1596,11 +1636,10 @@
         const staging_cost = list
           .filter((t) => t.cost_type === 'staging')
           .reduce((s, t) => s + (Number(t.amount) || 0), 0);
-        const total_cost = materials_cost + labor_cost + staging_cost;
 
         await sb
           .from('project_items')
-          .update({ materials_cost, labor_cost, staging_cost, total_cost })
+          .update({ materials_cost, labor_cost, staging_cost })
           .eq('id', itemId);
 
         await refreshAllData();
