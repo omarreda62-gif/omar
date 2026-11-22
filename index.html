@@ -18,10 +18,21 @@
     @media print {
       .no-print { display: none !important; }
       body { background: #fff !important; }
+      body.client-statement-mode #app-shell,
+      body.client-statement-mode #toast-container,
+      body.client-statement-mode #modal-backdrop {
+        display: none !important;
+      }
+      body.client-statement-mode #client-statement-print {
+        display: block !important;
+      }
     }
   </style>
 </head>
 <body class="min-h-screen antialiased selection:bg-[#A85438] selection:text-white">
+
+  <!-- حاوية طباعة مستخلص العميل النظيف (بدون نسبة المكتب أو السحوبات الداخلية) -->
+  <div id="client-statement-print" class="hidden bg-white text-[#2D1B14] p-8 max-w-4xl mx-auto"></div>
 
   <!-- تنبيهات النظام العائمة -->
   <div id="toast-container" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2.5 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
@@ -887,6 +898,10 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
+              <button onclick="openClientStatementModal('${project.id}')"
+                class="px-4 py-2 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs cursor-pointer shadow-2xs">
+                تصدير مستخلص للعميل (PDF)
+              </button>
               ${canSeeFinance() ? `
                 <button onclick="openOfficeWithdrawModal('${project.id}', '${project.name.replace(/'/g, '')}')"
                   class="px-4 py-2 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] font-extrabold text-xs cursor-pointer">
@@ -1548,20 +1563,26 @@
                 { id: 'pending_review', label: 'قيد المراجعة' },
                 { id: 'approved', label: 'معتمدة' },
                 { id: 'in_transit', label: 'في الطريق' },
-                { id: 'received', label: 'مستلمة' }
+                { id: 'received', label: 'مستلمة' },
+                { id: 'rejected', label: 'مرفوضة' }
               ].map((st) => `
                 <button onclick="STATE.materialsStatusFilter='${st.id}'; renderCurrentView()"
                   class="px-4 py-2 rounded-full text-xs font-extrabold cursor-pointer ${
-                    STATE.materialsStatusFilter === st.id ? 'bg-[#2D1B14] text-[#FAF6F2]' : 'bg-[#FAF6F2] text-[#5C4438] border border-[#DFD2C5]'
-                  }">${st.label}</button>`).join('')}
+                    STATE.materialsStatusFilter === st.id
+                      ? 'bg-[#2D1B14] text-[#FAF6F2]'
+                      : 'bg-[#FAF6F2] text-[#5C4438] border border-[#DFD2C5]'
+                  }">
+                  ${st.label}
+                </button>
+              `).join('')}
             </div>
 
             ${filtered.length ? filtered.map((m) => `
-              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
+              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
                 <div>
                   <h4 class="font-black text-sm text-[#2D1B14]">${m.material_name} (${m.quantity} ${m.unit})</h4>
-                  <p class="text-[#7A6457] font-semibold mt-0.5">${allowed.find((p) => p.id === m.project_id)?.name || 'مشروع'} • احتياج: ${m.needed_date}</p>
-                  ${m.engineer_notes ? `<p class="text-[#5C4438] mt-1">${m.engineer_notes}</p>` : ''}
+                  <p class="text-[#7A6457] font-semibold mt-0.5">${allowed.find((p) => p.id === m.project_id)?.name || 'مشروع'} • تاريخ الاحتياج: ${m.needed_date || '-'}</p>
+                  ${m.engineer_notes ? `<p class="text-[#5C4438] mt-1 bg-white px-3 py-1.5 rounded-xl border border-[#E6D9CC]">${m.engineer_notes}</p>` : ''}
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="px-3 py-1 rounded-full bg-[#EFE6DD] text-[#2D1B14] font-extrabold border border-[#DFD2C5]">${MATERIAL_STATUS_AR[m.status] || m.status}</span>
@@ -1612,7 +1633,233 @@
     }
 
     // =========================================================================
-    // 10. صفحة المواعيد والمهام
+    // 7.5 مستخلصات العملاء الاحترافية (بدون نسبة المكتب أو السحوبات الداخلية)
+    // =========================================================================
+    function buildClientStatementHTML(project, statementNumber = '01') {
+      const f = computeFinancials(project);
+      const pItems = STATE.items.filter((i) => i.project_id === project.id);
+      const pPayments = STATE.payments.filter((p) => p.project_id === project.id);
+      const todayStr = new Date().toLocaleDateString('ar-EG', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      const clientBalance = f.paymentsTotal - f.totalSpent;
+      const dueFromClient = clientBalance < 0 ? Math.abs(clientBalance) : 0;
+      const creditForClient = clientBalance > 0 ? clientBalance : 0;
+
+      const itemsRows = pItems.map((it, idx) => {
+        const mat = Number(it.materials_cost) || 0;
+        const lab = Number(it.labor_cost) || 0;
+        const stg = Number(it.staging_cost) || 0;
+        const rowTotal = (it.total_cost !== undefined && it.total_cost !== null)
+          ? Number(it.total_cost)
+          : mat + lab + stg;
+        return `
+          <tr class="border-b border-[#E6D9CC]">
+            <td class="p-3 font-bold text-[#7A6457]">${idx + 1}</td>
+            <td class="p-3 font-extrabold text-[#2D1B14]">${it.title}</td>
+            <td class="p-3 text-center font-bold text-[#5C4438]">${it.completion_percentage || 0}%</td>
+            <td class="p-3 text-[#5C4438]">${formatEGP(mat)}</td>
+            <td class="p-3 text-[#5C4438]">${formatEGP(lab + stg)}</td>
+            <td class="p-3 font-black text-[#2D1B14]">${formatEGP(rowTotal)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const paymentsRows = pPayments.length
+        ? pPayments.map((pay, idx) => `
+            <tr class="border-b border-[#E6D9CC]">
+              <td class="p-2.5 text-[#7A6457] font-bold">${idx + 1}</td>
+              <td class="p-2.5 text-[#2D1B14] font-semibold">${pay.payment_date}</td>
+              <td class="p-2.5 text-[#5C4438]">${PAYMENT_METHOD_AR[pay.payment_method] || pay.payment_method}</td>
+              <td class="p-2.5 text-[#7A6457]">${pay.receipt_number || '-'}</td>
+              <td class="p-2.5 font-extrabold text-[#2D1B14]">${formatEGP(pay.amount)}</td>
+            </tr>
+          `).join('')
+        : '<tr><td colspan="5" class="p-4 text-center text-[#7A6457] font-semibold">لا توجد دفعات مسجلة حتى تاريخه.</td></tr>';
+
+      return `
+        <div class="space-y-6 text-right" dir="rtl">
+          <!-- ترويسة المكتب الهندسي -->
+          <div class="flex flex-wrap items-start justify-between gap-4 pb-5 border-b-2 border-[#2D1B14]">
+            <div class="flex items-center gap-3.5">
+              <div class="w-12 h-12 rounded-2xl bg-[#2D1B14] text-[#FAF6F2] flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6 text-[#D48C70]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v18" /><path d="M2 22h20" /><path d="M10 7h4M10 11h4M10 15h4" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-xl font-black text-[#2D1B14]">مكتب التشطيبات الهندسي</h2>
+                <p class="text-xs font-bold text-[#A85438]">التصميم المعماري والتشطيبات المتكاملة</p>
+              </div>
+            </div>
+            <div class="text-left text-xs space-y-1">
+              <span class="inline-block px-3 py-1 rounded-full bg-[#EFE6DD] text-[#2D1B14] font-black">
+                مستخلص وكشف حساب عميل رقم #${statementNumber}
+              </span>
+              <p class="text-[#7A6457] font-bold">تاريخ الإصدار: ${todayStr}</p>
+            </div>
+          </div>
+
+          <!-- بيانات العميل والمشروع -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FAF6F2] border border-[#DFD2C5] rounded-2xl p-4 text-xs">
+            <div class="space-y-1">
+              <p class="text-[#7A6457] font-bold">السيد / العميل:</p>
+              <p class="text-sm font-black text-[#2D1B14]">${project.client_name}</p>
+              <p class="text-[#5C4438] font-semibold">${project.client_phone || ''}</p>
+            </div>
+            <div class="space-y-1">
+              <p class="text-[#7A6457] font-bold">المشروع / الموقع:</p>
+              <p class="text-sm font-black text-[#2D1B14]">${project.name}</p>
+              <p class="text-[#5C4438] font-semibold">${project.address || ''} • نسبة الإنجاز: ${f.progress}%</p>
+            </div>
+          </div>
+
+          <!-- ملخص الموقف المالي للعميل (نظيف تماماً من أي أرباح أو سحوبات للمكتب) -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div class="p-3.5 rounded-2xl bg-[#FAF6F2] border border-[#DFD2C5]">
+              <span class="text-[#7A6457] font-bold block">إجمالي الدفعات المسددة</span>
+              <strong class="text-base font-black text-[#2D1B14] mt-1 block">${formatEGP(f.paymentsTotal)}</strong>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-[#FAF6F2] border border-[#DFD2C5]">
+              <span class="text-[#7A6457] font-bold block">إجمالي الأعمال المنفذة</span>
+              <strong class="text-base font-black text-[#2D1B14] mt-1 block">${formatEGP(f.totalSpent)}</strong>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-[#FAF6F2] border border-[#DFD2C5]">
+              <span class="text-[#7A6457] font-bold block">رصيد دائن للعميل</span>
+              <strong class="text-base font-black text-emerald-800 mt-1 block">${formatEGP(creditForClient)}</strong>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-[#A85438]/12 border border-[#A85438]/40">
+              <span class="text-[#A85438] font-extrabold block">المبلغ المطلوب سداده</span>
+              <strong class="text-base font-black text-[#2D1B14] mt-1 block">${formatEGP(dueFromClient)}</strong>
+            </div>
+          </div>
+
+          <!-- جدول تفصيل الأعمال المنفذة حسب البنود -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-black text-[#2D1B14]">أولاً: بيان الأعمال المنفذة والتكاليف حسب البنود</h4>
+            <div class="border border-[#DFD2C5] rounded-2xl overflow-hidden">
+              <table class="w-full text-right text-xs">
+                <thead class="bg-[#EFE6DD] text-[#2D1B14] font-extrabold">
+                  <tr>
+                    <th class="p-3">#</th>
+                    <th class="p-3">البند الهندسي</th>
+                    <th class="p-3 text-center">نسبة الإنجاز</th>
+                    <th class="p-3">الخامات</th>
+                    <th class="p-3">المصنعيات والتشوين</th>
+                    <th class="p-3">الإجمالي</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsRows}
+                  ${f.expensesTotal > 0 ? `
+                    <tr class="border-b border-[#E6D9CC] bg-[#FAF6F2]">
+                      <td class="p-3 font-bold text-[#7A6457]">+</td>
+                      <td class="p-3 font-extrabold text-[#2D1B14]" colspan="4">مصروفات الموقع والنقل والتشغيل العامة</td>
+                      <td class="p-3 font-black text-[#2D1B14]">${formatEGP(f.expensesTotal)}</td>
+                    </tr>` : ''}
+                  ${f.designCost > 0 ? `
+                    <tr class="border-b border-[#E6D9CC] bg-[#FAF6F2]">
+                      <td class="p-3 font-bold text-[#7A6457]">+</td>
+                      <td class="p-3 font-extrabold text-[#2D1B14]" colspan="4">التصميمات المعمارية (3D) والمخططات التنفيذية</td>
+                      <td class="p-3 font-black text-[#2D1B14]">${formatEGP(f.designCost)}</td>
+                    </tr>` : ''}
+                </tbody>
+                <tfoot class="bg-[#2D1B14] text-[#FAF6F2] font-black">
+                  <tr>
+                    <td class="p-3" colspan="5">إجمالي تكلفة الأعمال المنفذة حتى تاريخه</td>
+                    <td class="p-3">${formatEGP(f.totalSpent)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- جدول الدفعات المستلمة من العميل -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-black text-[#2D1B14]">ثانياً: بيان الدفعات المسددة من العميل</h4>
+            <div class="border border-[#DFD2C5] rounded-2xl overflow-hidden">
+              <table class="w-full text-right text-xs">
+                <thead class="bg-[#EFE6DD] text-[#2D1B14] font-extrabold">
+                  <tr>
+                    <th class="p-2.5">#</th>
+                    <th class="p-2.5">تاريخ السداد</th>
+                    <th class="p-2.5">طريقة التحويل</th>
+                    <th class="p-2.5">رقم الإيصال / المرجع</th>
+                    <th class="p-2.5">المبلغ</th>
+                  </tr>
+                </thead>
+                <tbody>${paymentsRows}</tbody>
+                <tfoot class="bg-[#EFE6DD] text-[#2D1B14] font-black">
+                  <tr>
+                    <td class="p-2.5" colspan="4">إجمالي الدفعات المسددة من العميل</td>
+                    <td class="p-2.5">${formatEGP(f.paymentsTotal)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- التذييل والتوقيع -->
+          <div class="pt-4 border-t border-[#E6D9CC] flex justify-between items-center text-[11px] text-[#7A6457] font-bold">
+            <span>حُرر هذا المستخلص آلياً من نظام إدارة مكتب التشطيبات • جميع المبالغ بالجنيه المصري (ج.م)</span>
+            <span>توقيع الإدارة الهندسية: ..............................</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function openClientStatementModal(projectId) {
+      const allowed = getAllowedProjects();
+      const project = allowed.find((p) => p.id === projectId) || allowed[0];
+      if (!project) {
+        showToast('لا يوجد مشروع محدد لإصدار المستخلص.', 'error');
+        return;
+      }
+      const statementHTML = buildClientStatementHTML(project, '01');
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E6D9CC]">
+            <div>
+              <h3 class="font-black text-base text-[#2D1B14]">معاينة مستخلص العميل قبل التصدير</h3>
+              <p class="text-xs text-[#7A6457] font-semibold">كشف حساب نظيف للعميل — لا يظهر فيه أي نسبة للمكتب أو سحوبات داخلية</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="printCleanClientStatement('${project.id}')"
+                class="px-5 py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs cursor-pointer">
+                طباعة / حفظ كـ PDF
+              </button>
+              <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] text-[#2D1B14] cursor-pointer">✕</button>
+            </div>
+          </div>
+
+          <div class="bg-white border border-[#DFD2C5] rounded-2xl p-4 sm:p-6 max-h-[70vh] overflow-y-auto">
+            ${statementHTML}
+          </div>
+        </div>
+      `);
+    }
+
+    function printCleanClientStatement(projectId) {
+      const project = getAllowedProjects().find((p) => p.id === projectId);
+      if (!project) return;
+      const printArea = document.getElementById('client-statement-print');
+      printArea.innerHTML = buildClientStatementHTML(project, '01');
+      closeModal();
+      document.body.classList.add('client-statement-mode');
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => {
+          document.body.classList.remove('client-statement-mode');
+          printArea.innerHTML = '';
+        }, 300);
+      }, 100);
+    }
+
+    // =========================================================================
+    // 8. صفحة دفعات العملاء
     // =========================================================================
     function renderAppointmentsView(allowed) {
       const nowLocal = new Date().toISOString().slice(0, 16);
