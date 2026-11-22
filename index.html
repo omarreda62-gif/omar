@@ -948,12 +948,54 @@
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
                   <div class="flex justify-between font-extrabold"><span>${r.report_date}</span><span class="text-emerald-700">عدد العمال: ${r.workers_count}</span></div>
                   <p class="text-sm font-semibold">${escapeHtml(r.work_done)}</p>
+                  ${r.obstacles ? `<p class="text-rose-800 bg-rose-50 p-2 rounded-lg">المعوقات: ${escapeHtml(r.obstacles)}</p>` : ''}
+                  ${r.office_requests ? `<p class="text-blue-900 bg-blue-50 p-2 rounded-lg">المطلوب من المكتب: ${escapeHtml(r.office_requests)}</p>` : ''}
+                </div>`
+                )
+                .join('') || '<div class="bg-white p-6 rounded-2xl border border-slate-200 text-xs text-slate-400 text-center">لا توجد تقارير مسجلة لهذا المشروع بعد.</div>'}
+            </div>
+          </div>`;
+      } else if (STATE.projectSubTab === 'files') {
+        const pFiles = STATE.files.filter((fl) => fl.project_id === project.id);
+        bodyHtml = `
+          <div class="space-y-4">
+            ${
+              canEdit
+                ? `<form onsubmit="uploadProjectFile(event, '${project.id}')" class="bg-white p-4 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <select id="pf-cat" class="px-3 py-2.5 rounded-xl border border-slate-200 font-bold bg-white">
+                      <option value="execution_plans">مخططات تنفيذية</option>
+                      <option value="3d_designs">تصميمات 3D</option>
+                      <option value="before_after">صور قبل وبعد</option>
+                      <option value="quotes_invoices">عروض أسعار وفواتير</option>
+                    </select>
+                    <input id="pf-file" type="file" required class="self-center" />
+                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-[#111315] text-white font-extrabold cursor-pointer">رفع للمكتبة</button>
+                  </form>`
+                : ''
+            }
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              ${pFiles
+                .map(
+                  (fl) => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center justify-between gap-2 text-xs">
+                  <div class="min-w-0">
+                    <p class="font-extrabold text-slate-900 truncate">${escapeHtml(fl.file_name)}</p>
+                    <p class="text-[11px] text-emerald-700 font-bold">${escapeHtml(fl.category)}</p>
+                  </div>
+                  <a href="${escapeHtml(fl.file_url)}" target="_blank" rel="noreferrer" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-[#111315] hover:text-white font-bold shrink-0">عرض</a>
+                </div>`
+                )
+                .join('') || '<div class="bg-white p-6 rounded-2xl border border-slate-200 col-span-3 text-xs text-slate-400 text-center">لا توجد ملفات مرفوعة لهذا المشروع.</div>'}
+            </div>
+          </div>`;
+      }
+
       const pIdx = Math.max(0, STATE.projects.findIndex((x) => x.id === project.id));
       const cover = getProjectCover(project, pIdx);
 
       return `
         <div class="space-y-6">
-          <!-- بطاقة المشروع المعمارية المتداخلة (مطابقة للشاشة اليمنى في الصورة) -->
+          <!-- بطاقة المشروع المعمارية المتداخلة -->
           <div class="rounded-[34px] overflow-hidden bg-white border border-slate-200/80 shadow-md">
             <div class="relative h-56 sm:h-64 bg-[#111315]">
               <img src="${escapeHtml(cover)}" onerror="this.style.display='none'" alt="${escapeHtml(project.name)}"
@@ -982,7 +1024,6 @@
                 </div>
               </div>
 
-              <!-- بطاقات المواصفات السريعة (مثل Bedroom / Bathroom في الصورة) -->
               <div class="grid grid-cols-3 gap-2.5 text-center">
                 <div class="py-2.5 px-3 rounded-2xl bg-[#F6F7F9] border border-slate-200/60">
                   <span class="block text-[11px] text-slate-400 font-bold">البنود</span>
@@ -1171,40 +1212,41 @@
     function renderWorkersView() {
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitNewWorker(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit">
+          <form onsubmit="submitNewWorker(event)" class="arch-card p-5 space-y-3 text-xs h-fit">
             <h3 class="font-extrabold text-sm">إضافة عامل / صنايعي</h3>
-            <input id="wk-name" required placeholder="الاسم *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="wk-name" required placeholder="الاسم الكامل *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
             <input id="wk-spec" required placeholder="التخصص (سباك، كهربائي، محارة...) *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
-            <input id="wk-phone" required placeholder="رقم الهاتف *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="wk-phone" required placeholder="رقم الهاتف / واتساب *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
             <input id="wk-area" placeholder="المنطقة / العنوان" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
-            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ في الدليل</button>
+            <button type="submit" class="w-full py-3 rounded-full bg-[#111315] text-white font-extrabold cursor-pointer">حفظ العامل</button>
           </form>
           <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
             ${STATE.workers
               .map(
                 (w) => `
-              <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
-                <div class="flex justify-between font-extrabold">
-                  <span class="text-sm">${escapeHtml(w.full_name)}</span>
-                  <span class="text-amber-700">★ ${Number(w.rating || 5).toFixed(1)}</span>
+              <div class="arch-card p-5 space-y-2 text-xs">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="font-extrabold text-sm">${escapeHtml(w.full_name)}</h4>
+                    <p class="text-emerald-700 font-bold">${escapeHtml(w.specialty)}</p>
+                    <p class="text-slate-500 mt-0.5">${escapeHtml(w.area_address || '')} • ${escapeHtml(w.phone)}</p>
+                  </div>
+                  <a href="https://wa.me/${escapeHtml(w.whatsapp || w.phone)}" target="_blank" rel="noreferrer"
+                    class="px-3.5 py-2 rounded-full bg-emerald-600 text-white font-bold">واتساب</a>
                 </div>
-                <p class="text-emerald-700 font-bold">${escapeHtml(w.specialty)}</p>
-                <p class="text-slate-500">${escapeHtml(w.area_address || '')} • ${escapeHtml(w.phone)}</p>
-                <a href="https://wa.me/${escapeHtml(w.whatsapp)}" target="_blank"
-                  class="inline-block px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white font-bold">واتساب مباشر</a>
               </div>`
               )
-              .join('')}
+              .join('') || '<div class="arch-card p-6 col-span-2 text-center text-xs text-slate-400">لا يوجد عمال مسجلون بعد.</div>'}
           </div>
         </div>`;
     }
 
     async function submitNewWorker(e) {
       e.preventDefault();
-      const phone = document.getElementById('wk-phone').value.trim();
-      const digits = phone.replace(/\D/g, '');
-      const wa = digits.startsWith('0') ? '2' + digits : digits;
       try {
+        const phone = document.getElementById('wk-phone').value.trim();
+        const digits = phone.replace(/\D/g, '');
+        const wa = digits.startsWith('0') ? '2' + digits : digits;
         const { error } = await sb.from('workers').insert({
           full_name: document.getElementById('wk-name').value.trim(),
           specialty: document.getElementById('wk-spec').value.trim(),
@@ -1224,24 +1266,17 @@
       const projs = getAllowedProjects();
       return `
         <div class="space-y-6">
-          <div class="flex justify-end no-print">
-            <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer">طباعة / تصدير التقرير المالي</button>
-          </div>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             ${projs
               .map((p) => {
                 const f = computeFinancials(p);
                 return `
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                <div class="arch-card p-5 space-y-3 text-xs">
                   <h4 class="font-extrabold text-sm pb-2 border-b border-slate-100">${escapeHtml(p.name)}</h4>
-                  <div class="grid grid-cols-2 gap-2">
-                    ${canViewFinance() ? `<div class="p-2 rounded bg-slate-50">${f.hasFixedContract ? 'العقد: <strong>' + formatEGP(f.contract) + '</strong>' : 'النظام: <strong>تكلفة فعلية</strong>'}</div>` : ''}
-                    ${canViewFinance() ? `<div class="p-2 rounded bg-emerald-50">دفعات العميل: <strong>${formatEGP(f.totalPayments)}</strong></div>` : ''}
-                    <div class="p-2 rounded bg-slate-50">تكلفة البنود: <strong>${formatEGP(f.totalItems)}</strong></div>
-                    <div class="p-2 rounded bg-amber-50">المصروفات العامة: <strong>${formatEGP(f.totalExpenses)}</strong></div>
-                    <div class="p-2 rounded bg-slate-100">إجمالي التكلفة الفعلية: <strong>${formatEGP(f.outflow)}</strong></div>
-                    ${canViewFinance() ? `<div class="p-2 rounded bg-blue-50">${f.hasFixedContract ? 'المتبقي على العميل' : 'مطلوب من العميل'}: <strong>${formatEGP(f.remainingOnClient)}</strong></div>` : ''}
-                    ${canViewFinance() ? `<div class="col-span-2 p-2.5 rounded bg-slate-900 text-white flex justify-between"><span>${f.hasFixedContract ? 'صافي الربح' : 'الرصيد المتاح بالمشروع'}:</span><strong>${formatEGP(f.availableBalance)}</strong></div>` : ''}
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    <div class="p-2.5 rounded-xl bg-slate-50"><span class="text-slate-500 block">تكاليف البنود</span><strong>${formatEGP(f.totalItems)}</strong></div>
+                    <div class="p-2.5 rounded-xl bg-amber-50"><span class="text-amber-800 block">المصروفات العامة</span><strong>${formatEGP(f.totalExpenses)}</strong></div>
+                    <div class="p-2.5 rounded-xl bg-slate-900 text-white"><span class="text-slate-300 block">التكلفة الفعلية</span><strong>${formatEGP(f.outflow)}</strong></div>
                   </div>
                 </div>`;
               })
@@ -1249,41 +1284,34 @@
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <form onsubmit="submitGeneralExpense(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit no-print">
-              <h4 class="font-extrabold text-sm">إضافة مصروف عام</h4>
-              <select id="ex-proj" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+            <form onsubmit="submitGeneralExpense(event)" class="arch-card p-5 space-y-3 text-xs h-fit">
+              <h4 class="font-extrabold text-sm">تسجيل مصروف عام</h4>
+              <select id="exp-proj" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
                 ${projs.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')}
               </select>
-              <select id="ex-cat" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+              <select id="exp-cat" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
                 ${Object.entries(EXPENSE_LABELS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
               </select>
-              <input id="ex-desc" required placeholder="الوصف *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
-              <input id="ex-amt" type="number" min="1" required placeholder="القيمة (ج.م) *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
-              <input id="ex-date" type="date" value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
-              <input id="ex-resp" value="${escapeHtml(STATE.profile?.full_name || 'مسؤول الموقع')}" placeholder="الشخص المسؤول" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
-              <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ المصروف</button>
+              <input id="exp-amount" type="number" min="1" required placeholder="القيمة (ج.م) *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              <input id="exp-desc" required placeholder="الوصف *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              <input id="exp-date" type="date" value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              <button type="submit" class="w-full py-3 rounded-full bg-[#111315] text-white font-extrabold cursor-pointer">حفظ المصروف</button>
             </form>
 
-            <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-x-auto">
-              <table class="w-full text-right text-xs">
-                <thead class="bg-slate-50 font-bold border-b border-slate-200">
-                  <tr><th class="p-3">التاريخ</th><th class="p-3">المشروع</th><th class="p-3">النوع</th><th class="p-3">الوصف</th><th class="p-3">القيمة</th></tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  ${STATE.expenses
-                    .map(
-                      (e) => `
-                    <tr>
-                      <td class="p-3">${e.expense_date}</td>
-                      <td class="p-3 font-bold">${escapeHtml(STATE.projects.find((p) => p.id === e.project_id)?.name || '')}</td>
-                      <td class="p-3">${EXPENSE_LABELS[e.category] || e.category}</td>
-                      <td class="p-3">${escapeHtml(e.description)}</td>
-                      <td class="p-3 font-extrabold">${formatEGP(e.amount)}</td>
-                    </tr>`
-                    )
-                    .join('')}
-                </tbody>
-              </table>
+            <div class="lg:col-span-2 arch-card p-5 space-y-2 text-xs">
+              <h4 class="font-extrabold text-sm pb-2 border-b border-slate-100">سجل المصروفات العامة (${STATE.expenses.length})</h4>
+              ${STATE.expenses
+                .map(
+                  (e) => `
+                <div class="flex justify-between items-center p-3 rounded-xl bg-slate-50">
+                  <div>
+                    <p class="font-bold">${escapeHtml(e.description)} <span class="text-slate-400">(${EXPENSE_LABELS[e.category] || e.category})</span></p>
+                    <p class="text-[11px] text-slate-500">${e.expense_date}</p>
+                  </div>
+                  <strong class="text-sm">${formatEGP(e.amount)}</strong>
+                </div>`
+                )
+                .join('') || '<p class="text-slate-400 py-4 text-center">لا توجد مصروفات مسجلة.</p>'}
             </div>
           </div>
         </div>`;
@@ -1293,17 +1321,17 @@
       e.preventDefault();
       try {
         const { error } = await sb.from('general_expenses').insert({
-          project_id: document.getElementById('ex-proj').value,
-          category: document.getElementById('ex-cat').value,
-          description: document.getElementById('ex-desc').value.trim(),
-          amount: Number(document.getElementById('ex-amt').value),
-          expense_date: document.getElementById('ex-date').value,
-          responsible_person: document.getElementById('ex-resp').value.trim(),
+          project_id: document.getElementById('exp-proj').value,
+          category: document.getElementById('exp-cat').value,
+          amount: Number(document.getElementById('exp-amount').value),
+          description: document.getElementById('exp-desc').value.trim(),
+          expense_date: document.getElementById('exp-date').value,
+          responsible_person: STATE.profile?.full_name || STATE.session?.user?.email || 'مسؤول',
           created_by: STATE.session?.user?.id || null
         });
         if (error) throw error;
         await refreshAllData();
-        showToast('تم تسجيل المصروف وتحديث رصيد المشروع فوراً.');
+        showToast('تم تسجيل المصروف وتحديث الحسابات.');
       } catch (err) {
         showToast(translateError(err), 'error');
       }
@@ -1313,41 +1341,34 @@
       const projs = getAllowedProjects();
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitClientPayment(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit">
+          <form onsubmit="submitClientPayment(event)" class="arch-card p-5 space-y-3 text-xs h-fit">
             <h3 class="font-extrabold text-sm">تسجيل دفعة عميل</h3>
-            <select id="pay-proj" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+            <select id="pay-proj" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
               ${projs.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')}
             </select>
-            <input id="pay-amt" type="number" min="1" required placeholder="المبلغ (ج.م) *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="pay-amount" type="number" min="1" required placeholder="المبلغ (ج.م) *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
             <input id="pay-date" type="date" value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
             <select id="pay-method" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
               ${Object.entries(PAYMENT_LABELS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
             </select>
-            <input id="pay-rec" placeholder="رقم الإيصال" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
-            <input id="pay-notes" placeholder="ملاحظات" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
-            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ الدفعة</button>
+            <input id="pay-receipt" placeholder="رقم الإيصال (اختياري)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <button type="submit" class="w-full py-3 rounded-full bg-[#111315] text-white font-extrabold cursor-pointer">حفظ الدفعة</button>
           </form>
 
-          <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-x-auto">
-            <table class="w-full text-right text-xs">
-              <thead class="bg-slate-50 font-bold border-b border-slate-200">
-                <tr><th class="p-3">التاريخ</th><th class="p-3">المشروع</th><th class="p-3">المبلغ</th><th class="p-3">الطريقة</th><th class="p-3">الإيصال</th></tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                ${STATE.payments
-                  .map(
-                    (pay) => `
-                  <tr>
-                    <td class="p-3">${pay.payment_date}</td>
-                    <td class="p-3 font-bold">${escapeHtml(STATE.projects.find((p) => p.id === pay.project_id)?.name || '')}</td>
-                    <td class="p-3 font-extrabold text-emerald-700">${formatEGP(pay.amount)}</td>
-                    <td class="p-3">${PAYMENT_LABELS[pay.payment_method] || pay.payment_method}</td>
-                    <td class="p-3">${escapeHtml(pay.receipt_number || '-')}</td>
-                  </tr>`
-                  )
-                  .join('')}
-              </tbody>
-            </table>
+          <div class="lg:col-span-2 arch-card p-5 space-y-2 text-xs">
+            <h3 class="font-extrabold text-sm pb-2 border-b border-slate-100">سجل دفعات العملاء (${STATE.payments.length})</h3>
+            ${STATE.payments
+              .map(
+                (pay) => `
+              <div class="flex justify-between items-center p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+                <div>
+                  <p class="font-extrabold">${escapeHtml(projs.find((p) => p.id === pay.project_id)?.name || 'مشروع')}</p>
+                  <p class="text-[11px] text-slate-500">${pay.payment_date} • ${PAYMENT_LABELS[pay.payment_method] || pay.payment_method}</p>
+                </div>
+                <strong class="text-sm text-emerald-800">${formatEGP(pay.amount)}</strong>
+              </div>`
+              )
+              .join('') || '<p class="text-slate-400 py-4 text-center">لا توجد دفعات مسجلة.</p>'}
           </div>
         </div>`;
     }
@@ -1357,16 +1378,15 @@
       try {
         const { error } = await sb.from('client_payments').insert({
           project_id: document.getElementById('pay-proj').value,
-          amount: Number(document.getElementById('pay-amt').value),
+          amount: Number(document.getElementById('pay-amount').value),
           payment_date: document.getElementById('pay-date').value,
           payment_method: document.getElementById('pay-method').value,
-          receipt_number: document.getElementById('pay-rec').value.trim() || null,
-          notes: document.getElementById('pay-notes').value.trim(),
+          receipt_number: document.getElementById('pay-receipt').value.trim() || null,
           created_by: STATE.session?.user?.id || null
         });
         if (error) throw error;
         await refreshAllData();
-        showToast('تم تسجيل دفعة العميل وتحديث الرصيد.');
+        showToast('تم تسجيل دفعة العميل بنجاح.');
       } catch (err) {
         showToast(translateError(err), 'error');
       }
@@ -1376,8 +1396,8 @@
       const projs = getAllowedProjects();
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitNewTask(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit">
-            <h3 class="font-extrabold text-sm">إضافة موعد / مهمة</h3>
+          <form onsubmit="submitAppointmentTask(event)" class="arch-card p-5 space-y-3 text-xs h-fit">
+            <h3 class="font-extrabold text-sm">موعد أو مهمة جديدة</h3>
             <input id="tk-title" required placeholder="العنوان *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
             <select id="tk-type" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
               ${Object.entries(TASK_TYPE_LABELS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
@@ -1387,29 +1407,27 @@
               <option value="">عام</option>
               ${projs.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')}
             </select>
-            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ</button>
+            <button type="submit" class="w-full py-3 rounded-full bg-[#111315] text-white font-extrabold cursor-pointer">حفظ الموعد</button>
           </form>
+
           <div class="lg:col-span-2 space-y-3">
             ${STATE.tasks
               .map(
                 (t) => `
-              <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center text-xs">
+              <div class="arch-card p-4 flex justify-between items-center text-xs">
                 <div>
-                  <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-bold">${TASK_TYPE_LABELS[t.entry_type] || t.entry_type}</span>
-                  <h4 class="font-extrabold text-sm mt-1">${escapeHtml(t.title)}</h4>
-                  <p class="text-slate-500">${new Date(t.scheduled_at).toLocaleString('ar-EG')}</p>
+                  <h4 class="font-extrabold text-sm">${escapeHtml(t.title)}</h4>
+                  <p class="text-slate-500 mt-0.5">${TASK_TYPE_LABELS[t.entry_type] || t.entry_type} • ${new Date(t.scheduled_at).toLocaleString('ar-EG')}</p>
                 </div>
-                <select onchange="updateTaskStatus('${t.id}', this.value)" class="px-3 py-1.5 rounded-xl border border-slate-200 font-bold bg-slate-50">
-                  ${Object.entries(TASK_STATUS_LABELS).map(([k, v]) => `<option value="${k}" ${t.status === k ? 'selected' : ''}>${v}</option>`).join('')}
-                </select>
+                <span class="px-3 py-1 rounded-full bg-slate-100 font-bold">${TASK_STATUS_LABELS[t.status] || t.status}</span>
               </div>`
               )
-              .join('')}
+              .join('') || '<div class="arch-card p-6 text-center text-xs text-slate-400">لا توجد مواعيد مسجلة.</div>'}
           </div>
         </div>`;
     }
 
-    async function submitNewTask(e) {
+    async function submitAppointmentTask(e) {
       e.preventDefault();
       try {
         const { error } = await sb.from('appointments_tasks').insert({
@@ -1417,7 +1435,7 @@
           entry_type: document.getElementById('tk-type').value,
           scheduled_at: new Date(document.getElementById('tk-date').value).toISOString(),
           project_id: document.getElementById('tk-proj').value || null,
-          status: 'new',
+          assigned_to: STATE.session?.user?.id || null,
           created_by: STATE.session?.user?.id || null
         });
         if (error) throw error;
@@ -1428,49 +1446,48 @@
       }
     }
 
-    async function updateTaskStatus(id, status) {
-      await sb.from('appointments_tasks').update({ status }).eq('id', id);
-      await refreshAllData();
-      showToast('تم تحديث الحالة.');
-    }
-
     function renderMaterialsView() {
       const projs = getAllowedProjects();
       const isAdmin = getRole() === 'admin';
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitMaterialReq(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit">
+          <form onsubmit="submitMaterialReq(event)" class="arch-card p-5 space-y-3 text-xs h-fit">
             <h3 class="font-extrabold text-sm">طلب خامة جديدة</h3>
-            <select id="mr-proj" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+            <select id="mt-proj" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
               ${projs.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')}
             </select>
-            <input id="mr-name" required placeholder="اسم الخامة *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="mt-name" required placeholder="اسم الخامة *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
             <div class="grid grid-cols-2 gap-2">
-              <input id="mr-qty" type="number" min="1" required placeholder="الكمية *" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
-              <input id="mr-unit" value="شيكارة" placeholder="الوحدة" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+              <input id="mt-qty" type="number" min="1" required placeholder="الكمية *" class="w-full px-3 py-2.5 rounded-xl border border-slate-300" />
+              <input id="mt-unit" value="شيكارة" placeholder="الوحدة" class="w-full px-3 py-2.5 rounded-xl border border-slate-300" />
             </div>
-            <input id="mr-date" type="date" value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2 rounded-xl border border-slate-300" />
-            <input id="mr-notes" placeholder="ملاحظات" class="w-full px-3.5 py-2 rounded-xl border border-slate-300" />
-            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">إرسال الطلب</button>
+            <input id="mt-date" type="date" value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <button type="submit" class="w-full py-3 rounded-full bg-[#111315] text-white font-extrabold cursor-pointer">إرسال الطلب</button>
           </form>
 
           <div class="lg:col-span-2 space-y-3">
             ${STATE.materials
               .map(
                 (m) => `
-              <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
+              <div class="arch-card p-4 space-y-2 text-xs">
                 <div class="flex justify-between items-center">
-                  <h4 class="font-extrabold text-sm">${escapeHtml(m.material_name)} (${m.quantity} ${escapeHtml(m.unit)})</h4>
-                  <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 font-extrabold">${MATERIAL_LABELS[m.status] || m.status}</span>
+                  <div>
+                    <h4 class="font-extrabold text-sm">${escapeHtml(m.material_name)} (${m.quantity} ${escapeHtml(m.unit)})</h4>
+                    <p class="text-slate-500">${escapeHtml(projs.find((p) => p.id === m.project_id)?.name || 'مشروع')} • احتياج: ${m.needed_date}</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-bold">${MATERIAL_LABELS[m.status] || m.status}</span>
                 </div>
-                <p class="text-slate-500">${escapeHtml(STATE.projects.find((p) => p.id === m.project_id)?.name || '')} • احتياج: ${m.needed_date}</p>
-                <div class="flex gap-2 pt-1">
-                  ${isAdmin && m.status === 'pending_review' ? `<button onclick="updateMaterialStatus('${m.id}', 'approved')" class="px-3 py-1 rounded-lg bg-emerald-600 text-white font-bold cursor-pointer">اعتماد</button><button onclick="updateMaterialStatus('${m.id}', 'rejected')" class="px-3 py-1 rounded-lg bg-rose-600 text-white font-bold cursor-pointer">رفض</button>` : ''}
-                  ${m.status === 'approved' || m.status === 'in_transit' ? `<button onclick="updateMaterialStatus('${m.id}', 'received')" class="px-3 py-1 rounded-lg bg-slate-900 text-white font-bold cursor-pointer">تم الاستلام</button>` : ''}
-                </div>
+                ${
+                  isAdmin && m.status === 'pending_review'
+                    ? `<div class="flex gap-2 pt-1">
+                        <button onclick="updateMaterialStatus('${m.id}', 'approved')" class="px-3 py-1.5 rounded-full bg-emerald-600 text-white font-bold cursor-pointer">اعتماد</button>
+                        <button onclick="updateMaterialStatus('${m.id}', 'rejected')" class="px-3 py-1.5 rounded-full bg-rose-600 text-white font-bold cursor-pointer">رفض</button>
+                      </div>`
+                    : ''
+                }
               </div>`
               )
-              .join('')}
+              .join('') || '<div class="arch-card p-6 text-center text-xs text-slate-400">لا توجد طلبات خامات.</div>'}
           </div>
         </div>`;
     }
@@ -1479,33 +1496,37 @@
       e.preventDefault();
       try {
         const { error } = await sb.from('material_requests').insert({
-          project_id: document.getElementById('mr-proj').value,
-          material_name: document.getElementById('mr-name').value.trim(),
-          quantity: Number(document.getElementById('mr-qty').value) || 1,
-          unit: document.getElementById('mr-unit').value.trim() || 'وحدة',
-          needed_date: document.getElementById('mr-date').value,
-          engineer_notes: document.getElementById('mr-notes').value.trim(),
+          project_id: document.getElementById('mt-proj').value,
+          material_name: document.getElementById('mt-name').value.trim(),
+          quantity: Number(document.getElementById('mt-qty').value) || 1,
+          unit: document.getElementById('mt-unit').value.trim() || 'وحدة',
+          needed_date: document.getElementById('mt-date').value,
           status: 'pending_review',
           created_by: STATE.session?.user?.id || null
         });
         if (error) throw error;
         await refreshAllData();
-        showToast('تم إرسال طلب الخامة للمراجعة.');
+        showToast('تم إرسال طلب الخامة.');
       } catch (err) {
         showToast(translateError(err), 'error');
       }
     }
 
     async function updateMaterialStatus(id, status) {
-      await sb.from('material_requests').update({ status }).eq('id', id);
-      await refreshAllData();
-      showToast('تم تحديث حالة الطلب.');
+      try {
+        const { error } = await sb.from('material_requests').update({ status }).eq('id', id);
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم تحديث حالة الطلب.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
     }
 
     function renderTeamView() {
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitTeamMember(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit">
+          <form onsubmit="submitTeamMember(event)" class="arch-card p-5 space-y-3 text-xs h-fit">
             <h3 class="font-extrabold text-sm">إضافة / تحديث موظف</h3>
             <input id="tm-name" required placeholder="الاسم الكامل *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
             <input id="tm-email" type="email" required dir="ltr" placeholder="employee@email.com *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-left" />
@@ -1513,21 +1534,18 @@
               <option value="engineer">مهندس موقع</option>
               <option value="accountant">محاسب</option>
             </select>
-            <label class="flex items-center gap-2 font-bold">
-              <input id="tm-fin" type="checkbox" />
-              <span>السماح برؤية قيمة العقود والأرباح</span>
-            </label>
-            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ الصلاحيات</button>
+            <button type="submit" class="w-full py-3 rounded-full bg-[#111315] text-white font-extrabold cursor-pointer">حفظ الصلاحيات</button>
           </form>
-
           <div class="lg:col-span-2 space-y-3">
             ${STATE.profiles
               .map(
                 (u) => `
-              <div class="bg-white p-4 rounded-2xl border border-slate-200 text-xs">
-                <h4 class="font-extrabold text-sm">${escapeHtml(u.full_name)}</h4>
-                <p class="text-slate-500" dir="ltr">${escapeHtml(u.email)}</p>
-                <p class="mt-1">الدور: <strong>${u.role}</strong> • العقود والأرباح: <strong>${u.can_view_sensitive_finance ? 'مسموح' : 'مخفي'}</strong></p>
+              <div class="arch-card p-4 flex justify-between items-center text-xs">
+                <div>
+                  <h4 class="font-extrabold text-sm">${escapeHtml(u.full_name)}</h4>
+                  <p class="text-slate-500" dir="ltr">${escapeHtml(u.email)}</p>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-slate-100 font-bold">${escapeHtml(u.role)}</span>
               </div>`
               )
               .join('')}
@@ -1537,26 +1555,23 @@
 
     async function submitTeamMember(e) {
       e.preventDefault();
-      const email = document.getElementById('tm-email').value.trim().toLowerCase();
-      const full_name = document.getElementById('tm-name').value.trim();
-      const role = document.getElementById('tm-role').value;
-      const can_view_sensitive_finance = role === 'accountant' ? true : document.getElementById('tm-fin').checked;
       try {
-        const existing = STATE.profiles.find((p) => p.email.toLowerCase() === email);
-        if (existing) {
-          await sb.from('profiles').update({ full_name, role, can_view_sensitive_finance }).eq('id', existing.id);
-        } else {
-          await sb.from('profiles').insert({
+        const email = document.getElementById('tm-email').value.trim().toLowerCase();
+        const role = document.getElementById('tm-role').value;
+        const { error } = await sb.from('profiles').upsert(
+          {
             id: crypto.randomUUID(),
-            full_name,
+            full_name: document.getElementById('tm-name').value.trim(),
             email,
             role,
-            can_view_sensitive_finance,
+            can_view_sensitive_finance: role === 'accountant',
             is_active: true
-          });
-        }
+          },
+          { onConflict: 'email' }
+        );
+        if (error) throw error;
         await refreshAllData();
-        showToast('تم حفظ بيانات الموظف وصلاحياته.');
+        showToast('تم حفظ صلاحيات الموظف بنجاح.');
       } catch (err) {
         showToast(translateError(err), 'error');
       }
@@ -1564,64 +1579,47 @@
 
     function renderSettingsView() {
       return `
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs">
-            <h3 class="font-extrabold text-sm">حاسبة كميات التشطيبات</h3>
-            <select id="calc-kind" onchange="updateCalc()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
-              <option value="ceramic">سيراميك</option>
-              <option value="porcelain">بورسلين</option>
-              <option value="paint">دهانات</option>
-              <option value="plaster">محارة</option>
-              <option value="gypsum">جبس بورد</option>
-            </select>
-            <div class="grid grid-cols-2 gap-2">
-              <input id="calc-area" type="number" value="120" oninput="updateCalc()" placeholder="المساحة م²" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
-              <input id="calc-waste" type="number" value="10" oninput="updateCalc()" placeholder="نسبة الهالك %" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
+          <div class="arch-card p-5 space-y-3">
+            <h3 class="font-extrabold text-sm">حاسبة كميات التشطيبات السريعة</h3>
+            <div class="grid grid-cols-2 gap-2.5">
+              <input id="calc-area" type="number" value="100" oninput="runQuickCalc()" placeholder="المساحة م²" class="px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold" />
+              <input id="calc-waste" type="number" value="10" oninput="runQuickCalc()" placeholder="نسبة الهالك %" class="px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold" />
             </div>
-            <div id="calc-res" class="p-4 rounded-2xl bg-emerald-900 text-white font-extrabold text-sm">132.0 م² خامات (شاملة الهالك 10%)</div>
+            <div id="calc-result" class="p-4 rounded-2xl bg-[#111315] text-white font-extrabold text-sm">
+              110.0 م² خامات مطلوبة (شاملة 10% هالك)
+            </div>
           </div>
 
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs">
+          <div class="arch-card p-5 space-y-3">
             <h3 class="font-extrabold text-sm">المفكرة السريعة (Scratchpad)</h3>
             <form onsubmit="submitQuickNote(event)" class="flex gap-2">
-              <input id="qn-text" required placeholder="سجّل ملاحظة سريعة أو رقم..." class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300" />
-              <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ</button>
+              <input id="qn-text" required placeholder="اكتب ملاحظة سريعة..." class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              <button type="submit" class="px-5 py-2.5 rounded-full bg-[#111315] text-white font-extrabold cursor-pointer">حفظ</button>
             </form>
-            <div class="space-y-2 max-h-56 overflow-y-auto">
+            <div class="space-y-2">
               ${STATE.notes
-                .map(
-                  (n) => `
-                <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200 font-bold text-slate-900">
-                  ${escapeHtml(n.content)}
-                </div>`
-                )
+                .map((n) => `<div class="p-3 rounded-xl bg-amber-50 border border-amber-200 font-bold">${escapeHtml(n.content)}</div>`)
                 .join('')}
             </div>
           </div>
         </div>`;
     }
 
-    function updateCalc() {
-      const k = document.getElementById('calc-kind')?.value || 'ceramic';
-      const area = Number(document.getElementById('calc-area')?.value) || 0;
-      const waste = Number(document.getElementById('calc-waste')?.value) || 0;
-      const base = area * (1 + waste / 100);
-      let txt = `${base.toFixed(1)} م² خامات (شاملة الهالك ${waste}%)`;
-      if (k === 'paint') txt = `${Math.max(1, Math.ceil(base / 10))} بستلة دهان تقريباً`;
-      if (k === 'plaster') txt = `${Math.max(1, Math.ceil(base * 0.22))} شيكارة أسمنت تقريباً`;
-      if (k === 'gypsum') txt = `${Math.max(1, Math.ceil(base / 2.88))} لوح جبس بورد تقريباً`;
-      const el = document.getElementById('calc-res');
-      if (el) el.textContent = txt;
+    function runQuickCalc() {
+      const a = Number(document.getElementById('calc-area')?.value) || 0;
+      const w = Number(document.getElementById('calc-waste')?.value) || 0;
+      const res = (a * (1 + w / 100)).toFixed(1);
+      const out = document.getElementById('calc-result');
+      if (out) out.textContent = `${res} م² خامات مطلوبة (شاملة ${w}% هالك)`;
     }
 
     async function submitQuickNote(e) {
       e.preventDefault();
-      const content = document.getElementById('qn-text').value.trim();
-      if (!content) return;
       try {
         const { error } = await sb.from('quick_notes').insert({
           user_id: STATE.session?.user?.id,
-          content
+          content: document.getElementById('qn-text').value.trim()
         });
         if (error) throw error;
         await refreshAllData();
@@ -1630,6 +1628,152 @@
         showToast(translateError(err), 'error');
       }
     }
+
+    // =========================================================================
+    // دوال المصادقة والصلاحيات وجلب البيانات الكاملة
+    // =========================================================================
+    function getRole() {
+      if (STATE.profile?.role) return STATE.profile.role;
+      const em = (STATE.session?.user?.email || '').toLowerCase();
+      return em === 'omarreda62@gmail.com' ? 'admin' : 'engineer';
+    }
+
+    function canViewFinance() {
+      const r = getRole();
+      return r === 'admin' || r === 'accountant' || Boolean(STATE.profile?.can_view_sensitive_finance);
+    }
+
+    function getAllowedProjects() {
+      const r = getRole();
+      if (r === 'admin' || r === 'accountant') return STATE.projects;
+      const ids = Array.isArray(STATE.profile?.assigned_project_ids) ? STATE.profile.assigned_project_ids : [];
+      return STATE.projects.filter((p) => ids.includes(p.id));
+    }
+
+    async function loadProfile(user) {
+      if (!sb || !user) return null;
+      const { data } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      if (data) {
+        STATE.profile = data;
+        return data;
+      }
+      if ((user.email || '').toLowerCase() === 'omarreda62@gmail.com') {
+        const adminRow = {
+          id: user.id,
+          full_name: 'م. عمر رضا',
+          email: user.email,
+          role: 'admin',
+          assigned_project_ids: [],
+          can_view_sensitive_finance: true,
+          is_active: true
+        };
+        const { data: up } = await sb.from('profiles').upsert(adminRow, { onConflict: 'email' }).select().maybeSingle();
+        STATE.profile = up || adminRow;
+        return STATE.profile;
+      }
+      return null;
+    }
+
+    async function refreshAllData() {
+      if (!sb || !STATE.session?.user) return;
+      try {
+        const [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15] = await Promise.all([
+          sb.from('profiles').select('*').order('created_at', { ascending: false }),
+          sb.from('projects').select('*').order('created_at', { ascending: false }),
+          sb.from('project_items').select('*').order('sort_order', { ascending: true }),
+          sb.from('item_cost_transactions').select('*').order('transaction_date', { ascending: false }),
+          sb.from('client_payments').select('*').order('payment_date', { ascending: false }),
+          sb.from('general_expenses').select('*').order('expense_date', { ascending: false }),
+          sb.from('workers').select('*').order('created_at', { ascending: false }),
+          sb.from('worker_assignments').select('*').order('created_at', { ascending: false }),
+          sb.from('worker_evaluations').select('*').order('created_at', { ascending: false }),
+          sb.from('daily_reports').select('*').order('report_date', { ascending: false }),
+          sb.from('material_requests').select('*').order('created_at', { ascending: false }),
+          sb.from('appointments_tasks').select('*').order('scheduled_at', { ascending: true }),
+          sb.from('quality_checklists').select('*').order('updated_at', { ascending: false }),
+          sb.from('project_files').select('*').order('created_at', { ascending: false }),
+          sb.from('quick_notes').select('*').order('created_at', { ascending: false })
+        ]);
+        if (p1.data) STATE.profiles = p1.data;
+        if (p2.data) STATE.projects = p2.data;
+        if (p3.data) STATE.items = p3.data;
+        if (p4.data) STATE.transactions = p4.data;
+        if (p5.data) STATE.payments = p5.data;
+        if (p6.data) STATE.expenses = p6.data;
+        if (p7.data) STATE.workers = p7.data;
+        if (p8.data) STATE.assignments = p8.data;
+        if (p9.data) STATE.evaluations = p9.data;
+        if (p10.data) STATE.reports = p10.data;
+        if (p11.data) STATE.materials = p11.data;
+        if (p12.data) STATE.tasks = p12.data;
+        if (p13.data) STATE.checklists = p13.data;
+        if (p14.data) STATE.files = p14.data;
+        if (p15.data) STATE.notes = p15.data;
+        renderMainView();
+      } catch (err) {
+        showToast(translateError(err, 'تعذر تحديث البيانات من قاعدة البيانات.'), 'error');
+      }
+    }
+
+    async function initAfterAuth() {
+      await loadProfile(STATE.session.user);
+      document.getElementById('login-screen').classList.add('hidden');
+      const shell = document.getElementById('app-shell');
+      shell.classList.remove('hidden');
+      shell.classList.add('flex');
+
+      const r = getRole();
+      document.getElementById('sidebar-user-name').textContent = STATE.profile?.full_name || STATE.session.user.email;
+      document.getElementById('sidebar-user-role').textContent =
+        r === 'admin' ? 'مدير المكتب' : r === 'engineer' ? 'مهندس موقع' : 'محاسب';
+
+      renderNavigation();
+      await refreshAllData();
+    }
+
+    async function logoutUser() {
+      try {
+        if (sb) await sb.auth.signOut();
+      } catch (_) {}
+      STATE.session = null;
+      STATE.profile = null;
+      STATE.selectedProjectId = null;
+      document.getElementById('app-shell').classList.add('hidden');
+      document.getElementById('app-shell').classList.remove('flex');
+      document.getElementById('login-screen').classList.remove('hidden');
+      showToast('تم تسجيل الخروج بنجاح.');
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!sb) {
+        showToast('تعذر تحميل مكتبة الاتصال بقاعدة البيانات، يرجى تحديث الصفحة.', 'error');
+        return;
+      }
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.textContent = 'جاري الدخول...';
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({
+          email: document.getElementById('login-email').value.trim(),
+          password: document.getElementById('login-password').value
+        });
+        if (error) {
+          showToast(translateError(error), 'error');
+          return;
+        }
+        if (data?.session) {
+          STATE.session = data.session;
+          await initAfterAuth();
+          showToast('مرحباً بك في مكتب التشطيبات.');
+        }
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'دخول إلى الاستوديو ←';
+      }
+    });
 
     // فحص الجلسة الحالية عند فتح الصفحة
     window.addEventListener('DOMContentLoaded', async () => {
