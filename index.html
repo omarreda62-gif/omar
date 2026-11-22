@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>مكتب التشطيبات • إدارة المشاريع والحسابات الهندسية</title>
+  <title>Steel Studio • إدارة المشاريع والحسابات الهندسية</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -44,12 +44,7 @@
 
   <!-- شاشة التحميل المبدئية -->
   <div id="boot-screen" class="min-h-screen flex flex-col items-center justify-center p-6 bg-[#EFE6DD] text-center">
-    <div class="w-16 h-16 rounded-3xl bg-[#2D1B14] text-[#FAF6F2] flex items-center justify-center shadow-lg mb-4 animate-pulse">
-      <svg class="w-8 h-8 text-[#D48C70]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M6 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v18" /><path d="M2 22h20" /><path d="M10 7h4M10 11h4M10 15h4" />
-      </svg>
-    </div>
-    <h1 class="text-xl font-black text-[#2D1B14]">مكتب التشطيبات</h1>
+    <h1 class="text-2xl font-black tracking-widest text-[#2D1B14] animate-pulse" dir="ltr">STEEL STUDIO</h1>
     <p class="text-xs font-bold text-[#7A6457] mt-1">جاري تهيئة مساحة العمل الهندسية...</p>
   </div>
 
@@ -59,17 +54,12 @@
       <!-- اللوحة التعريفية الداكنة الدافئة -->
       <div class="lg:col-span-5 bg-[#2D1B14] text-[#FAF6F2] p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden">
         <div class="space-y-4 relative z-10">
-          <div class="w-14 h-14 rounded-2xl bg-[#A85438] flex items-center justify-center shadow-lg">
-            <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M6 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v18" /><path d="M2 22h20" /><path d="M10 7h4M10 11h4M10 15h4" />
-            </svg>
-          </div>
           <span class="inline-block text-[11px] font-extrabold bg-white/10 text-[#E8B298] px-3.5 py-1 rounded-full">
             نظام إدارة المكاتب الهندسية والتشطيبات
           </span>
-          <h1 class="text-2xl sm:text-3xl font-black leading-snug">مكتب التشطيبات</h1>
+          <h1 class="text-2xl sm:text-3xl font-black tracking-wider leading-snug text-right" dir="ltr">STEEL STUDIO</h1>
           <p class="text-xs sm:text-sm text-[#D8C7BA] leading-relaxed">
-            إدارة متكاملة للمشاريع، البنود الـ 11 التراكمية، مستحقات المكتب، تقارير الموقع اليومية، ودفعات العملاء بالجنيه المصري.
+            إدارة متكاملة للمشاريع، البنود الـ 11 التراكمية، مستحقات الاستوديو، تقارير الموقع اليومية، ودفعات العملاء بالجنيه المصري.
           </p>
         </div>
 
@@ -89,7 +79,7 @@
       <div class="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center">
         <div class="max-w-md w-full mx-auto space-y-6">
           <div>
-            <h2 class="text-xl sm:text-2xl font-black text-[#2D1B14]">تسجيل الدخول للمكتب</h2>
+            <h2 class="text-xl sm:text-2xl font-black text-[#2D1B14]">تسجيل الدخول إلى Steel Studio</h2>
             <p class="text-xs text-[#7A6457] font-semibold mt-1">أدخل بيانات حسابك للوصول إلى المشاريع والحسابات</p>
           </div>
 
@@ -106,7 +96,7 @@
             </div>
             <button id="login-btn" type="submit"
               class="w-full py-3.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-sm shadow-lg transition-all cursor-pointer">
-              دخول إلى النظام
+              دخول إلى Steel Studio
             </button>
           </form>
         </div>
@@ -118,23 +108,16 @@
   <div id="app-shell" class="hidden min-h-screen flex-col lg:flex-row">
     <!-- القائمة الجانبية (Desktop) -->
     <aside class="hidden lg:flex lg:flex-col lg:w-72 bg-[#2D1B14] text-[#FAF6F2] shrink-0 sticky top-0 h-screen z-30 shadow-xl no-print">
-      <div class="p-6 border-b border-white/10 flex items-center gap-3.5">
-        <div class="w-11 h-11 rounded-2xl bg-[#A85438] flex items-center justify-center shadow-md shrink-0">
-          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M6 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v18" /><path d="M2 22h20" /><path d="M10 7h4M10 11h4M10 15h4" />
-          </svg>
-        </div>
-        <div>
-          <h1 class="font-black text-base leading-tight">مكتب التشطيبات</h1>
-          <span class="text-[11px] text-[#E8B298] font-bold">الهوية المعمارية • ج.م</span>
-        </div>
+      <div class="p-6 border-b border-white/10">
+        <h1 class="font-black text-lg tracking-wider leading-tight" dir="ltr">STEEL STUDIO</h1>
+        <span class="text-[11px] text-[#E8B298] font-bold">الهوية المعمارية • ج.م</span>
       </div>
 
       <div class="mx-4 mt-4 p-3.5 rounded-2xl bg-white/8 border border-white/10 flex items-center gap-3">
         <div id="sidebar-avatar" class="w-10 h-10 rounded-2xl bg-[#A85438] text-white flex items-center justify-center font-black text-sm shrink-0">ع</div>
         <div class="min-w-0">
           <p id="sidebar-user-name" class="text-xs font-extrabold text-white truncate">م. عمر رضا</p>
-          <p id="sidebar-user-role" class="text-[11px] text-[#E8B298] font-bold">مدير المكتب</p>
+          <p id="sidebar-user-role" class="text-[11px] text-[#E8B298] font-bold">مدير الاستوديو</p>
         </div>
       </div>
 
@@ -153,7 +136,7 @@
       <div onclick="toggleMobileMenu(false)" class="fixed inset-0 bg-[#2D1B14]/70"></div>
       <div class="relative w-72 max-w-[85vw] bg-[#2D1B14] text-[#FAF6F2] h-full flex flex-col z-10 shadow-2xl">
         <div class="p-5 border-b border-white/10 flex items-center justify-between">
-          <span class="font-black text-sm">مكتب التشطيبات</span>
+          <span class="font-black text-sm tracking-wider" dir="ltr">STEEL STUDIO</span>
           <button onclick="toggleMobileMenu(false)" class="p-2 rounded-xl bg-white/10 text-white">✕</button>
         </div>
         <nav id="mobile-nav" class="flex-1 overflow-y-auto p-4 space-y-1.5"></nav>
@@ -172,7 +155,7 @@
           </button>
           <div class="min-w-0">
             <h2 id="page-title" class="text-base sm:text-xl font-black text-[#2D1B14] truncate">لوحة المتابعة الرئيسية</h2>
-            <p class="text-[11px] text-[#7A6457] font-bold">جميع الحسابات بالجنيه المصري (ج.م) • محدثة لحظياً</p>
+            <p class="text-[11px] text-[#7A6457] font-bold">Steel Studio • جميع الحسابات بالجنيه المصري (ج.م)</p>
           </div>
         </div>
 
@@ -341,7 +324,7 @@
 
       const msg = [
         `السلام عليكم أستاذ / ${proj.client_name}،`,
-        `تحية طيبة من *مكتب التشطيبات الهندسي*.`,
+        `تحية طيبة من *Steel Studio* للهندسة والتشطيبات.`,
         ``,
         `نؤكد لحضرتكم استلام دفعة مالية خاصة بمشروع (*${proj.name}*):`,
         `• قيمة الدفعة المستلمة: *${formatEGP(pay.amount)}*`,
@@ -352,6 +335,50 @@
         statusLine,
         ``,
         `شاكرين ثقتكم الغالية.`
+      ].join('\n');
+
+      openWhatsAppUrl(proj.client_phone, msg);
+    }
+
+    function sendDailyReportWhatsApp(reportId) {
+      const rep = STATE.reports.find((r) => r.id === reportId);
+      if (!rep) return;
+      const proj = STATE.projects.find((p) => p.id === rep.project_id);
+      if (!proj) return;
+      const f = computeFinancials(proj);
+
+      const msg = [
+        `السلام عليكم أستاذ / ${proj.client_name}،`,
+        `تقرير المتابعة اليومي من موقع مشروع (*${proj.name}*) بتاريخ *${rep.report_date}*:`,
+        ``,
+        `• نسبة الإنجاز الإجمالية للمشروع: *${f.progress}%*`,
+        `• ما تم تنفيذه اليوم: ${rep.work_done}`,
+        rep.obstacles ? `• ملاحظات الموقع: ${rep.obstacles}` : '',
+        ``,
+        `مع تحيات الإدارة الهندسية — *Steel Studio*.`
+      ].filter(Boolean).join('\n');
+
+      openWhatsAppUrl(proj.client_phone, msg);
+    }
+
+    function sendProjectSummaryWhatsApp(projectId) {
+      const proj = STATE.projects.find((p) => p.id === projectId);
+      if (!proj) return;
+      const f = computeFinancials(proj);
+      const clientBalance = f.paymentsTotal - f.totalSpent;
+
+      const msg = [
+        `السلام عليكم أستاذ / ${proj.client_name}،`,
+        `ملخص الموقف التنفيذي والمالي لمشروع (*${proj.name}*):`,
+        ``,
+        `• نسبة الإنجاز الحالية: *${f.progress}%*`,
+        `• إجمالي الدفعات المسددة: ${formatEGP(f.paymentsTotal)}`,
+        `• إجمالي تكلفة الأعمال المنفذة: ${formatEGP(f.totalSpent)}`,
+        clientBalance >= 0
+          ? `• الرصيد المتاح حالياً: *${formatEGP(clientBalance)}*`
+          : `• المتبقي المطلوب سداده: *${formatEGP(Math.abs(clientBalance))}*`,
+        ``,
+        `مع تحيات *Steel Studio* للهندسة والتشطيبات.`
       ].join('\n');
 
       openWhatsAppUrl(proj.client_phone, msg);
@@ -628,7 +655,7 @@
     const NAV_ITEMS = [
       { id: 'home', label: 'لوحة المتابعة الرئيسية', visible: () => true },
       { id: 'projects', label: 'المشاريع والبنود (11)', visible: () => true },
-      { id: 'accounts', label: 'الحسابات وسحوبات المكتب', visible: () => true },
+      { id: 'accounts', label: 'الحسابات وسحوبات الاستوديو', visible: () => true },
       { id: 'payments', label: 'دفعات العملاء', visible: () => canSeeFinance() },
       { id: 'materials', label: 'طلبات الخامات', visible: () => true },
       { id: 'appointments', label: 'المواعيد والمهام', visible: () => true },
@@ -677,7 +704,7 @@
         }
       }
 
-      titleEl.textContent = currentNav ? currentNav.label : 'مكتب التشطيبات';
+      titleEl.textContent = currentNav ? currentNav.label : 'Steel Studio';
 
       if (STATE.activeTab === 'home') main.innerHTML = renderHomeView(allowed);
       else if (STATE.activeTab === 'projects') main.innerHTML = renderProjectsListView(allowed);
@@ -713,13 +740,13 @@
           <div class="lg:col-span-2 bg-[#2D1B14] text-[#FAF6F2] rounded-[32px] p-6 sm:p-8 flex flex-col justify-between shadow-lg">
             <div class="space-y-2.5">
               <span class="inline-block text-[11px] font-extrabold bg-white/10 text-[#E8B298] px-3.5 py-1 rounded-full">
-                مكتب التشطيبات • لوحة القيادة الهندسية
+                STEEL STUDIO • لوحة القيادة الهندسية
               </span>
               <h3 class="text-xl sm:text-2xl font-black leading-snug">
                 أهلاً بك، ${STATE.profile?.full_name || 'م. عمر رضا'}
               </h3>
               <p class="text-xs sm:text-sm text-[#D8C7BA] max-w-xl leading-relaxed">
-                تابع نسب إنجاز البنود الـ 11 لكل مشروع، المصروفات التراكمية، مستحقات المكتب، وسحوبات المكتب المخصومة تلقائياً.
+                تابع نسب إنجاز البنود الـ 11 لكل مشروع في Steel Studio، المصروفات التراكمية، مستحقات الاستوديو، وسحوبات الاستوديو المخصومة تلقائياً.
               </p>
             </div>
             <div class="flex flex-wrap gap-3 mt-6">
@@ -727,23 +754,23 @@
                 المشاريع والبنود
               </button>
               <button onclick="switchTab('accounts')" class="px-5 py-2.5 rounded-full bg-white/12 hover:bg-white/20 text-white font-extrabold text-xs cursor-pointer">
-                الحسابات وسحوبات المكتب
+                الحسابات وسحوبات الاستوديو
               </button>
             </div>
           </div>
 
           <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-[32px] p-6 flex flex-col justify-between shadow-2xs">
             <div>
-              <span class="text-xs font-extrabold text-[#7A6457]">صافي الرصيد المتاح بالمكتب (بعد خصم سحوبات المكتب)</span>
+              <span class="text-xs font-extrabold text-[#7A6457]">صافي الرصيد المتاح بالاستوديو (بعد خصم السحوبات)</span>
               <p class="text-2xl sm:text-3xl font-black text-[#2D1B14] mt-1.5">${canSeeFinance() ? formatEGP(netBalance) : '---'}</p>
             </div>
             <div class="space-y-2 text-xs pt-4 mt-4 border-t border-[#E6D9CC]">
               <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">إجمالي المصروف الفعلي:</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(totalSpent)}</strong></div>
               <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">إجمالي دفعات العملاء:</span><strong class="text-[#7E5238] font-extrabold">${canSeeFinance() ? formatEGP(totalPayments) : '---'}</strong></div>
               ${canSeeFinance() ? `
-              <div class="flex justify-between items-center pt-2 border-t border-[#E6D9CC]"><span class="text-[#A85438] font-bold">نسبة المكتب المستحقة:</span><strong class="text-[#A85438] font-extrabold">${formatEGP(totalOfficeEarned)}</strong></div>
-              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">تم سحبه للمكتب (مخصوم من الرصيد):</span><strong class="text-rose-800 font-extrabold">-${formatEGP(totalOfficeWithdrawn)}</strong></div>
-              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">المتبقي للمكتب:</span><strong class="text-[#2D1B14] font-black">${formatEGP(officeRemaining)}</strong></div>
+              <div class="flex justify-between items-center pt-2 border-t border-[#E6D9CC]"><span class="text-[#A85438] font-bold">نسبة Steel Studio المستحقة:</span><strong class="text-[#A85438] font-extrabold">${formatEGP(totalOfficeEarned)}</strong></div>
+              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">تم سحبه للاستوديو (مخصوم من الرصيد):</span><strong class="text-rose-800 font-extrabold">-${formatEGP(totalOfficeWithdrawn)}</strong></div>
+              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">المتبقي للاستوديو:</span><strong class="text-[#2D1B14] font-black">${formatEGP(officeRemaining)}</strong></div>
               ` : ''}
             </div>
           </div>
@@ -1023,22 +1050,16 @@
             <div class="flex flex-wrap items-center gap-2">
               <button onclick="openEditProjectModal('${project.id}')"
                 class="px-4 py-2 rounded-full bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] border border-[#DFD2C5] font-extrabold text-xs cursor-pointer">
-                تعديل بيانات المشروع والنسبة
-              </button>
-              <button onclick="sendProjectSummaryWhatsApp('${project.id}')"
-                class="px-4 py-2 rounded-full bg-[#3A6B4C] hover:bg-[#2E553C] text-white font-extrabold text-xs cursor-pointer shadow-2xs">
-                ملخص واتساب للعميل
+                تعديل بيانات المشروع
               </button>
               <button onclick="openClientStatementModal('${project.id}')"
-                class="px-4 py-2 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs cursor-pointer shadow-2xs">
-                تصدير مستخلص للعميل (PDF)
+                class="px-4 py-2 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] font-extrabold text-xs cursor-pointer">
+                مستخلص للعميل (PDF)
               </button>
-              ${canSeeFinance() ? `
-                <button onclick="openOfficeWithdrawModal('${project.id}', '${project.name.replace(/'/g, '')}')"
-                  class="px-4 py-2 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] font-extrabold text-xs cursor-pointer">
-                  + تسجيل سحب للمكتب
-                </button>` : ''}
-              <span class="px-3.5 py-1.5 rounded-full bg-[#A85438]/15 text-[#A85438] font-black text-xs">الإنجاز: ${f.progress}%</span>
+              <button onclick="sendProjectSummaryWhatsApp('${project.id}')"
+                class="px-4 py-2 rounded-full bg-[#3A6B4C] hover:bg-[#2E553C] text-white font-extrabold text-xs cursor-pointer">
+                تحديث للعميل واتساب
+              </button>
             </div>
           </div>
 
@@ -2548,16 +2569,9 @@
         <div class="space-y-6 text-right" dir="rtl">
           <!-- ترويسة المكتب الهندسي -->
           <div class="flex flex-wrap items-start justify-between gap-4 pb-5 border-b-2 border-[#2D1B14]">
-            <div class="flex items-center gap-3.5">
-              <div class="w-12 h-12 rounded-2xl bg-[#2D1B14] text-[#FAF6F2] flex items-center justify-center shrink-0">
-                <svg class="w-6 h-6 text-[#D48C70]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M6 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v18" /><path d="M2 22h20" /><path d="M10 7h4M10 11h4M10 15h4" />
-                </svg>
-              </div>
-              <div>
-                <h2 class="text-xl font-black text-[#2D1B14]">مكتب التشطيبات الهندسي</h2>
-                <p class="text-xs font-bold text-[#A85438]">التصميم المعماري والتشطيبات المتكاملة</p>
-              </div>
+            <div>
+              <h2 class="text-xl font-black tracking-wider text-[#2D1B14]" dir="ltr">STEEL STUDIO</h2>
+              <p class="text-xs font-bold text-[#A85438]">التصميم المعماري والتشطيبات المتكاملة</p>
             </div>
             <div class="text-left text-xs space-y-1">
               <span class="inline-block px-3 py-1 rounded-full bg-[#EFE6DD] text-[#2D1B14] font-black">
@@ -2668,7 +2682,7 @@
 
           <!-- التذييل والتوقيع -->
           <div class="pt-4 border-t border-[#E6D9CC] flex justify-between items-center text-[11px] text-[#7A6457] font-bold">
-            <span>حُرر هذا المستخلص آلياً من نظام إدارة مكتب التشطيبات • جميع المبالغ بالجنيه المصري (ج.م)</span>
+            <span>حُرر هذا المستخلص آلياً من نظام إدارة Steel Studio • جميع المبالغ بالجنيه المصري (ج.م)</span>
             <span>توقيع الإدارة الهندسية: ..............................</span>
           </div>
         </div>
@@ -3035,7 +3049,7 @@
       shell.classList.add('flex');
 
       const name = STATE.profile?.full_name || (isMainAdmin() ? 'م. عمر رضا' : STATE.session?.user?.email || 'مستخدم');
-      const role = isMainAdmin() ? 'مدير المكتب' : STATE.profile?.role === 'accountant' ? 'محاسب' : 'مهندس موقع';
+      const role = isMainAdmin() ? 'مدير Steel Studio' : STATE.profile?.role === 'accountant' ? 'محاسب' : 'مهندس موقع';
       const initial = name.replace(/^م\.\s*/, '').charAt(0) || 'م';
 
       document.getElementById('sidebar-user-name').textContent = name;
