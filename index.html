@@ -313,6 +313,94 @@
       return `${(Number(val) || 0).toLocaleString('ar-EG')} ج.م`;
     }
 
+    function formatEgyptianWhatsApp(phone) {
+      const digits = String(phone || '').replace(/\D/g, '');
+      if (!digits) return '';
+      if (digits.startsWith('20')) return digits;
+      if (digits.startsWith('0')) return '2' + digits;
+      return digits;
+    }
+
+    function openWhatsAppUrl(phone, message) {
+      const wa = formatEgyptianWhatsApp(phone);
+      const encoded = encodeURIComponent(message);
+      const url = wa ? `https://wa.me/${wa}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    function sendPaymentWhatsApp(payId) {
+      const pay = STATE.payments.find((p) => p.id === payId);
+      if (!pay) return;
+      const proj = STATE.projects.find((p) => p.id === pay.project_id);
+      if (!proj) return;
+      const f = computeFinancials(proj);
+      const clientBalance = f.paymentsTotal - f.totalSpent;
+      const statusLine = clientBalance >= 0
+        ? `• الرصيد المتاح حالياً في حساب المشروع: ${formatEGP(clientBalance)}`
+        : `• صافي المبلغ المستحق على العميل حالياً: ${formatEGP(Math.abs(clientBalance))}`;
+
+      const msg = [
+        `السلام عليكم أستاذ / ${proj.client_name}،`,
+        `تحية طيبة من *مكتب التشطيبات الهندسي*.`,
+        ``,
+        `نؤكد لحضرتكم استلام دفعة مالية خاصة بمشروع (*${proj.name}*):`,
+        `• قيمة الدفعة المستلمة: *${formatEGP(pay.amount)}*`,
+        `• تاريخ الاستلام: ${pay.payment_date}`,
+        `• طريقة السداد: ${PAYMENT_METHOD_AR[pay.payment_method] || pay.payment_method}${pay.receipt_number ? ` (إيصال رقم: ${pay.receipt_number})` : ''}`,
+        `• إجمالي الدفعات المسددة حتى تاريخه: ${formatEGP(f.paymentsTotal)}`,
+        `• إجمالي الأعمال المنفذة حتى تاريخه: ${formatEGP(f.totalSpent)}`,
+        statusLine,
+        ``,
+        `شاكرين ثقتكم الغالية.`
+      ].join('\n');
+
+      openWhatsAppUrl(proj.client_phone, msg);
+    }
+
+    function sendDailyReportWhatsApp(reportId) {
+      const rep = STATE.reports.find((r) => r.id === reportId);
+      if (!rep) return;
+      const proj = STATE.projects.find((p) => p.id === rep.project_id);
+      if (!proj) return;
+      const f = computeFinancials(proj);
+
+      const msg = [
+        `السلام عليكم أستاذ / ${proj.client_name}،`,
+        `تقرير المتابعة اليومي من موقع مشروع (*${proj.name}*) بتاريخ *${rep.report_date}*:`,
+        ``,
+        `• نسبة الإنجاز الإجمالية للمشروع: *${f.progress}%*`,
+        `• ما تم تنفيذه اليوم: ${rep.work_done}`,
+        rep.obstacles ? `• ملاحظات الموقع: ${rep.obstacles}` : '',
+        ``,
+        `مع تحيات الإدارة الهندسية — *مكتب التشطيبات*.`
+      ].filter(Boolean).join('\n');
+
+      openWhatsAppUrl(proj.client_phone, msg);
+    }
+
+    function sendProjectSummaryWhatsApp(projectId) {
+      const proj = STATE.projects.find((p) => p.id === projectId);
+      if (!proj) return;
+      const f = computeFinancials(proj);
+      const clientBalance = f.paymentsTotal - f.totalSpent;
+
+      const msg = [
+        `السلام عليكم أستاذ / ${proj.client_name}،`,
+        `ملخص الموقف التنفيذي والمالي لمشروع (*${proj.name}*):`,
+        ``,
+        `• نسبة الإنجاز الحالية: *${f.progress}%*`,
+        `• إجمالي الدفعات المسددة: ${formatEGP(f.paymentsTotal)}`,
+        `• إجمالي تكلفة الأعمال المنفذة: ${formatEGP(f.totalSpent)}`,
+        clientBalance >= 0
+          ? `• الرصيد المتاح حالياً: *${formatEGP(clientBalance)}*`
+          : `• المتبقي المطلوب سداده: *${formatEGP(Math.abs(clientBalance))}*`,
+        ``,
+        `مع تحيات *مكتب التشطيبات الهندسي*.`
+      ].join('\n');
+
+      openWhatsAppUrl(proj.client_phone, msg);
+    }
+
     function showToast(msg, type = 'success') {
       const box = document.getElementById('toast-container');
       if (!box) return;
@@ -928,11 +1016,19 @@
               </button>
               <div>
                 <h3 class="text-lg sm:text-xl font-black text-[#2D1B14]">${project.name}</h3>
-                <p class="text-xs text-[#7A6457] font-semibold">العميل: ${project.client_name} • ${project.address || ''}</p>
+                <p class="text-xs text-[#7A6457] font-semibold">العميل: ${project.client_name} • ${project.address || ''} • نسبة المكتب: <strong class="text-[#A85438]">${f.officePct}%</strong></p>
               </div>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
+              <button onclick="openEditProjectModal('${project.id}')"
+                class="px-4 py-2 rounded-full bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] border border-[#DFD2C5] font-extrabold text-xs cursor-pointer">
+                تعديل بيانات المشروع والنسبة
+              </button>
+              <button onclick="sendProjectSummaryWhatsApp('${project.id}')"
+                class="px-4 py-2 rounded-full bg-[#3A6B4C] hover:bg-[#2E553C] text-white font-extrabold text-xs cursor-pointer shadow-2xs">
+                ملخص واتساب للعميل
+              </button>
               <button onclick="openClientStatementModal('${project.id}')"
                 class="px-4 py-2 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs cursor-pointer shadow-2xs">
                 تصدير مستخلص للعميل (PDF)
@@ -1073,9 +1169,19 @@
                     <div class="pt-2 border-t border-[#E6D9CC] space-y-1.5 text-xs">
                       <p class="font-extrabold text-[#5C4438]">سجل الحركات التراكمية (${txs.length}):</p>
                       ${txs.map((t) => `
-                        <div class="flex justify-between items-center bg-white px-3.5 py-2 rounded-xl border border-[#DFD2C5]">
+                        <div class="flex flex-wrap justify-between items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-[#DFD2C5]">
                           <span class="font-semibold text-[#2D1B14]">[${t.cost_type === 'materials' ? 'خامات' : t.cost_type === 'labor' ? 'مصنعية' : 'تشوين'}] ${t.description || ''}</span>
-                          <span class="font-extrabold text-[#A85438]">${formatEGP(t.amount)} • <span class="text-[#7A6457] font-normal">${t.transaction_date}</span></span>
+                          <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-[#A85438]">${formatEGP(t.amount)} • <span class="text-[#7A6457] font-normal">${t.transaction_date}</span></span>
+                            <button onclick="openEditTxModal('${t.id}')" title="تعديل الحركة"
+                              class="px-2.5 py-1 rounded-lg bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] font-bold text-[11px] cursor-pointer">
+                              تعديل
+                            </button>
+                            <button onclick="openConfirmDeleteModal('حذف حركة تكلفة', 'هل أنت متأكد من حذف هذه الحركة (${formatEGP(t.amount)})؟ سيتم خصمها من إجمالي البند والرصيد.', () => deleteItemTx('${t.id}'))" title="حذف الحركة"
+                              class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[11px] cursor-pointer">
+                              حذف
+                            </button>
+                          </div>
                         </div>`).join('')}
                     </div>` : ''}
                 </div>`;
@@ -1109,9 +1215,15 @@
             <div class="lg:col-span-2 space-y-3">
               ${pReports.length ? pReports.map((r) => `
                 <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-2 text-xs">
-                  <div class="flex justify-between items-center pb-2 border-b border-[#E6D9CC]">
+                  <div class="flex flex-wrap justify-between items-center gap-2 pb-2 border-b border-[#E6D9CC]">
                     <span class="px-3 py-1 rounded-full bg-[#2D1B14] text-[#FAF6F2] font-extrabold">${r.report_date}</span>
-                    <span class="font-extrabold text-[#A85438]">عدد العمال: ${r.workers_count}</span>
+                    <div class="flex items-center gap-2">
+                      <span class="font-extrabold text-[#A85438]">عدد العمال: ${r.workers_count}</span>
+                      <button onclick="sendDailyReportWhatsApp('${r.id}')"
+                        class="px-3 py-1 rounded-full bg-[#3A6B4C] hover:bg-[#2E553C] text-white font-extrabold text-[11px] cursor-pointer">
+                        إرسال للعميل واتساب
+                      </button>
+                    </div>
                   </div>
                   <p class="text-sm font-bold text-[#2D1B14] leading-relaxed">${r.work_done}</p>
                   ${r.obstacles ? `<p class="text-rose-800 bg-rose-50 p-2.5 rounded-xl">المعوقات: ${r.obstacles}</p>` : ''}
@@ -1443,6 +1555,454 @@
     }
 
     // =========================================================================
+    // 6.5 تعديل بيانات المشروع، وتعديل/حذف الحركات والدفعات والسحوبات
+    // =========================================================================
+    function openConfirmDeleteModal(title, message, onConfirmFn) {
+      window._pendingDeleteAction = onConfirmFn;
+      openModal(`
+        <div class="space-y-4 text-xs">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+            <h4 class="font-black text-sm text-rose-900">${title}</h4>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+          </div>
+          <p class="text-sm font-bold text-[#2D1B14] leading-relaxed">${message}</p>
+          <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
+            <button type="button" onclick="executePendingDelete()" class="px-5 py-2 rounded-full bg-rose-700 hover:bg-rose-800 text-white font-extrabold cursor-pointer">تأكيد الحذف</button>
+          </div>
+        </div>
+      `);
+    }
+
+    async function executePendingDelete() {
+      const fn = window._pendingDeleteAction;
+      window._pendingDeleteAction = null;
+      closeModal();
+      if (typeof fn === 'function') await fn();
+    }
+
+    function openEditProjectModal(projectId) {
+      const proj = STATE.projects.find((p) => p.id === projectId);
+      if (!proj) return;
+      const pct = getProjectOfficePct(proj);
+
+      openModal(`
+        <div class="space-y-4 text-xs">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+            <div>
+              <h4 class="font-black text-sm text-[#2D1B14]">تعديل بيانات المشروع ونسبة المكتب</h4>
+              <p class="text-[#A85438] font-bold">${proj.name}</p>
+            </div>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+          </div>
+
+          <form onsubmit="submitEditProject(event, '${proj.id}')" class="space-y-3">
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">اسم المشروع *</label>
+              <input id="ep-name" type="text" required value="${proj.name || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-semibold" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">اسم العميل *</label>
+                <input id="ep-client" type="text" required value="${proj.client_name || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-semibold" />
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">هاتف العميل</label>
+                <input id="ep-phone" type="text" value="${proj.client_phone || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-semibold" />
+              </div>
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">العنوان</label>
+              <input id="ep-address" type="text" value="${proj.address || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-semibold" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">قيمة العقد (ج.م)</label>
+                <input id="ep-contract" type="number" min="0" value="${Number(proj.contract_value) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#A85438] mb-1">نسبة المكتب (%)</label>
+                <input id="ep-pct" type="number" min="0" max="100" step="0.5" value="${pct}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#A85438] font-black text-[#A85438]" />
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">مرحلة التنفيذ</label>
+                <select id="ep-stage" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                  ${Object.entries(STAGE_AR).map(([k, v]) => `<option value="${k}" ${proj.visual_stage === k ? 'selected' : ''}>${v}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">تكلفة التصميمات 3D</label>
+                <input id="ep-3d" type="number" min="0" value="${Number(proj.design_3d_cost) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">تكلفة المخططات</label>
+                <input id="ep-plans" type="number" min="0" value="${Number(proj.execution_plans_cost) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-6 py-2 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ التعديلات</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitEditProject(e, projectId) {
+      e.preventDefault();
+      if (!sb) return;
+      const pct = Number(document.getElementById('ep-pct').value) || 0;
+      const patch = {
+        name: document.getElementById('ep-name').value.trim(),
+        client_name: document.getElementById('ep-client').value.trim(),
+        client_phone: document.getElementById('ep-phone').value.trim(),
+        address: document.getElementById('ep-address').value.trim(),
+        contract_value: Number(document.getElementById('ep-contract').value) || 0,
+        visual_stage: document.getElementById('ep-stage').value,
+        design_3d_cost: Number(document.getElementById('ep-3d').value) || 0,
+        execution_plans_cost: Number(document.getElementById('ep-plans').value) || 0
+      };
+
+      saveLocalPct(projectId, pct);
+
+      try {
+        const { error } = await sb.from('projects').update(patch).eq('id', projectId);
+        if (error) throw error;
+        await sb.from('projects').update({ office_percentage: pct }).eq('id', projectId);
+
+        closeModal();
+        await refreshAllData();
+        showToast('تم حفظ تعديلات المشروع ونسبة المكتب بنجاح.');
+      } catch (err) {
+        showToast(translateError(err, 'تعذر حفظ تعديلات المشروع.'), 'error');
+      }
+    }
+
+    // إعادة حساب إجماليات البند بدقة بعد تعديل أو حذف أي حركة تكلفة
+    async function recalculateItemTotals(itemId) {
+      if (!sb || !itemId) return;
+      const { data: allTxs } = await sb
+        .from('item_cost_transactions')
+        .select('cost_type, amount')
+        .eq('item_id', itemId);
+
+      if (Array.isArray(allTxs)) {
+        let materials_cost = 0;
+        let labor_cost = 0;
+        let staging_cost = 0;
+        allTxs.forEach((t) => {
+          const v = Number(t.amount) || 0;
+          if (t.cost_type === 'materials') materials_cost += v;
+          else if (t.cost_type === 'labor') labor_cost += v;
+          else if (t.cost_type === 'staging') staging_cost += v;
+        });
+        await sb.from('project_items').update({
+          materials_cost,
+          labor_cost,
+          staging_cost
+        }).eq('id', itemId);
+      }
+    }
+
+    function openEditTxModal(txId) {
+      const tx = STATE.transactions.find((t) => t.id === txId);
+      if (!tx) return;
+      openModal(`
+        <div class="space-y-4 text-xs">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+            <h4 class="font-black text-sm text-[#2D1B14]">تعديل حركة التكلفة التراكمية</h4>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+          </div>
+          <form onsubmit="submitEditTx(event, '${tx.id}', '${tx.item_id}')" class="space-y-3">
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">نوع التكلفة</label>
+              <select id="etx-type" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                <option value="materials" ${tx.cost_type === 'materials' ? 'selected' : ''}>خامات</option>
+                <option value="labor" ${tx.cost_type === 'labor' ? 'selected' : ''}>مصنعية</option>
+                <option value="staging" ${tx.cost_type === 'staging' ? 'selected' : ''}>تشوين</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ (ج.م) *</label>
+              <input id="etx-amount" type="number" required min="1" value="${Number(tx.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">التاريخ</label>
+              <input id="etx-date" type="date" value="${tx.transaction_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">البيان / الوصف</label>
+              <input id="etx-desc" type="text" value="${tx.description || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#A85438] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitEditTx(e, txId, itemId) {
+      e.preventDefault();
+      if (!sb) return;
+      try {
+        const { error } = await sb.from('item_cost_transactions').update({
+          cost_type: document.getElementById('etx-type').value,
+          amount: Number(document.getElementById('etx-amount').value),
+          transaction_date: document.getElementById('etx-date').value,
+          description: document.getElementById('etx-desc').value.trim()
+        }).eq('id', txId);
+        if (error) throw error;
+
+        await recalculateItemTotals(itemId);
+        closeModal();
+        await refreshAllData();
+        showToast('تم تعديل حركة التكلفة وإعادة احتساب إجمالي البند.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function deleteItemTx(txId) {
+      if (!sb) return;
+      const tx = STATE.transactions.find((t) => t.id === txId);
+      const itemId = tx?.item_id;
+      try {
+        const { error } = await sb.from('item_cost_transactions').delete().eq('id', txId);
+        if (error) throw error;
+
+        if (itemId) await recalculateItemTotals(itemId);
+        await refreshAllData();
+        showToast('تم حذف الحركة وتحديث إجمالي البند والرصيد.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    function openEditExpenseModal(expId) {
+      const exp = STATE.expenses.find((x) => x.id === expId);
+      if (!exp) return;
+      openModal(`
+        <div class="space-y-4 text-xs">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+            <h4 class="font-black text-sm text-[#2D1B14]">تعديل مصروف عام</h4>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+          </div>
+          <form onsubmit="submitEditExpense(event, '${exp.id}')" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">النوع</label>
+                <select id="eexp-cat" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                  ${Object.entries(EXPENSE_CAT_AR).map(([k, v]) => `<option value="${k}" ${exp.category === k ? 'selected' : ''}>${v}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ (ج.م) *</label>
+                <input id="eexp-amount" type="number" required min="1" value="${Number(exp.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+              </div>
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">الوصف *</label>
+              <input id="eexp-desc" type="text" required value="${exp.description || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">التاريخ</label>
+              <input id="eexp-date" type="date" value="${exp.expense_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#A85438] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitEditExpense(e, expId) {
+      e.preventDefault();
+      if (!sb) return;
+      try {
+        const { error } = await sb.from('general_expenses').update({
+          category: document.getElementById('eexp-cat').value,
+          amount: Number(document.getElementById('eexp-amount').value),
+          description: document.getElementById('eexp-desc').value.trim(),
+          expense_date: document.getElementById('eexp-date').value
+        }).eq('id', expId);
+        if (error) throw error;
+        closeModal();
+        await refreshAllData();
+        showToast('تم تعديل المصروف العام وتحديث الرصيد.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function deleteExpense(expId) {
+      if (!sb) return;
+      try {
+        const { error } = await sb.from('general_expenses').delete().eq('id', expId);
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم حذف المصروف العام.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    function openEditPaymentModal(payId) {
+      const pay = STATE.payments.find((p) => p.id === payId);
+      if (!pay) return;
+      openModal(`
+        <div class="space-y-4 text-xs">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+            <h4 class="font-black text-sm text-[#2D1B14]">تعديل دفعة عميل</h4>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+          </div>
+          <form onsubmit="submitEditPayment(event, '${pay.id}')" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ (ج.م) *</label>
+                <input id="epay-amount" type="number" required min="1" value="${Number(pay.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">التاريخ</label>
+                <input id="epay-date" type="date" value="${pay.payment_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">طريقة الدفع</label>
+                <select id="epay-method" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                  ${Object.entries(PAYMENT_METHOD_AR).map(([k, v]) => `<option value="${k}" ${pay.payment_method === k ? 'selected' : ''}>${v}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">رقم الإيصال</label>
+                <input id="epay-receipt" type="text" value="${pay.receipt_number || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#A85438] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitEditPayment(e, payId) {
+      e.preventDefault();
+      if (!sb) return;
+      try {
+        const { error } = await sb.from('client_payments').update({
+          amount: Number(document.getElementById('epay-amount').value),
+          payment_date: document.getElementById('epay-date').value,
+          payment_method: document.getElementById('epay-method').value,
+          receipt_number: document.getElementById('epay-receipt').value.trim() || null
+        }).eq('id', payId);
+        if (error) throw error;
+        closeModal();
+        await refreshAllData();
+        showToast('تم تعديل دفعة العميل وتحديث الرصيد المتاح.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function deleteClientPayment(payId) {
+      if (!sb) return;
+      try {
+        const { error } = await sb.from('client_payments').delete().eq('id', payId);
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم حذف دفعة العميل.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    function openEditWithdrawalModal(wdId) {
+      const wd = STATE.officeWithdrawals.find((w) => w.id === wdId);
+      if (!wd) return;
+      openModal(`
+        <div class="space-y-4 text-xs">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+            <h4 class="font-black text-sm text-[#2D1B14]">تعديل سحب للمكتب</h4>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+          </div>
+          <form onsubmit="submitEditWithdrawal(event, '${wd.id}')" class="space-y-3">
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">القائم بالسحب</label>
+              <input id="ewd-by" type="text" required value="${wd.withdrawn_by || 'مهندس عمر'}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ المسحوب (ج.م) *</label>
+                <input id="ewd-amount" type="number" required min="1" value="${Number(wd.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">التاريخ</label>
+                <input id="ewd-date" type="date" value="${wd.withdrawal_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">ملاحظات</label>
+              <input id="ewd-notes" type="text" value="${wd.notes || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#2D1B14] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitEditWithdrawal(e, wdId) {
+      e.preventDefault();
+      const patch = {
+        withdrawn_by: document.getElementById('ewd-by').value.trim(),
+        amount: Number(document.getElementById('ewd-amount').value),
+        withdrawal_date: document.getElementById('ewd-date').value,
+        notes: document.getElementById('ewd-notes').value.trim()
+      };
+
+      const local = getLocalWithdrawals().map((w) => (w.id === wdId ? { ...w, ...patch } : w));
+      saveLocalWithdrawals(local);
+      STATE.officeWithdrawals = STATE.officeWithdrawals.map((w) => (w.id === wdId ? { ...w, ...patch } : w));
+
+      if (sb) {
+        try {
+          await sb.from('office_withdrawals').update(patch).eq('id', wdId);
+        } catch (_) {}
+      }
+
+      closeModal();
+      renderCurrentView();
+      await refreshAllData();
+      showToast('تم تعديل سحب المكتب وإعادة احتساب الرصيد المتاح.');
+    }
+
+    async function deleteOfficeWithdrawal(wdId) {
+      const local = getLocalWithdrawals().filter((w) => w.id !== wdId);
+      saveLocalWithdrawals(local);
+      STATE.officeWithdrawals = STATE.officeWithdrawals.filter((w) => w.id !== wdId);
+
+      if (sb) {
+        try {
+          await sb.from('office_withdrawals').delete().eq('id', wdId);
+        } catch (_) {}
+      }
+
+      renderCurrentView();
+      await refreshAllData();
+      showToast('تم حذف حركة السحب وإعادة المبلغ للرصيد المتاح.');
+    }
+
+    // =========================================================================
     // 7. صفحة الحسابات، المصروفات العامة، وسحوبات المكتب
     // =========================================================================
     function openOfficeWithdrawModal(projectId, projectName) {
@@ -1571,11 +2131,17 @@
                     <h4 class="font-black text-sm text-[#2D1B14]">${p.name}</h4>
                     <span class="text-[11px] text-[#7A6457]">نسبة المكتب: <strong class="text-[#A85438]">${f.officePct}%</strong></span>
                   </div>
-                  ${canSeeFinance() ? `
-                    <button onclick="openOfficeWithdrawModal('${p.id}', '${p.name.replace(/'/g, '')}')"
-                      class="px-3.5 py-1.5 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] text-[11px] font-extrabold cursor-pointer">
-                      + سحب للمكتب
-                    </button>` : ''}
+                  <div class="flex items-center gap-1.5">
+                    <button onclick="openEditProjectModal('${p.id}')"
+                      class="px-3 py-1.5 rounded-full bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] border border-[#DFD2C5] text-[11px] font-extrabold cursor-pointer">
+                      تعديل النسبة / العقد
+                    </button>
+                    ${canSeeFinance() ? `
+                      <button onclick="openOfficeWithdrawModal('${p.id}', '${p.name.replace(/'/g, '')}')"
+                        class="px-3.5 py-1.5 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] text-[11px] font-extrabold cursor-pointer">
+                        + سحب للمكتب
+                      </button>` : ''}
+                  </div>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
                   <div class="p-2.5 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] block">دفعات العميل</span><strong class="text-[#2D1B14] font-extrabold">${canSeeFinance() ? formatEGP(f.paymentsTotal) : '---'}</strong></div>
@@ -1638,7 +2204,7 @@
               <div class="overflow-x-auto">
                 <table class="w-full text-right text-xs">
                   <thead class="bg-[#EFE6DD] text-[#5C4438] font-extrabold">
-                    <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">النوع</th><th class="p-3.5">الوصف</th><th class="p-3.5">القيمة</th></tr>
+                    <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">النوع</th><th class="p-3.5">الوصف</th><th class="p-3.5">القيمة</th><th class="p-3.5 no-print">إجراءات</th></tr>
                   </thead>
                   <tbody class="divide-y divide-[#E6D9CC]">
                     ${filteredExpenses.length ? filteredExpenses.map((e) => `
@@ -1648,7 +2214,11 @@
                         <td class="p-3.5 text-[#5C4438]">${EXPENSE_CAT_AR[e.category] || e.category}</td>
                         <td class="p-3.5 text-[#2D1B14]">${e.description}</td>
                         <td class="p-3.5 font-black text-[#A85438] whitespace-nowrap">${formatEGP(e.amount)}</td>
-                      </tr>`).join('') : '<tr><td colspan="5" class="p-8 text-center text-[#7A6457] font-bold">لا توجد مصروفات عامة مسجلة.</td></tr>'}
+                        <td class="p-3.5 whitespace-nowrap no-print">
+                          <button onclick="openEditExpenseModal('${e.id}')" class="px-2.5 py-1 rounded-lg bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] font-bold text-[11px] cursor-pointer">تعديل</button>
+                          <button onclick="openConfirmDeleteModal('حذف مصروف عام', 'هل أنت متأكد من حذف هذا المصروف (${formatEGP(e.amount)})؟', () => deleteExpense('${e.id}'))" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[11px] cursor-pointer">حذف</button>
+                        </td>
+                      </tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-[#7A6457] font-bold">لا توجد مصروفات عامة مسجلة.</td></tr>'}
                   </tbody>
                 </table>
               </div>
@@ -1663,7 +2233,7 @@
               <div class="overflow-x-auto">
                 <table class="w-full text-right text-xs">
                   <thead class="bg-[#EFE6DD] text-[#5C4438] font-extrabold">
-                    <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">القائم بالسحب</th><th class="p-3.5">ملاحظات</th><th class="p-3.5">المبلغ</th></tr>
+                    <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">القائم بالسحب</th><th class="p-3.5">ملاحظات</th><th class="p-3.5">المبلغ</th><th class="p-3.5 no-print">إجراءات</th></tr>
                   </thead>
                   <tbody class="divide-y divide-[#E6D9CC]">
                     ${filteredWithdrawals.length ? filteredWithdrawals.map((w) => `
@@ -1673,7 +2243,11 @@
                         <td class="p-3.5"><span class="px-2.5 py-0.5 rounded-lg bg-[#2D1B14] text-[#FAF6F2] font-bold">${w.withdrawn_by || 'مهندس عمر'}</span></td>
                         <td class="p-3.5 text-[#5C4438]">${w.notes || '-'}</td>
                         <td class="p-3.5 font-black text-rose-800 whitespace-nowrap">-${formatEGP(w.amount)}</td>
-                      </tr>`).join('') : '<tr><td colspan="5" class="p-8 text-center text-[#7A6457] font-bold">لا توجد سحوبات مسجلة للمكتب حتى الآن.</td></tr>'}
+                        <td class="p-3.5 whitespace-nowrap no-print">
+                          <button onclick="openEditWithdrawalModal('${w.id}')" class="px-2.5 py-1 rounded-lg bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] font-bold text-[11px] cursor-pointer">تعديل</button>
+                          <button onclick="openConfirmDeleteModal('حذف سحب للمكتب', 'هل أنت متأكد من حذف حركة السحب (${formatEGP(w.amount)})؟ سيعود المبلغ للرصيد المتاح.', () => deleteOfficeWithdrawal('${w.id}'))" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[11px] cursor-pointer">حذف</button>
+                        </td>
+                      </tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-[#7A6457] font-bold">لا توجد سحوبات مسجلة للمكتب حتى الآن.</td></tr>'}
                   </tbody>
                 </table>
               </div>
@@ -1751,7 +2325,7 @@
             <div class="overflow-x-auto">
               <table class="w-full text-right text-xs">
                 <thead class="bg-[#EFE6DD] text-[#5C4438] font-extrabold">
-                  <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">الطريقة</th><th class="p-3.5">الإيصال</th><th class="p-3.5">المبلغ</th></tr>
+                  <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">الطريقة</th><th class="p-3.5">الإيصال</th><th class="p-3.5">المبلغ</th><th class="p-3.5">إجراءات</th></tr>
                 </thead>
                 <tbody class="divide-y divide-[#E6D9CC]">
                   ${STATE.payments.length ? STATE.payments.map((pay) => `
@@ -1761,7 +2335,15 @@
                       <td class="p-3.5 text-[#5C4438]">${PAYMENT_METHOD_AR[pay.payment_method] || pay.payment_method}</td>
                       <td class="p-3.5 text-[#7A6457]">${pay.receipt_number || '-'}</td>
                       <td class="p-3.5 font-black text-[#A85438]">${formatEGP(pay.amount)}</td>
-                    </tr>`).join('') : '<tr><td colspan="5" class="p-8 text-center text-[#7A6457] font-bold">لا توجد دفعات عملاء مسجلة.</td></tr>'}
+                      <td class="p-3.5 whitespace-nowrap space-x-1 space-x-reverse">
+                        <button onclick="sendPaymentWhatsApp('${pay.id}')" title="إرسال إيصال وتفاصيل الرصيد عبر واتساب"
+                          class="px-2.5 py-1 rounded-lg bg-[#3A6B4C] hover:bg-[#2E553C] text-white font-bold text-[11px] cursor-pointer">
+                          واتساب
+                        </button>
+                        <button onclick="openEditPaymentModal('${pay.id}')" class="px-2.5 py-1 rounded-lg bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] font-bold text-[11px] cursor-pointer">تعديل</button>
+                        <button onclick="openConfirmDeleteModal('حذف دفعة عميل', 'هل أنت متأكد من حذف دفعة العميل (${formatEGP(pay.amount)})؟', () => deleteClientPayment('${pay.id}'))" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[11px] cursor-pointer">حذف</button>
+                      </td>
+                    </tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-[#7A6457] font-bold">لا توجد دفعات عملاء مسجلة.</td></tr>'}
                 </tbody>
               </table>
             </div>
