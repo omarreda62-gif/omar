@@ -183,7 +183,9 @@
     const DEFAULT_BOQ = [
       'المباني والتعديلات المعمارية',
       'العزل المائي والحراري',
-      'تأسيس السباكة والكهرباء والتكييف',
+      'أعمال السباكة وتأسيس الصرف والتغذية',
+      'أعمال الكهرباء والتيار الخفيف',
+      'أعمال التكييف والتهوية',
       'المحارة (اللياسة)',
       'النجارة والحلوق',
       'الجبس بورد والأسقف المعلقة',
@@ -860,7 +862,7 @@
             <div class="flex items-center justify-between pb-3.5 border-b border-[#E6D9CC] mb-4">
               <div>
                 <h3 class="text-base font-black text-[#2D1B14]">إضافة مشروع جديد</h3>
-                <p class="text-xs text-[#A85438] font-bold">يتم إنشاء البنود الـ 9 الأساسية تلقائياً</p>
+                <p class="text-xs text-[#A85438] font-bold">يتم إنشاء البنود الـ 11 الأساسية تلقائياً (السباكة والكهرباء والتكييف منفصلة)</p>
               </div>
               <button onclick="closeModal()" class="w-9 h-9 rounded-xl bg-[#EFE6DD] hover:bg-[#DFD2C5] text-[#2D1B14] font-bold cursor-pointer">✕</button>
             </div>
@@ -977,7 +979,7 @@
 
         if (created?.id) {
           setLocalOfficePct(created.id, officePct);
-          const { data: existing } = await sb.from('project_items').select('id').eq('project_id', created.id);
+          const { data: existing } = await sb.from('project_items').select('*').eq('project_id', created.id);
           if (!existing || existing.length === 0) {
             await sb.from('project_items').insert(
               DEFAULT_BOQ.map((title, idx) => ({
@@ -987,16 +989,85 @@
                 is_default_item: true
               }))
             );
+          } else {
+            await splitCombinedMepItemIfNeeded(created.id, existing);
           }
         }
         closeModal();
         await refreshAllData();
-        showToast(`تم إنشاء المشروع (بنسبة مكتب ${officePct}%) وتوليد البنود الـ 9 بنجاح!`);
+        showToast(`تم إنشاء المشروع (بنسبة مكتب ${officePct}%) وتوليد البنود الـ 11 بنجاح!`);
       } catch (err) {
         showToast(translateError(err, 'تعذر حفظ المشروع، تأكد من البيانات.'), 'error');
       } finally {
         btn.disabled = false;
         btn.textContent = 'حفظ المشروع';
+      }
+    }
+
+    async function splitCombinedMepItemIfNeeded(projectId, existingItems) {
+      if (!sb || !Array.isArray(existingItems)) return false;
+      const combined = existingItems.find((it) =>
+        (it.title || '').includes('تأسيس السباكة والكهرباء والتكييف')
+      );
+      if (!combined) return false;
+
+      const baseOrder = Number(combined.sort_order) || 3;
+      const itemsAfter = existingItems.filter((it) => (Number(it.sort_order) || 0) > baseOrder);
+
+      await sb
+        .from('project_items')
+        .update({ title: 'أعمال السباكة وتأسيس الصرف والتغذية' })
+        .eq('id', combined.id);
+
+      for (const it of itemsAfter) {
+        await sb
+          .from('project_items')
+          .update({ sort_order: (Number(it.sort_order) || 0) + 2 })
+          .eq('id', it.id);
+      }
+
+      await sb.from('project_items').insert([
+        {
+          project_id: projectId,
+          title: 'أعمال الكهرباء والتيار الخفيف',
+          sort_order: baseOrder + 1,
+          is_default_item: true
+        },
+        {
+          project_id: projectId,
+          title: 'أعمال التكييف والتهوية',
+          sort_order: baseOrder + 2,
+          is_default_item: true
+        }
+      ]);
+
+      return true;
+    }
+
+    async function splitAllExistingCombinedMepItems() {
+      if (!sb || !STATE.items.length) return;
+      const projectIdsWithCombined = [
+        ...new Set(
+          STATE.items
+            .filter((it) => (it.title || '').includes('تأسيس السباكة والكهرباء والتكييف'))
+            .map((it) => it.project_id)
+        )
+      ];
+      if (!projectIdsWithCombined.length) return;
+
+      let changed = false;
+      for (const pid of projectIdsWithCombined) {
+        const projItems = STATE.items.filter((it) => it.project_id === pid);
+        const didSplit = await splitCombinedMepItemIfNeeded(pid, projItems);
+        if (didSplit) changed = true;
+      }
+
+      if (changed) {
+        const { data: updatedItems } = await sb
+          .from('project_items')
+          .select('*')
+          .order('sort_order', { ascending: true });
+        if (updatedItems) STATE.items = updatedItems;
       }
     }
 
@@ -1062,6 +1133,9 @@
                       </div>
                       <button onclick="openCostModal('${project.id}', '${it.id}', '${it.title.replace(/'/g, '')}')"
                         class="px-4 py-2 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs shadow-xs cursor-pointer">+ إضافة تكلفة</button>
+                      ${total > 0 || txs.length > 0 ? `
+                      <button onclick="confirmResetItemCost('${project.id}', '${it.id}', '${it.title.replace(/'/g, '')}')"
+                        class="px-3.5 py-2 rounded-full bg-rose-50 hover:bg-rose-700 text-rose-800 hover:text-white border border-rose-200 font-extrabold text-xs transition-all cursor-pointer">تصفير البند</button>` : ''}
                     </div>
                   </div>
 
@@ -1078,7 +1152,11 @@
                       ${txs.map((t) => `
                         <div class="flex justify-between items-center text-xs bg-[#EFE6DD]/60 px-3.5 py-2 rounded-xl border border-[#DFD2C5]">
                           <span class="font-semibold text-[#2D1B14]">[${t.cost_type === 'materials' ? 'خامات' : t.cost_type === 'labor' ? 'مصنعية' : 'تشوين'}] ${t.description || ''}</span>
-                          <strong class="text-[#A85438] font-extrabold">${formatEGP(t.amount)} • <span class="text-[#7A6457] font-normal">${t.transaction_date}</span></strong>
+                          <div class="flex items-center gap-2">
+                            <strong class="text-[#A85438] font-extrabold">${formatEGP(t.amount)} • <span class="text-[#7A6457] font-normal">${t.transaction_date}</span></strong>
+                            <button onclick="deleteCostTransaction('${t.id}', '${it.id}')" title="حذف هذه الحركة"
+                              class="w-6 h-6 rounded-lg bg-rose-100 hover:bg-rose-700 text-rose-800 hover:text-white font-bold flex items-center justify-center transition-all cursor-pointer">✕</button>
+                          </div>
                         </div>`).join('')}
                     </div>` : ''}
                 </div>`;
@@ -1455,6 +1533,80 @@
         showToast('تمت إضافة التكلفة التراكمية وتحديث الإجمالي فوراً.');
       } catch (err) {
         showToast(translateError(err), 'error');
+      }
+    }
+
+    function confirmResetItemCost(projectId, itemId, itemTitle) {
+      document.getElementById('modal-root').innerHTML = `
+        <div class="fixed inset-0 z-50 bg-[#2D1B14]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl text-xs">
+            <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+              <h4 class="font-black text-sm text-rose-800">تأكيد تصفير تكاليف البند</h4>
+              <button onclick="closeModal()" class="w-9 h-9 rounded-xl bg-[#EFE6DD] text-[#2D1B14] font-bold cursor-pointer">✕</button>
+            </div>
+            <p class="text-sm font-bold text-[#2D1B14] leading-relaxed">
+              هل تريد تصفير جميع تكاليف وحركات بند <span class="text-[#A85438]">«${itemTitle}»</span> وإعادتها إلى <span class="font-black">0 ج.م</span>؟
+            </p>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-full bg-[#EFE6DD] text-[#2D1B14] font-bold cursor-pointer">إلغاء</button>
+              <button type="button" onclick="resetItemCost('${projectId}', '${itemId}')" class="px-6 py-2.5 rounded-full bg-rose-700 hover:bg-rose-800 text-white font-extrabold cursor-pointer">تأكيد التصفير</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    async function resetItemCost(projectId, itemId) {
+      if (!sb) return;
+      try {
+        await sb.from('item_cost_transactions').delete().eq('item_id', itemId);
+        await sb
+          .from('project_items')
+          .update({
+            materials_cost: 0,
+            labor_cost: 0,
+            staging_cost: 0,
+            total_cost: 0,
+            completion_percentage: 0
+          })
+          .eq('id', itemId);
+        closeModal();
+        await refreshAllData();
+        showToast('تم تصفير تكاليف البند وحركاته إلى 0 ج.م بنجاح.');
+      } catch (err) {
+        showToast(translateError(err, 'تعذر تصفير البند حالياً.'), 'error');
+      }
+    }
+
+    async function deleteCostTransaction(txId, itemId) {
+      if (!sb) return;
+      try {
+        await sb.from('item_cost_transactions').delete().eq('id', txId);
+        const { data: remainingTxs } = await sb
+          .from('item_cost_transactions')
+          .select('*')
+          .eq('item_id', itemId);
+
+        const list = remainingTxs || [];
+        const materials_cost = list
+          .filter((t) => t.cost_type === 'materials')
+          .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+        const labor_cost = list
+          .filter((t) => t.cost_type === 'labor')
+          .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+        const staging_cost = list
+          .filter((t) => t.cost_type === 'staging')
+          .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+        const total_cost = materials_cost + labor_cost + staging_cost;
+
+        await sb
+          .from('project_items')
+          .update({ materials_cost, labor_cost, staging_cost, total_cost })
+          .eq('id', itemId);
+
+        await refreshAllData();
+        showToast('تم حذف حركة التكلفة وإعادة احتساب إجمالي البند.');
+      } catch (err) {
+        showToast(translateError(err, 'تعذر حذف حركة التكلفة.'), 'error');
       }
     }
 
@@ -3072,6 +3224,7 @@
         if (!profRes.error && profRes.data) STATE.profiles = profRes.data;
         if (!projRes.error && projRes.data) STATE.projects = projRes.data;
         if (!itemsRes.error && itemsRes.data) STATE.items = itemsRes.data;
+        await splitAllExistingCombinedMepItems();
         if (!txRes.error && txRes.data) STATE.transactions = txRes.data;
         if (!payRes.error && payRes.data) STATE.payments = payRes.data;
         if (!expRes.error && expRes.data) STATE.expenses = expRes.data;
@@ -3113,6 +3266,19 @@
         if (data?.session) {
           STATE.session = data.session;
           await initAfterAuth();
+          const plumbingItem = STATE.items.find((it) => (it.title || '').includes('السباكة'));
+          if (plumbingItem) {
+            const total =
+              Number(plumbingItem.total_cost || 0) +
+              Number(plumbingItem.materials_cost || 0) +
+              Number(plumbingItem.labor_cost || 0) +
+              Number(plumbingItem.staging_cost || 0);
+            const hasTxs = STATE.transactions.some((t) => t.item_id === plumbingItem.id);
+            if (total > 0 || hasTxs || Number(plumbingItem.completion_percentage || 0) > 0) {
+              await resetItemCost(plumbingItem.project_id, plumbingItem.id);
+              openProject(plumbingItem.project_id, 'items');
+            }
+          }
           checkUpcomingAppointmentNotifications();
         } else {
           bootEl?.classList.add('hidden');
