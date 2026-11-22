@@ -3,189 +3,203 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>مكتب التشطيبات - نظام إدارة المشاريع والحسابات</title>
+  <title>مكتب التشطيبات • إدارة المشاريع والحسابات الهندسية</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      background-color: #F7F1EB;
-      color: #2D1B14;
-      margin: 0;
-      overflow-x: hidden;
-    }
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #EFE6DD;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #D5C5B6;
-      border-radius: 999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #A85438;
-    }
+    * { font-family: 'Cairo', sans-serif; }
+    body { background-color: #EFE6DD; color: #2D1B14; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #E6D9CC; }
+    ::-webkit-scrollbar-thumb { background: #B8A394; border-radius: 9999px; }
     @media print {
-      .no-print {
-        display: none !important;
-      }
-      body {
-        background: #ffffff !important;
-        color: #1A0E0B !important;
-      }
+      .no-print { display: none !important; }
+      body { background: #fff !important; }
     }
   </style>
 </head>
-<body class="min-h-screen bg-[#F7F1EB] text-[#2D1B14] selection:bg-[#A85438] selection:text-white">
+<body class="min-h-screen antialiased selection:bg-[#A85438] selection:text-white">
 
-  <!-- إشعارات عائمة -->
-  <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 max-w-sm w-full px-4 pointer-events-none"></div>
+  <!-- تنبيهات النظام العائمة -->
+  <div id="toast-container" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2.5 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 
-  <!-- شاشة تحميل سريعة -->
-  <div id="boot-screen" class="min-h-screen bg-[#F7F1EB] flex flex-col justify-center items-center p-4">
-    <div class="w-16 h-16 rounded-3xl bg-[#2D1B14] text-[#F7F1EB] shadow-xl shadow-[#2D1B14]/20 flex items-center justify-center animate-pulse border border-[#A85438]/30">
-      <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
+  <!-- نافذة منبثقة عامة -->
+  <div id="modal-backdrop" class="fixed inset-0 z-50 bg-[#2D1B14]/65 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
+    <div id="modal-box" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-[32px] max-w-xl w-full p-6 sm:p-7 shadow-2xl my-8 text-right"></div>
+  </div>
+
+  <!-- شاشة التحميل المبدئية -->
+  <div id="boot-screen" class="min-h-screen flex flex-col items-center justify-center p-6 bg-[#EFE6DD] text-center">
+    <div class="w-16 h-16 rounded-3xl bg-[#2D1B14] text-[#FAF6F2] flex items-center justify-center shadow-lg mb-4 animate-pulse">
+      <svg class="w-8 h-8 text-[#D48C70]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v18" /><path d="M2 22h20" /><path d="M10 7h4M10 11h4M10 15h4" />
       </svg>
     </div>
-    <p class="text-sm font-extrabold text-[#2D1B14] mt-4">جاري تجهيز مكتب التشطيبات...</p>
+    <h1 class="text-xl font-black text-[#2D1B14]">مكتب التشطيبات</h1>
+    <p class="text-xs font-bold text-[#7A6457] mt-1">جاري تهيئة مساحة العمل الهندسية...</p>
   </div>
 
   <!-- شاشة تسجيل الدخول -->
-  <div id="login-screen" class="hidden min-h-screen bg-[#F7F1EB] flex flex-col justify-center items-center p-4">
-    <div class="w-full max-w-md bg-[#EFE6DD] rounded-[36px] shadow-2xl shadow-[#2D1B14]/15 overflow-hidden border border-[#DFD2C5]">
-      <div class="bg-gradient-to-b from-[#3B231A] to-[#24140E] p-7 text-white relative overflow-hidden">
-        <div class="flex items-center justify-between mb-6">
-          <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl bg-[#A85438] border border-white/20 flex items-center justify-center text-white shadow-md">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
-              </svg>
-            </div>
-            <div>
-              <span class="text-base font-black block leading-tight text-[#FAF6F2]">مكتب التشطيبات</span>
-              <span class="text-[11px] text-[#D7B9A5] font-bold tracking-wider">INTERIORS &amp; SPACE</span>
-            </div>
+  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 sm:p-6 bg-[#EFE6DD]">
+    <div class="w-full max-w-5xl bg-[#FAF6F2] border border-[#DFD2C5] rounded-[36px] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+      <!-- اللوحة التعريفية الداكنة الدافئة -->
+      <div class="lg:col-span-5 bg-[#2D1B14] text-[#FAF6F2] p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden">
+        <div class="space-y-4 relative z-10">
+          <div class="w-14 h-14 rounded-2xl bg-[#A85438] flex items-center justify-center shadow-lg">
+            <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v18" /><path d="M2 22h20" /><path d="M10 7h4M10 11h4M10 15h4" />
+            </svg>
           </div>
-          <span class="text-xs font-extrabold px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-[#F3E2D5]">ج.م</span>
+          <span class="inline-block text-[11px] font-extrabold bg-white/10 text-[#E8B298] px-3.5 py-1 rounded-full">
+            نظام إدارة المكاتب الهندسية والتشطيبات
+          </span>
+          <h1 class="text-2xl sm:text-3xl font-black leading-snug">مكتب التشطيبات</h1>
+          <p class="text-xs sm:text-sm text-[#D8C7BA] leading-relaxed">
+            إدارة متكاملة للمشاريع، البنود الـ 11 التراكمية، مستحقات المكتب، تقارير الموقع اليومية، ودفعات العملاء بالجنيه المصري.
+          </p>
         </div>
 
-        <h1 class="text-2xl font-black leading-snug text-[#FAF6F2]">إدارة معمارية دافئة،<br/>وحسابات دقيقة لكل موقع</h1>
-        <p class="text-xs text-[#D7C4B6] mt-1.5">سجّل الدخول لمتابعة المشاريع والبنود والتقارير والدفعات بكل سلاسة.</p>
+        <div class="mt-8 pt-6 border-t border-white/10 space-y-2 text-xs text-[#C7B3A4]">
+          <div class="flex items-center justify-between">
+            <span>العملة المعتمدة</span>
+            <strong class="text-white">الجنيه المصري (ج.م)</strong>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>المزامنة الفورية</span>
+            <strong class="text-[#E8B298]">سحابة Supabase الحية</strong>
+          </div>
+        </div>
       </div>
 
-      <div class="bg-[#FAF6F2] rounded-tr-[36px] p-6 sm:p-8 text-[#2D1B14]">
-        <form id="login-form" class="space-y-4">
+      <!-- نموذج الدخول -->
+      <div class="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center">
+        <div class="max-w-md w-full mx-auto space-y-6">
           <div>
-            <label class="block text-xs font-extrabold text-[#5C4438] mb-1.5">البريد الإلكتروني</label>
-            <input id="login-email" type="email" required value="omarreda62@gmail.com" dir="ltr"
-              class="w-full px-4 py-3 rounded-2xl border border-[#DFD2C5] bg-white text-[#2D1B14] text-sm text-left font-semibold outline-none focus:border-[#A85438] focus:ring-4 focus:ring-[#A85438]/10 transition-all" />
+            <h2 class="text-xl sm:text-2xl font-black text-[#2D1B14]">تسجيل الدخول للمكتب</h2>
+            <p class="text-xs text-[#7A6457] font-semibold mt-1">أدخل بيانات حسابك للوصول إلى المشاريع والحسابات</p>
           </div>
-          <div>
-            <label class="block text-xs font-extrabold text-[#5C4438] mb-1.5">كلمة المرور</label>
-            <input id="login-password" type="password" required placeholder="••••••••" dir="ltr"
-              class="w-full px-4 py-3 rounded-2xl border border-[#DFD2C5] bg-white text-[#2D1B14] text-sm text-left font-semibold outline-none focus:border-[#A85438] focus:ring-4 focus:ring-[#A85438]/10 transition-all" />
-          </div>
-          <button id="login-btn" type="submit"
-            class="w-full py-3.5 px-5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-sm shadow-lg shadow-[#A85438]/30 flex items-center justify-between transition-all cursor-pointer">
-            <span>دخول إلى لوحة التحكم</span>
-            <span class="w-8 h-8 rounded-full bg-black/15 text-white flex items-center justify-center font-bold">←</span>
-          </button>
-        </form>
+
+          <form id="login-form" class="space-y-4">
+            <div>
+              <label class="block text-xs font-extrabold text-[#5C4438] mb-1.5">البريد الإلكتروني</label>
+              <input id="login-email" type="email" required value="omarreda62@gmail.com" dir="ltr"
+                class="w-full px-4 py-3.5 rounded-2xl bg-white border border-[#DFD2C5] text-sm text-left text-[#2D1B14] font-semibold outline-none focus:border-[#A85438]" />
+            </div>
+            <div>
+              <label class="block text-xs font-extrabold text-[#5C4438] mb-1.5">كلمة المرور</label>
+              <input id="login-password" type="password" required placeholder="••••••••" dir="ltr"
+                class="w-full px-4 py-3.5 rounded-2xl bg-white border border-[#DFD2C5] text-sm text-left text-[#2D1B14] font-semibold outline-none focus:border-[#A85438]" />
+            </div>
+            <button id="login-btn" type="submit"
+              class="w-full py-3.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-sm shadow-lg transition-all cursor-pointer">
+              دخول إلى النظام
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- واجهة التطبيق الرئيسية -->
-  <div id="app-shell" class="hidden min-h-screen flex-col lg:flex-row bg-[#F7F1EB]">
-    <!-- القائمة الجانبية للكمبيوتر -->
-    <aside class="hidden lg:flex lg:flex-col lg:w-72 bg-[#EFE6DD] border-l border-[#DFD2C5] text-[#2D1B14] shrink-0 sticky top-0 h-screen z-30 no-print">
-      <div class="p-5 border-b border-[#DFD2C5] flex items-center gap-3">
-        <div class="w-11 h-11 rounded-2xl bg-[#2D1B14] text-[#FAF6F2] shadow-md flex items-center justify-center shrink-0">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
+  <!-- هيكل التطبيق الرئيسي -->
+  <div id="app-shell" class="hidden min-h-screen flex-col lg:flex-row">
+    <!-- القائمة الجانبية (Desktop) -->
+    <aside class="hidden lg:flex lg:flex-col lg:w-72 bg-[#2D1B14] text-[#FAF6F2] shrink-0 sticky top-0 h-screen z-30 shadow-xl no-print">
+      <div class="p-6 border-b border-white/10 flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-2xl bg-[#A85438] flex items-center justify-center shadow-md shrink-0">
+          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v18" /><path d="M2 22h20" /><path d="M10 7h4M10 11h4M10 15h4" />
           </svg>
         </div>
         <div>
-          <h2 class="font-black text-base text-[#2D1B14]">مكتب التشطيبات</h2>
-          <span class="text-[11px] text-[#A85438] font-bold">INTERIORS &amp; SPACE</span>
+          <h1 class="font-black text-base leading-tight">مكتب التشطيبات</h1>
+          <span class="text-[11px] text-[#E8B298] font-bold">الهوية المعمارية • ج.م</span>
         </div>
       </div>
 
-      <div class="mx-4 mt-4 p-3.5 rounded-2xl bg-[#FAF6F2] border border-[#DFD2C5] flex items-center gap-3">
-        <div id="sidebar-avatar" class="w-10 h-10 rounded-2xl bg-[#A85438] text-white font-black flex items-center justify-center shadow-xs">ع</div>
+      <div class="mx-4 mt-4 p-3.5 rounded-2xl bg-white/8 border border-white/10 flex items-center gap-3">
+        <div id="sidebar-avatar" class="w-10 h-10 rounded-2xl bg-[#A85438] text-white flex items-center justify-center font-black text-sm shrink-0">ع</div>
         <div class="min-w-0">
-          <p id="sidebar-user-name" class="text-xs font-extrabold text-[#2D1B14] truncate">م. عمر رضا</p>
-          <p id="sidebar-user-role" class="text-[11px] text-[#A85438] font-bold">مدير المكتب</p>
+          <p id="sidebar-user-name" class="text-xs font-extrabold text-white truncate">م. عمر رضا</p>
+          <p id="sidebar-user-role" class="text-[11px] text-[#E8B298] font-bold">مدير المكتب</p>
         </div>
       </div>
 
-      <nav id="desktop-nav" class="flex-1 overflow-y-auto px-3 py-4 space-y-1.5"></nav>
+      <nav id="desktop-nav" class="flex-1 overflow-y-auto px-4 py-4 space-y-1.5"></nav>
 
-      <div class="p-4 border-t border-[#DFD2C5]">
+      <div class="p-4 border-t border-white/10">
         <button onclick="logoutUser()"
-          class="w-full py-2.5 px-4 rounded-full bg-[#FAF6F2] hover:bg-rose-700 text-[#7A3022] hover:text-white border border-[#DFD2C5] font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer">
-          <span>تسجيل الخروج</span>
+          class="w-full py-2.5 px-4 rounded-full bg-rose-900/40 hover:bg-rose-800 text-rose-200 hover:text-white font-extrabold text-xs transition-all cursor-pointer">
+          تسجيل الخروج
         </button>
       </div>
     </aside>
 
+    <!-- القائمة الجانبية للموبايل -->
+    <div id="mobile-drawer" class="fixed inset-0 z-50 hidden lg:hidden">
+      <div onclick="toggleMobileMenu(false)" class="fixed inset-0 bg-[#2D1B14]/70"></div>
+      <div class="relative w-72 max-w-[85vw] bg-[#2D1B14] text-[#FAF6F2] h-full flex flex-col z-10 shadow-2xl">
+        <div class="p-5 border-b border-white/10 flex items-center justify-between">
+          <span class="font-black text-sm">مكتب التشطيبات</span>
+          <button onclick="toggleMobileMenu(false)" class="p-2 rounded-xl bg-white/10 text-white">✕</button>
+        </div>
+        <nav id="mobile-nav" class="flex-1 overflow-y-auto p-4 space-y-1.5"></nav>
+        <div class="p-4 border-t border-white/10">
+          <button onclick="logoutUser()" class="w-full py-2.5 rounded-full bg-rose-800 text-white font-extrabold text-xs">تسجيل الخروج</button>
+        </div>
+      </div>
+    </div>
+
     <!-- المحتوى الرئيسي -->
-    <div class="flex-1 flex flex-col min-w-0 pb-28 lg:pb-10">
-      <!-- الشريط العلوي -->
-      <header class="sticky top-0 z-20 bg-[#F7F1EB]/95 backdrop-blur-md border-b border-[#E3D7CA] px-4 sm:px-8 py-3.5 flex items-center justify-between no-print">
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="sticky top-0 z-20 bg-[#FAF6F2]/95 backdrop-blur-xs border-b border-[#DFD2C5] px-4 sm:px-8 py-3.5 flex items-center justify-between no-print">
         <div class="flex items-center gap-3 min-w-0">
-          <div class="lg:hidden w-10 h-10 rounded-2xl bg-[#2D1B14] text-[#FAF6F2] flex items-center justify-center font-black text-sm shadow-xs" id="mobile-avatar">ع</div>
+          <button onclick="toggleMobileMenu(true)" class="lg:hidden p-2.5 rounded-2xl bg-[#EFE6DD] text-[#2D1B14] border border-[#DFD2C5]">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
           <div class="min-w-0">
-            <h1 id="page-title" class="text-base sm:text-xl font-black text-[#2D1B14] truncate">الرئيسية</h1>
-            <p class="text-[11px] text-[#7A6457] font-semibold truncate flex items-center gap-1.5">
-              <span class="inline-block w-2 h-2 rounded-full bg-[#A85438]"></span>
-              <span class="text-[#A85438] font-bold">متصل بقاعدة البيانات</span>
-              <span>•</span>
-              <span>الجنيه المصري (ج.م)</span>
-            </p>
+            <h2 id="page-title" class="text-base sm:text-xl font-black text-[#2D1B14] truncate">لوحة المتابعة الرئيسية</h2>
+            <p class="text-[11px] text-[#7A6457] font-bold">جميع الحسابات بالجنيه المصري (ج.م) • محدثة لحظياً</p>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 shrink-0">
+        <div class="flex items-center gap-2.5">
           <button onclick="refreshAllData()" title="تحديث البيانات"
-            class="w-10 h-10 rounded-full bg-[#FAF6F2] hover:bg-[#EFE6DD] border border-[#DFD2C5] text-[#2D1B14] flex items-center justify-center text-sm font-black transition-all cursor-pointer">
-            ↻
+            class="px-3.5 py-2 rounded-full bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] border border-[#DFD2C5] text-xs font-extrabold cursor-pointer">
+            تحديث
           </button>
-          <button onclick="logoutUser()"
-            class="px-4 py-2 rounded-full bg-[#EFE6DD] hover:bg-[#2D1B14] text-[#2D1B14] hover:text-[#FAF6F2] border border-[#DFD2C5] text-xs font-extrabold transition-all cursor-pointer">
-            خروج
-          </button>
+          <div id="mobile-avatar" class="lg:hidden w-9 h-9 rounded-full bg-[#2D1B14] text-white flex items-center justify-center font-black text-xs">ع</div>
         </div>
       </header>
 
-      <!-- منطقة عرض الصفحات -->
-      <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto space-y-6"></main>
+      <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6"></main>
     </div>
-
-    <!-- شريط تنقل سفلي أنيق للموبايل مطابق للهوية المعمارية -->
-    <nav id="mobile-bottom-nav" class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[#FAF6F2]/95 backdrop-blur-md border-t border-[#DFD2C5] px-2 pt-2 pb-3 shadow-[0_-6px_24px_rgba(45,27,20,0.08)] flex items-center justify-around gap-1 overflow-x-auto no-print"></nav>
   </div>
 
-  <!-- حاوية النوافذ المنبثقة (Modals) -->
-  <div id="modal-root"></div>
-
   <script>
+    // =========================================================================
+    // 1. الإعدادات والثوابت والاتصال بقاعدة البيانات Supabase
+    // =========================================================================
     const SUPABASE_URL = 'https://nzfwavvqemwpwrlxcgem.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_oCZs-Hj6Kxw5ymCOdToArA_SOB1cTJ5';
+    const SUPABASE_ANON_KEY = 'sb_publishable_oCZs-Hj6Kxw5ymCOdToArA_SOB1cTJ5';
     const ADMIN_EMAIL = 'omarreda62@gmail.com';
-    const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+    const LOCAL_WD_KEY = 'tashtibat_office_withdrawals_v1';
+    const LOCAL_PCT_KEY = 'tashtibat_office_pct_v1';
 
-    const DEFAULT_BOQ = [
+    const sb = (window.supabase && typeof window.supabase.createClient === 'function')
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          auth: { persistSession: true, autoRefreshToken: true }
+        })
+      : null;
+
+    const DEFAULT_BOQ_11 = [
       'المباني والتعديلات المعمارية',
       'العزل المائي والحراري',
-      'أعمال السباكة وتأسيس الصرف والتغذية',
-      'أعمال الكهرباء والتيار الخفيف',
-      'أعمال التكييف والتهوية',
+      'تأسيس السباكة',
+      'تأسيس الكهرباء',
+      'تأسيس التكييف',
       'المحارة (اللياسة)',
       'النجارة والحلوق',
       'الجبس بورد والأسقف المعلقة',
@@ -193,6 +207,14 @@
       'الدهانات',
       'التركيبات النهائية'
     ];
+
+    const STAGE_AR = {
+      in_beginning: 'في البداية',
+      in_progress: 'جاري التنفيذ',
+      near_delivery: 'قرب التسليم',
+      stalled: 'متعثر',
+      completed: 'مكتمل'
+    };
 
     const STATUS_AR = {
       new: 'جديد',
@@ -222,18 +244,11 @@
 
     const MATERIAL_STATUS_AR = {
       pending_review: 'قيد المراجعة',
-      approved: 'تم الاعتماد',
-      ordered_from_supplier: 'تم الطلب من المورد',
+      approved: 'معتمدة',
+      ordered_from_supplier: 'تم الطلب',
       in_transit: 'في الطريق',
-      received: 'تم الاستلام',
-      rejected: 'مرفوض'
-    };
-
-    const TASK_STATUS_AR = {
-      new: 'جديدة',
-      in_progress: 'جاري العمل',
-      completed: 'مكتملة',
-      overdue: 'متأخرة'
+      received: 'مستلمة',
+      rejected: 'مرفوضة'
     };
 
     const TASK_TYPE_AR = {
@@ -245,53 +260,12 @@
       task: 'مهمة'
     };
 
-    const CHECKLIST_TEMPLATES = [
-      {
-        checklist_type: 'plumbing_before_plaster',
-        title: 'استلام السباكة قبل المحارة',
-        items: [
-          { id: 'p1', text: 'اختبار ضغط مواسير التغذية بالماء لمدة 24 ساعة (10 بار)', done: false },
-          { id: 'p2', text: 'مراجعة ميول مواسير الصرف 1 سم لكل متر طولي', done: false },
-          { id: 'p3', text: 'تثبيت المحابس الدفن ومخارج الخلاطات على الشرب المعماري', done: false }
-        ]
-      },
-      {
-        checklist_type: 'electrical_before_gypsum',
-        title: 'استلام الكهرباء قبل الجبس بورد',
-        items: [
-          { id: 'e1', text: 'تثبيت الخراطيم في السقف بأفيز كل 60 سم وعدم تقاطعها فوق الصاج', done: false },
-          { id: 'e2', text: 'مراجعة مخارج السبوتات والليد بروفايل طبقاً لمخطط الأسقف', done: false },
-          { id: 'e3', text: 'تركيب علب الماجيك على ميزان الليزر وبروز 1.5 سم للطوب', done: false }
-        ]
-      },
-      {
-        checklist_type: 'plaster_and_squaring',
-        title: 'استلام المحارة والتربيع',
-        items: [
-          { id: 'm1', text: 'استلام البؤج والأوتار بالقدة الألومنيوم وميزان الخيط', done: false },
-          { id: 'm2', text: 'تركيب سلك شبك مجلفن بين الفواصل الخرسانية والمباني', done: false },
-          { id: 'm3', text: 'استلام زوايا الغرف (التربيع) بالزاوية القائمة في المطابخ والحمامات', done: false }
-        ]
-      },
-      {
-        checklist_type: 'waterproofing',
-        title: 'استلام العزل المائي والحراري',
-        items: [
-          { id: 'i1', text: 'عمل رقبة زجاجة بالأسمنت والرمل في أركان الحمامات والمطابخ', done: false },
-          { id: 'i2', text: 'دهان وجهين متعامدين من العزل ورفع 20 سم على الحوائط', done: false },
-          { id: 'i3', text: 'اختبار الغمر بالماء والتأكد من عدم وجود رشح', done: false }
-        ]
-      },
-      {
-        checklist_type: 'flooring_and_paint',
-        title: 'استلام الأرضيات والدهانات',
-        items: [
-          { id: 'f1', text: 'فحص استواء البلاط وعدم وجود تطبيل أسفل السيراميك أو البورسلين', done: false },
-          { id: 'f2', text: 'مراجعة لحامات السقية وتطابق اللون', done: false },
-          { id: 'f3', text: 'فحص الحوائط بالكشاف الجانبي بعد المعجون والبطانة قبل الوجه الأخير', done: false }
-        ]
-      }
-    ];
+    const TASK_STATUS_AR = {
+      new: 'جديدة',
+      in_progress: 'جاري العمل',
+      completed: 'مكتملة',
+      overdue: 'متأخرة'
+    };
 
     const STATE = {
       session: null,
@@ -299,6 +273,7 @@
       activeTab: 'home',
       selectedProjectId: null,
       projectSubTab: 'items',
+      projectSearch: '',
       accountsProjectFilter: 'ALL',
       materialsStatusFilter: 'ALL',
       profiles: [],
@@ -307,7 +282,6 @@
       transactions: [],
       payments: [],
       expenses: [],
-      officeWithdrawals: [],
       workers: [],
       assignments: [],
       evaluations: [],
@@ -316,89 +290,61 @@
       tasks: [],
       checklists: [],
       files: [],
-      notes: []
+      notes: [],
+      officeWithdrawals: []
     };
 
-    const OFFICE_PCT_STORAGE_KEY = 'tashtibat_office_pct_map_v1';
-    const OFFICE_WITHDRAWALS_STORAGE_KEY = 'tashtibat_office_withdrawals_v1';
-    const TASK_REMINDER_STORAGE_KEY = 'tashtibat_task_reminders_v1';
-    const NOTIFIED_TASKS_SESSION_KEY = 'tashtibat_notified_tasks_v1';
-
-    function getLocalOfficePctMap() {
-      try {
-        return JSON.parse(localStorage.getItem(OFFICE_PCT_STORAGE_KEY) || '{}');
-      } catch (_) {
-        return {};
-      }
-    }
-
-    function setLocalOfficePct(projectId, pct) {
-      try {
-        const map = getLocalOfficePctMap();
-        map[projectId] = Number(pct) || 15;
-        localStorage.setItem(OFFICE_PCT_STORAGE_KEY, JSON.stringify(map));
-      } catch (_) {}
-    }
-
-    function getProjectOfficePct(project) {
-      if (!project) return 15;
-      if (project.office_percentage !== undefined && project.office_percentage !== null) {
-        return Number(project.office_percentage);
-      }
-      const map = getLocalOfficePctMap();
-      return map[project.id] !== undefined ? Number(map[project.id]) : 15;
-    }
-
-    function getLocalWithdrawals() {
-      try {
-        return JSON.parse(localStorage.getItem(OFFICE_WITHDRAWALS_STORAGE_KEY) || '[]');
-      } catch (_) {
-        return [];
-      }
-    }
-
-    function saveLocalWithdrawal(row) {
-      try {
-        const list = getLocalWithdrawals();
-        list.unshift(row);
-        localStorage.setItem(OFFICE_WITHDRAWALS_STORAGE_KEY, JSON.stringify(list));
-      } catch (_) {}
-    }
-
+    // =========================================================================
+    // 2. دوال مساعدة (التنسيق، الإشعارات، الصلاحيات، والحسابات المالية)
+    // =========================================================================
     function formatEGP(val) {
       return `${(Number(val) || 0).toLocaleString('ar-EG')} ج.م`;
     }
 
     function showToast(msg, type = 'success') {
-      const container = document.getElementById('toast-container');
-      if (!container) return;
+      const box = document.getElementById('toast-container');
+      if (!box) return;
       const el = document.createElement('div');
-      el.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-xs font-extrabold text-center border transition-all ${
-        type === 'error'
-          ? 'bg-rose-800 text-white border-rose-900'
-          : 'bg-[#2D1B14] text-[#FAF6F2] border-[#A85438]'
+      el.className = `pointer-events-auto px-4 py-3.5 rounded-2xl shadow-xl text-xs font-extrabold text-white flex items-center justify-between gap-3 transition-all ${
+        type === 'error' ? 'bg-rose-900 border border-rose-700' : 'bg-[#2D1B14] border border-[#A85438]'
       }`;
-      el.textContent = msg;
-      container.appendChild(el);
-      setTimeout(() => el.remove(), 4200);
+      el.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="opacity-70 hover:opacity-100">✕</button>`;
+      box.appendChild(el);
+      setTimeout(() => el.remove(), 4500);
     }
 
-    function translateError(err, fallback = 'تعذر إتمام العملية حالياً، يرجى المحاولة مرة أخرى.') {
-      const raw = String(err?.message || err?.details || err || '').toLowerCase();
-      if (!raw) return fallback;
-      if (raw.includes('invalid login') || raw.includes('credentials')) {
+    function translateError(err, fallback = 'تعذر إتمام العملية، يرجى المحاولة مرة أخرى.') {
+      const raw = String(err?.message || err || '').toLowerCase();
+      if (raw.includes('invalid login credentials') || raw.includes('invalid credentials')) {
         return 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
       }
-      if (raw.includes('email not confirmed')) {
-        return 'يرجى تأكيد البريد الإلكتروني أولاً أو إغلاق Confirm Email في Supabase.';
+      if (raw.includes('network') || raw.includes('fetch')) {
+        return 'تعذر الاتصال بالشبكة، يرجى التحقق من الإنترنت.';
       }
       if (raw.includes('permission') || raw.includes('policy') || raw.includes('rls')) {
-        return 'يرجى تفعيل صلاحية الإضافة من Supabase SQL Editor.';
-      }
-      if (raw.includes('duplicate') || raw.includes('unique') || raw.includes('already registered')) {
-        return 'هذا البريد الإلكتروني أو السجل مسجل بالفعل في النظام.';
+        return 'ليس لديك صلاحية تنفيذ هذا الإجراء.';
       }
       return fallback;
+    }
+
+    function openModal(html) {
+      const bd = document.getElementById('modal-backdrop');
+      const box = document.getElementById('modal-box');
+      box.innerHTML = html;
+      bd.classList.remove('hidden');
+      bd.classList.add('flex');
+    }
+
+    function closeModal() {
+      const bd = document.getElementById('modal-backdrop');
+      bd.classList.add('hidden');
+      bd.classList.remove('flex');
+    }
+
+    function toggleMobileMenu(show) {
+      const dr = document.getElementById('mobile-drawer');
+      if (show) dr.classList.remove('hidden');
+      else dr.classList.add('hidden');
     }
 
     function isMainAdmin() {
@@ -412,27 +358,60 @@
 
     function getAllowedProjects() {
       if (isMainAdmin() || STATE.profile?.role === 'accountant') return STATE.projects;
-      const ids = Array.isArray(STATE.profile?.assigned_project_ids) ? STATE.profile.assigned_project_ids : [];
-      return STATE.projects.filter((p) => ids.includes(p.id));
+      const assigned = Array.isArray(STATE.profile?.assigned_project_ids) ? STATE.profile.assigned_project_ids : [];
+      return STATE.projects.filter((p) => assigned.includes(p.id));
     }
 
+    function getLocalPctMap() {
+      try { return JSON.parse(localStorage.getItem(LOCAL_PCT_KEY) || '{}'); } catch (_) { return {}; }
+    }
+
+    function saveLocalPct(projectId, pct) {
+      try {
+        const m = getLocalPctMap();
+        m[projectId] = Number(pct) || 0;
+        localStorage.setItem(LOCAL_PCT_KEY, JSON.stringify(m));
+      } catch (_) {}
+    }
+
+    function getProjectOfficePct(project) {
+      if (project.office_percentage !== undefined && project.office_percentage !== null) {
+        return Number(project.office_percentage) || 0;
+      }
+      const m = getLocalPctMap();
+      return m[project.id] !== undefined ? Number(m[project.id]) : 15;
+    }
+
+    function getLocalWithdrawals() {
+      try { return JSON.parse(localStorage.getItem(LOCAL_WD_KEY) || '[]'); } catch (_) { return []; }
+    }
+
+    function saveLocalWithdrawals(list) {
+      try { localStorage.setItem(LOCAL_WD_KEY, JSON.stringify(list)); } catch (_) {}
+    }
+
+    // حساب المؤشرات المالية مع خصم سحوبات المكتب فوراً من الرصيد المتاح
     function computeFinancials(project) {
       const pItems = STATE.items.filter((i) => i.project_id === project.id);
       const itemsCost = pItems.reduce((sum, it) => {
-        const t = it.total_cost !== undefined && it.total_cost !== null
+        const total = (it.total_cost !== undefined && it.total_cost !== null)
           ? Number(it.total_cost)
           : (Number(it.materials_cost) || 0) + (Number(it.labor_cost) || 0) + (Number(it.staging_cost) || 0);
-        return sum + t;
+        return sum + total;
       }, 0);
-      const progress = pItems.length
+
+      const progress = pItems.length > 0
         ? Math.round(pItems.reduce((s, it) => s + (Number(it.completion_percentage) || 0), 0) / pItems.length)
-        : Number(project.completion_percentage) || 0;
+        : (Number(project.completion_percentage) || 0);
+
       const paymentsTotal = STATE.payments
         .filter((p) => p.project_id === project.id)
         .reduce((s, p) => s + (Number(p.amount) || 0), 0);
+
       const expensesTotal = STATE.expenses
         .filter((e) => e.project_id === project.id)
         .reduce((s, e) => s + (Number(e.amount) || 0), 0);
+
       const designCost = (Number(project.design_3d_cost) || 0) + (Number(project.execution_plans_cost) || 0);
       const totalSpent = itemsCost + expensesTotal + designCost;
       const contract = Number(project.contract_value) || 0;
@@ -448,19 +427,1664 @@
 
       return {
         itemsCost,
-        progress,
-        paymentsTotal,
         expensesTotal,
         designCost,
         totalSpent,
+        paymentsTotal,
         contract,
-        remainingOnClient: Math.max(0, contract - paymentsTotal),
         balanceBeforeOffice,
         balance,
-        profit: contract - totalSpent,
+        progress,
         officePct,
         officeEarned,
         officeWithdrawn,
         officeRemaining
       };
     }
+
+    // تقسيم بند "تأسيس السباكة والكهرباء والتكييف" المدمج تلقائياً إلى 3 بنود مستقلة
+    async function splitAllExistingCombinedMepItems() {
+      if (!sb) return;
+      const combined = STATE.items.filter((it) =>
+        (it.title || '').includes('تأسيس السباكة والكهرباء والتكييف')
+      );
+      if (!combined.length) return;
+
+      for (const oldItem of combined) {
+        try {
+          const { data: inserted } = await sb.from('project_items').insert([
+            {
+              project_id: oldItem.project_id,
+              title: 'تأسيس السباكة',
+              sort_order: oldItem.sort_order || 3,
+              is_default_item: true,
+              materials_cost: oldItem.materials_cost || 0,
+              labor_cost: oldItem.labor_cost || 0,
+              staging_cost: oldItem.staging_cost || 0,
+              completion_percentage: oldItem.completion_percentage || 0,
+              execution_notes: oldItem.execution_notes || ''
+            },
+            {
+              project_id: oldItem.project_id,
+              title: 'تأسيس الكهرباء',
+              sort_order: (oldItem.sort_order || 3) + 1,
+              is_default_item: true
+            },
+            {
+              project_id: oldItem.project_id,
+              title: 'تأسيس التكييف',
+              sort_order: (oldItem.sort_order || 3) + 2,
+              is_default_item: true
+            }
+          ]).select();
+
+          if (inserted && inserted[0]) {
+            await sb.from('item_cost_transactions')
+              .update({ item_id: inserted[0].id })
+              .eq('item_id', oldItem.id);
+            await sb.from('project_items').delete().eq('id', oldItem.id);
+          }
+        } catch (_) {}
+      }
+    }
+
+    // =========================================================================
+    // 3. شريط التنقل وإدارة الصفحات
+    // =========================================================================
+    const NAV_ITEMS = [
+      { id: 'home', label: 'لوحة المتابعة الرئيسية', visible: () => true },
+      { id: 'projects', label: 'المشاريع والبنود (11)', visible: () => true },
+      { id: 'accounts', label: 'الحسابات وسحوبات المكتب', visible: () => true },
+      { id: 'payments', label: 'دفعات العملاء', visible: () => canSeeFinance() },
+      { id: 'materials', label: 'طلبات الخامات', visible: () => true },
+      { id: 'appointments', label: 'المواعيد والمهام', visible: () => true },
+      { id: 'workers', label: 'العمال والصنايعية', visible: () => true },
+      { id: 'team', label: 'الفريق والصلاحيات', visible: () => isMainAdmin() },
+      { id: 'tools', label: 'حاسبة الكميات والمفكرة', visible: () => true }
+    ];
+
+    function renderNavigation() {
+      const items = NAV_ITEMS.filter((n) => n.visible());
+      const buildHtml = (isMobile) => items.map((n) => {
+        const active = STATE.activeTab === n.id;
+        return `
+          <button onclick="switchTab('${n.id}')${isMobile ? '; toggleMobileMenu(false)' : ''}"
+            class="w-full text-right px-4 py-3 rounded-2xl text-xs font-extrabold transition-all cursor-pointer flex items-center justify-between ${
+              active ? 'bg-[#A85438] text-white shadow-md' : 'text-[#D8C7BA] hover:bg-white/10 hover:text-white'
+            }">
+            <span>${n.label}</span>
+            ${active ? '<span class="w-2 h-2 rounded-full bg-white"></span>' : ''}
+          </button>`;
+      }).join('');
+
+      document.getElementById('desktop-nav').innerHTML = buildHtml(false);
+      document.getElementById('mobile-nav').innerHTML = buildHtml(true);
+    }
+
+    function switchTab(tabId) {
+      STATE.activeTab = tabId;
+      if (tabId !== 'projects') STATE.selectedProjectId = null;
+      renderNavigation();
+      renderCurrentView();
+    }
+
+    function renderCurrentView() {
+      const allowed = getAllowedProjects();
+      const titleEl = document.getElementById('page-title');
+      const main = document.getElementById('main-content');
+      const currentNav = NAV_ITEMS.find((n) => n.id === STATE.activeTab);
+
+      if (STATE.activeTab === 'projects' && STATE.selectedProjectId) {
+        const proj = allowed.find((p) => p.id === STATE.selectedProjectId);
+        if (proj) {
+          titleEl.textContent = proj.name;
+          main.innerHTML = renderProjectDetailView(proj);
+          return;
+        }
+      }
+
+      titleEl.textContent = currentNav ? currentNav.label : 'مكتب التشطيبات';
+
+      if (STATE.activeTab === 'home') main.innerHTML = renderHomeView(allowed);
+      else if (STATE.activeTab === 'projects') main.innerHTML = renderProjectsListView(allowed);
+      else if (STATE.activeTab === 'accounts') main.innerHTML = renderAccountsAndExpensesView(allowed);
+      else if (STATE.activeTab === 'payments') main.innerHTML = renderClientPaymentsView(allowed);
+      else if (STATE.activeTab === 'materials') main.innerHTML = renderMaterialsView(allowed);
+      else if (STATE.activeTab === 'appointments') main.innerHTML = renderAppointmentsView(allowed);
+      else if (STATE.activeTab === 'workers') main.innerHTML = renderWorkersView(allowed);
+      else if (STATE.activeTab === 'team') main.innerHTML = renderTeamView();
+      else if (STATE.activeTab === 'tools') main.innerHTML = renderToolsView(allowed);
+    }
+
+    // =========================================================================
+    // 4. الصفحة الرئيسية (Home)
+    // =========================================================================
+    function renderHomeView(allowed) {
+      let totalSpent = 0, totalPayments = 0, totalOfficeEarned = 0, totalOfficeWithdrawn = 0;
+      allowed.forEach((p) => {
+        const f = computeFinancials(p);
+        totalSpent += f.totalSpent;
+        totalPayments += f.paymentsTotal;
+        totalOfficeEarned += f.officeEarned;
+        totalOfficeWithdrawn += f.officeWithdrawn;
+      });
+      const netBalance = totalPayments - totalSpent - totalOfficeWithdrawn;
+      const officeRemaining = totalOfficeEarned - totalOfficeWithdrawn;
+      const pendingMat = STATE.materials.filter((m) => m.status === 'pending_review').length;
+      const openTasks = STATE.tasks.filter((t) => t.status !== 'completed').length;
+
+      return `
+        <!-- الترحيب والملخص المالي -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div class="lg:col-span-2 bg-[#2D1B14] text-[#FAF6F2] rounded-[32px] p-6 sm:p-8 flex flex-col justify-between shadow-lg">
+            <div class="space-y-2.5">
+              <span class="inline-block text-[11px] font-extrabold bg-white/10 text-[#E8B298] px-3.5 py-1 rounded-full">
+                مكتب التشطيبات • لوحة القيادة الهندسية
+              </span>
+              <h3 class="text-xl sm:text-2xl font-black leading-snug">
+                أهلاً بك، ${STATE.profile?.full_name || 'م. عمر رضا'}
+              </h3>
+              <p class="text-xs sm:text-sm text-[#D8C7BA] max-w-xl leading-relaxed">
+                تابع نسب إنجاز البنود الـ 11 لكل مشروع، المصروفات التراكمية، مستحقات المكتب، وسحوبات المكتب المخصومة تلقائياً.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-6">
+              <button onclick="switchTab('projects')" class="px-5 py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs cursor-pointer">
+                المشاريع والبنود
+              </button>
+              <button onclick="switchTab('accounts')" class="px-5 py-2.5 rounded-full bg-white/12 hover:bg-white/20 text-white font-extrabold text-xs cursor-pointer">
+                الحسابات وسحوبات المكتب
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-[32px] p-6 flex flex-col justify-between shadow-2xs">
+            <div>
+              <span class="text-xs font-extrabold text-[#7A6457]">صافي الرصيد المتاح بالمكتب (بعد خصم سحوبات المكتب)</span>
+              <p class="text-2xl sm:text-3xl font-black text-[#2D1B14] mt-1.5">${canSeeFinance() ? formatEGP(netBalance) : '---'}</p>
+            </div>
+            <div class="space-y-2 text-xs pt-4 mt-4 border-t border-[#E6D9CC]">
+              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">إجمالي المصروف الفعلي:</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(totalSpent)}</strong></div>
+              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">إجمالي دفعات العملاء:</span><strong class="text-[#7E5238] font-extrabold">${canSeeFinance() ? formatEGP(totalPayments) : '---'}</strong></div>
+              ${canSeeFinance() ? `
+              <div class="flex justify-between items-center pt-2 border-t border-[#E6D9CC]"><span class="text-[#A85438] font-bold">نسبة المكتب المستحقة:</span><strong class="text-[#A85438] font-extrabold">${formatEGP(totalOfficeEarned)}</strong></div>
+              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">تم سحبه للمكتب (مخصوم من الرصيد):</span><strong class="text-rose-800 font-extrabold">-${formatEGP(totalOfficeWithdrawn)}</strong></div>
+              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">المتبقي للمكتب:</span><strong class="text-[#2D1B14] font-black">${formatEGP(officeRemaining)}</strong></div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- اختصارات سريعة واضحة -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div onclick="switchTab('projects')" class="bg-[#FAF6F2] border border-[#DFD2C5] hover:border-[#A85438] rounded-3xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
+            <div>
+              <span class="text-xs text-[#7A6457] font-bold block">المشاريع الجارية</span>
+              <p class="text-xl sm:text-2xl font-black text-[#2D1B14] mt-1">${allowed.length} مشروع</p>
+            </div>
+            <span class="w-10 h-10 rounded-2xl bg-[#EFE6DD] text-[#A85438] flex items-center justify-center border border-[#DFD2C5] font-black text-sm">11</span>
+          </div>
+
+          <div onclick="switchTab('materials')" class="bg-[#FAF6F2] border border-[#DFD2C5] hover:border-[#A85438] rounded-3xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
+            <div>
+              <span class="text-xs text-[#7A6457] font-bold block">طلبات الخامات</span>
+              <p class="text-xl sm:text-2xl font-black text-[#2D1B14] mt-1">${pendingMat} قيد المراجعة</p>
+            </div>
+            <span class="w-10 h-10 rounded-2xl bg-[#EFE6DD] text-[#A85438] flex items-center justify-center border border-[#DFD2C5]">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            </span>
+          </div>
+
+          <div onclick="switchTab('payments')" class="bg-[#FAF6F2] border border-[#DFD2C5] hover:border-[#A85438] rounded-3xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
+            <div>
+              <span class="text-xs text-[#7A6457] font-bold block">دفعات العملاء</span>
+              <p class="text-xl sm:text-2xl font-black text-[#2D1B14] mt-1">${STATE.payments.length} دفعة</p>
+            </div>
+            <span class="w-10 h-10 rounded-2xl bg-[#EFE6DD] text-[#A85438] flex items-center justify-center border border-[#DFD2C5] font-black text-xs">ج.م</span>
+          </div>
+
+          <div onclick="switchTab('appointments')" class="bg-[#FAF6F2] border border-[#DFD2C5] hover:border-[#A85438] rounded-3xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
+            <div>
+              <span class="text-xs text-[#7A6457] font-bold block">المواعيد والمهام</span>
+              <p class="text-xl sm:text-2xl font-black text-[#2D1B14] mt-1">${openTasks} قائمة</p>
+            </div>
+            <span class="w-10 h-10 rounded-2xl bg-[#EFE6DD] text-[#A85438] flex items-center justify-center border border-[#DFD2C5]">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <!-- قسم المشاريع الجارية -->
+        <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-[32px] p-6 space-y-4 shadow-2xs">
+          <div class="flex items-center justify-between">
+            <h4 class="font-black text-base text-[#2D1B14]">المشاريع الجارية ونسب الإنجاز</h4>
+            <button onclick="switchTab('projects')" class="text-xs font-extrabold text-[#A85438] hover:underline cursor-pointer">عرض الكل ←</button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${allowed.length ? allowed.map((p) => {
+              const f = computeFinancials(p);
+              return `
+                <div onclick="STATE.selectedProjectId='${p.id}'; switchTab('projects')"
+                  class="p-5 rounded-3xl bg-white border border-[#DFD2C5] hover:border-[#A85438] cursor-pointer transition-all space-y-3 shadow-2xs">
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="px-3 py-1 rounded-full bg-[#EFE6DD] text-[#5C4438] font-extrabold">${STAGE_AR[p.visual_stage] || 'جاري التنفيذ'}</span>
+                    <span class="font-black text-[#A85438]">${f.progress}%</span>
+                  </div>
+                  <h5 class="font-black text-sm text-[#2D1B14]">${p.name}</h5>
+                  <p class="text-xs text-[#7A6457] font-semibold">العميل: ${p.client_name}</p>
+                  <div class="w-full h-2 bg-[#EFE6DD] rounded-full overflow-hidden">
+                    <div class="h-full bg-[#A85438] rounded-full" style="width:${f.progress}%"></div>
+                  </div>
+                  ${canSeeFinance() ? `
+                  <div class="pt-2 border-t border-[#EFE6DD] flex justify-between text-[11px]">
+                    <span class="text-[#7A6457]">الرصيد المتاح:</span>
+                    <strong class="text-[#2D1B14] font-black">${formatEGP(f.balance)}</strong>
+                  </div>` : ''}
+                </div>`;
+            }).join('') : '<p class="col-span-3 text-center text-xs font-bold text-[#7A6457] py-8">لا توجد مشاريع مسجلة حالياً.</p>'}
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 5. صفحة قائمة المشاريع وإنشاء مشروع جديد بالـ 11 بنداً
+    // =========================================================================
+    function renderProjectsListView(allowed) {
+      const q = STATE.projectSearch.trim().toLowerCase();
+      const filtered = allowed.filter((p) =>
+        (p.name || '').toLowerCase().includes(q) ||
+        (p.client_name || '').toLowerCase().includes(q) ||
+        (p.address || '').toLowerCase().includes(q)
+      );
+
+      return `
+        <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center shadow-2xs">
+          <input type="text" value="${STATE.projectSearch}" oninput="STATE.projectSearch = this.value; renderCurrentView()"
+            placeholder="بحث باسم المشروع أو العميل أو العنوان..."
+            class="flex-1 max-w-md px-4 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-xs font-semibold outline-none focus:border-[#A85438]" />
+          <button onclick="openNewProjectModal()"
+            class="px-5 py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs shadow-sm cursor-pointer">
+            + مشروع تشطيبات جديد
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          ${filtered.length ? filtered.map((p) => {
+            const f = computeFinancials(p);
+            return `
+              <div onclick="STATE.selectedProjectId='${p.id}'; renderCurrentView()"
+                class="bg-[#FAF6F2] border border-[#DFD2C5] hover:border-[#A85438] rounded-[32px] p-6 cursor-pointer transition-all flex flex-col justify-between gap-4 shadow-2xs">
+                <div class="space-y-2.5">
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="px-3 py-1 rounded-full bg-[#EFE6DD] text-[#5C4438] font-extrabold">${STAGE_AR[p.visual_stage] || 'جاري التنفيذ'}</span>
+                    <span class="text-[11px] font-bold text-[#7A6457]">نسبة المكتب: ${f.officePct}%</span>
+                  </div>
+                  <h3 class="font-black text-base text-[#2D1B14]">${p.name}</h3>
+                  <p class="text-xs text-[#5C4438] font-bold">العميل: ${p.client_name} • ${p.client_phone || ''}</p>
+                  <p class="text-xs text-[#7A6457] truncate">${p.address || ''}</p>
+                  <div class="pt-2">
+                    <div class="flex justify-between text-xs font-extrabold mb-1">
+                      <span class="text-[#7A6457]">نسبة الإنجاز</span>
+                      <span class="text-[#A85438]">${f.progress}%</span>
+                    </div>
+                    <div class="w-full h-2 bg-[#E6D9CC] rounded-full overflow-hidden">
+                      <div class="h-full bg-[#A85438] rounded-full" style="width:${f.progress}%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pt-3 border-t border-[#E6D9CC] flex items-center justify-between text-xs">
+                  ${canSeeFinance() ? `
+                    <div>
+                      <span class="text-[#7A6457] block text-[11px]">الرصيد المتاح</span>
+                      <strong class="text-[#2D1B14] font-black">${formatEGP(f.balance)}</strong>
+                    </div>` : `<div><span class="text-[#7A6457] block text-[11px]">التسليم</span><strong>${p.delivery_date || '-'}</strong></div>`}
+                  <span class="px-4 py-1.5 rounded-full bg-[#2D1B14] text-[#FAF6F2] font-extrabold">فتح المشروع ←</span>
+                </div>
+              </div>`;
+          }).join('') : '<div class="col-span-3 bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-12 text-center text-xs font-bold text-[#7A6457]">لا توجد مشاريع مطابقة لبحثك.</div>'}
+        </div>
+      `;
+    }
+
+    function openNewProjectModal() {
+      const today = new Date().toISOString().slice(0, 10);
+      openModal(`
+        <div class="space-y-4">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+            <div>
+              <h3 class="font-black text-base text-[#2D1B14]">إنشاء مشروع تشطيبات جديد</h3>
+              <p class="text-xs text-[#A85438] font-bold">يتم توليد البنود الـ 11 الأساسية تلقائياً مع فصل السباكة والكهرباء والتكييف</p>
+            </div>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] text-[#2D1B14]">✕</button>
+          </div>
+
+          <form onsubmit="submitNewProject(event)" class="space-y-3 text-xs">
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">اسم المشروع *</label>
+              <input id="np-name" type="text" required placeholder="مثال: تشطيب فيلا التجمع الخامس" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">اسم العميل *</label>
+                <input id="np-client" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">هاتف العميل *</label>
+                <input id="np-phone" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">العنوان *</label>
+              <input id="np-address" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">قيمة العقد (ج.م)</label>
+                <input id="np-contract" type="number" min="0" value="0" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">نسبة المكتب (%)</label>
+                <input id="np-pct" type="number" min="0" max="100" step="0.5" value="15" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">المرحلة</label>
+                <select id="np-stage" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                  <option value="in_beginning">في البداية</option>
+                  <option value="in_progress">جاري التنفيذ</option>
+                  <option value="near_delivery">قرب التسليم</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">تاريخ البداية</label>
+                <input id="np-start" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">تاريخ التسليم</label>
+                <input id="np-end" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-full bg-[#EFE6DD] text-[#2D1B14] font-bold">إلغاء</button>
+              <button type="submit" class="px-6 py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ المشروع والبنود الـ 11</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitNewProject(e) {
+      e.preventDefault();
+      if (!sb) return;
+      const pct = Number(document.getElementById('np-pct').value) || 0;
+      const payload = {
+        name: document.getElementById('np-name').value.trim(),
+        client_name: document.getElementById('np-client').value.trim(),
+        client_phone: document.getElementById('np-phone').value.trim(),
+        address: document.getElementById('np-address').value.trim(),
+        contract_value: Number(document.getElementById('np-contract').value) || 0,
+        start_date: document.getElementById('np-start').value,
+        delivery_date: document.getElementById('np-end').value,
+        status: 'in_progress',
+        visual_stage: document.getElementById('np-stage').value,
+        created_by: STATE.session?.user?.id || null
+      };
+
+      try {
+        const { data: created, error } = await sb.from('projects').insert(payload).select().single();
+        if (error) throw error;
+
+        if (created?.id) {
+          saveLocalPct(created.id, pct);
+          // محاولة حفظ نسبة المكتب في قاعدة البيانات إن وجد العمود
+          await sb.from('projects').update({ office_percentage: pct }).eq('id', created.id);
+
+          // حذف أي بنود مولدة تلقائياً واستبدالها بالـ 11 بنداً المفصولة
+          await sb.from('project_items').delete().eq('project_id', created.id);
+          await sb.from('project_items').insert(
+            DEFAULT_BOQ_11.map((title, idx) => ({
+              project_id: created.id,
+              title,
+              sort_order: idx + 1,
+              is_default_item: true
+            }))
+          );
+        }
+
+        closeModal();
+        await refreshAllData();
+        showToast('تم إنشاء المشروع وتجهيز البنود الـ 11 بنجاح.');
+      } catch (err) {
+        showToast(translateError(err, 'تعذر إنشاء المشروع.'), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 6. صفحة تفاصيل المشروع المستقلة (البنود الـ 11، الحركات التراكمية، التقارير)
+    // =========================================================================
+    function renderProjectDetailView(project) {
+      const f = computeFinancials(project);
+      const pItems = STATE.items.filter((i) => i.project_id === project.id);
+      const pReports = STATE.reports.filter((r) => r.project_id === project.id);
+      const today = new Date().toISOString().slice(0, 10);
+
+      return `
+        <!-- ترويسة المشروع -->
+        <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-[32px] p-6 space-y-4 shadow-2xs">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <button onclick="STATE.selectedProjectId=null; renderCurrentView()"
+                class="px-4 py-2 rounded-full bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] font-extrabold text-xs cursor-pointer">
+                → رجوع للمشاريع
+              </button>
+              <div>
+                <h3 class="text-lg sm:text-xl font-black text-[#2D1B14]">${project.name}</h3>
+                <p class="text-xs text-[#7A6457] font-semibold">العميل: ${project.client_name} • ${project.address || ''}</p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              ${canSeeFinance() ? `
+                <button onclick="openOfficeWithdrawModal('${project.id}', '${project.name.replace(/'/g, '')}')"
+                  class="px-4 py-2 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] font-extrabold text-xs cursor-pointer">
+                  + تسجيل سحب للمكتب
+                </button>` : ''}
+              <span class="px-3.5 py-1.5 rounded-full bg-[#A85438]/15 text-[#A85438] font-black text-xs">الإنجاز: ${f.progress}%</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2">
+            <div class="p-3.5 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] font-semibold block">تكلفة البنود</span><strong class="text-[#2D1B14] font-extrabold text-sm">${formatEGP(f.itemsCost)}</strong></div>
+            <div class="p-3.5 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] font-semibold block">المصروفات العامة</span><strong class="text-[#2D1B14] font-extrabold text-sm">${formatEGP(f.expensesTotal)}</strong></div>
+            <div class="p-3.5 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] font-semibold block">التصميمات والمخططات</span><strong class="text-[#2D1B14] font-extrabold text-sm">${formatEGP(f.designCost)}</strong></div>
+            <div class="p-3.5 rounded-2xl bg-[#A85438]/12 border border-[#A85438]/30">
+              <span class="text-[#A85438] font-bold block">الرصيد المتاح (بعد خصم سحوبات المكتب)</span>
+              <strong class="text-[#2D1B14] font-black text-sm">${canSeeFinance() ? formatEGP(f.balance) : '---'}</strong>
+              ${canSeeFinance() && f.officeWithdrawn > 0 ? `<span class="text-[10px] text-[#7A6457] block mt-0.5">مخصوم ${formatEGP(f.officeWithdrawn)} للمكتب</span>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- تبويبات المشروع -->
+        <div class="flex gap-2 overflow-x-auto pb-1">
+          <button onclick="STATE.projectSubTab='items'; renderCurrentView()"
+            class="px-5 py-2.5 rounded-full text-xs font-extrabold cursor-pointer ${STATE.projectSubTab === 'items' ? 'bg-[#2D1B14] text-[#FAF6F2]' : 'bg-[#FAF6F2] text-[#5C4438] border border-[#DFD2C5]'}">
+            البنود والتكاليف التراكمية (${pItems.length})
+          </button>
+          <button onclick="STATE.projectSubTab='reports'; renderCurrentView()"
+            class="px-5 py-2.5 rounded-full text-xs font-extrabold cursor-pointer ${STATE.projectSubTab === 'reports' ? 'bg-[#2D1B14] text-[#FAF6F2]' : 'bg-[#FAF6F2] text-[#5C4438] border border-[#DFD2C5]'}">
+            تقارير الموقع اليومية (${pReports.length})
+          </button>
+        </div>
+
+        ${STATE.projectSubTab === 'items' ? `
+          <div class="space-y-4">
+            <form onsubmit="addCustomProjectItem(event, '${project.id}')" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 flex flex-col sm:flex-row gap-3">
+              <input id="custom-item-input" type="text" required placeholder="إضافة بند مخصص جديد للمشروع..."
+                class="flex-1 px-4 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-xs font-semibold outline-none focus:border-[#A85438]" />
+              <button type="submit" class="px-5 py-2.5 rounded-full bg-[#2D1B14] text-[#FAF6F2] font-extrabold text-xs cursor-pointer">+ إضافة بند</button>
+            </form>
+
+            ${pItems.map((it, idx) => {
+              const txs = STATE.transactions.filter((t) => t.item_id === it.id);
+              const total = (it.total_cost !== undefined && it.total_cost !== null)
+                ? Number(it.total_cost)
+                : (Number(it.materials_cost) || 0) + (Number(it.labor_cost) || 0) + (Number(it.staging_cost) || 0);
+              return `
+                <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-[28px] p-5 space-y-4 shadow-2xs">
+                  <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E6D9CC]">
+                    <div class="flex items-center gap-3">
+                      <span class="w-8 h-8 rounded-xl bg-[#2D1B14] text-[#FAF6F2] text-xs font-black flex items-center justify-center">${idx + 1}</span>
+                      <div>
+                        <h4 class="font-black text-sm sm:text-base text-[#2D1B14]">${it.title}</h4>
+                        <p class="text-[11px] text-[#7A6457]">${it.execution_notes || 'بند تشطيبات أساسي'}</p>
+                      </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <div class="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-2xl border border-[#DFD2C5] text-xs">
+                        <span class="font-bold text-[#5C4438]">الإنجاز:</span>
+                        <input type="number" min="0" max="100" value="${it.completion_percentage || 0}"
+                          onchange="updateItemProgress('${it.id}', this.value)"
+                          class="w-12 text-center font-black text-[#A85438] bg-[#EFE6DD] rounded-lg py-0.5" />
+                        <span class="font-bold">%</span>
+                      </div>
+                      <button onclick="openAddTxModal('${project.id}', '${it.id}', '${it.title.replace(/'/g, '')}')"
+                        class="px-4 py-2 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs cursor-pointer">
+                        + إضافة تكلفة تراكمية
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div class="p-3 rounded-2xl bg-white border border-[#DFD2C5]"><span class="text-[#7A6457] block">الخامات</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(it.materials_cost)}</strong></div>
+                    <div class="p-3 rounded-2xl bg-white border border-[#DFD2C5]"><span class="text-[#7A6457] block">المصنعية</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(it.labor_cost)}</strong></div>
+                    <div class="p-3 rounded-2xl bg-white border border-[#DFD2C5]"><span class="text-[#7A6457] block">التشوين</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(it.staging_cost)}</strong></div>
+                    <div class="p-3 rounded-2xl bg-[#A85438]/12 border border-[#A85438]/30"><span class="text-[#A85438] font-bold block">إجمالي البند</span><strong class="text-[#2D1B14] font-black">${formatEGP(total)}</strong></div>
+                  </div>
+
+                  ${txs.length ? `
+                    <div class="pt-2 border-t border-[#E6D9CC] space-y-1.5">
+                      <p class="text-[11px] font-extrabold text-[#5C4438]">سجل الحركات التراكمية (${txs.length}):</p>
+                      ${txs.map((tx) => `
+                        <div class="flex justify-between items-center text-xs bg-white px-3.5 py-2 rounded-xl border border-[#E6D9CC]">
+                          <span class="font-bold text-[#2D1B14]">[${tx.cost_type === 'materials' ? 'خامات' : tx.cost_type === 'labor' ? 'مصنعية' : 'تشوين'}] ${tx.description || ''}</span>
+                          <span class="font-extrabold text-[#A85438]">${formatEGP(tx.amount)} • <span class="text-[#7A6457] font-normal">${tx.transaction_date}</span></span>
+                        </div>`).join('')}
+                    </div>` : ''}
+                </div>`;
+            }).join('')}
+          </div>
+        ` : `
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <form onsubmit="submitDailyReport(event, '${project.id}')" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit">
+              <h4 class="font-black text-sm text-[#2D1B14]">إضافة تقرير موقع يومي</h4>
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block font-bold text-[#5C4438] mb-1">التاريخ</label>
+                  <input id="rep-date" type="date" value="${today}" class="w-full px-3 py-2 rounded-2xl bg-white border border-[#DFD2C5]" />
+                </div>
+                <div>
+                  <label class="block font-bold text-[#5C4438] mb-1">عدد العمال</label>
+                  <input id="rep-workers" type="number" min="0" value="4" class="w-full px-3 py-2 rounded-2xl bg-white border border-[#DFD2C5]" />
+                </div>
+              </div>
+              <div>
+                <label class="block font-bold text-[#5C4438] mb-1">ما تم تنفيذه اليوم *</label>
+                <textarea id="rep-done" rows="3" required class="w-full px-3 py-2 rounded-2xl bg-white border border-[#DFD2C5]"></textarea>
+              </div>
+              <div>
+                <label class="block font-bold text-[#5C4438] mb-1">المعوقات والملاحظات</label>
+                <input id="rep-obs" type="text" class="w-full px-3 py-2 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+              <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] text-white font-extrabold cursor-pointer">حفظ التقرير</button>
+            </form>
+
+            <div class="lg:col-span-2 space-y-3">
+              ${pReports.length ? pReports.map((r) => `
+                <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-2 text-xs">
+                  <div class="flex justify-between items-center pb-2 border-b border-[#E6D9CC]">
+                    <span class="px-3 py-1 rounded-xl bg-[#2D1B14] text-[#FAF6F2] font-extrabold">${r.report_date}</span>
+                    <span class="font-bold text-[#A85438]">عدد العمال: ${r.workers_count || 0}</span>
+                  </div>
+                  <p class="text-sm font-bold text-[#2D1B14] leading-relaxed">${r.work_done}</p>
+                  ${r.obstacles ? `<p class="text-rose-800 bg-rose-50 p-2.5 rounded-xl font-semibold">معوقات: ${r.obstacles}</p>` : ''}
+                </div>`).join('') : '<div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-10 text-center text-xs font-bold text-[#7A6457]">لا توجد تقارير يومية مسجلة لهذا المشروع بعد.</div>'}
+            </div>
+          </div>
+        `}
+      `;
+    }
+
+    function openAddTxModal(projectId, itemId, itemTitle) {
+      const today = new Date().toISOString().slice(0, 10);
+      openModal(`
+        <div class="space-y-4 text-xs">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+            <div>
+              <h4 class="font-black text-sm text-[#2D1B14]">إضافة تكلفة تراكمية للبند</h4>
+              <p class="text-[#A85438] font-bold">${itemTitle}</p>
+            </div>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD]">✕</button>
+          </div>
+          <form onsubmit="submitItemTx(event, '${projectId}', '${itemId}')" class="space-y-3">
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">نوع التكلفة</label>
+              <select id="tx-type" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                <option value="materials">خامات</option>
+                <option value="labor">مصنعية</option>
+                <option value="staging">تشوين</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ (ج.م) *</label>
+              <input id="tx-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">التاريخ</label>
+              <input id="tx-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">البيان / الوصف</label>
+              <input id="tx-desc" type="text" placeholder="مثال: دفعة صنايعي / توريد خامات" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#A85438] text-white font-extrabold cursor-pointer">حفظ الحركة</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitItemTx(e, projectId, itemId) {
+      e.preventDefault();
+      if (!sb) return;
+      const amount = Number(document.getElementById('tx-amount').value);
+      const costType = document.getElementById('tx-type').value;
+      try {
+        const { error } = await sb.from('item_cost_transactions').insert({
+          project_id: projectId,
+          item_id: itemId,
+          cost_type: costType,
+          amount,
+          transaction_date: document.getElementById('tx-date').value,
+          description: document.getElementById('tx-desc').value.trim() || 'حركة تكلفة تراكمية',
+          created_by: STATE.session?.user?.id || null
+        });
+        if (error) throw error;
+
+        // تحديث إجمالي البند في حال عدم وجود تريجر تلقائي
+        const it = STATE.items.find((x) => x.id === itemId);
+        if (it) {
+          const patch = {
+            materials_cost: (Number(it.materials_cost) || 0) + (costType === 'materials' ? amount : 0),
+            labor_cost: (Number(it.labor_cost) || 0) + (costType === 'labor' ? amount : 0),
+            staging_cost: (Number(it.staging_cost) || 0) + (costType === 'staging' ? amount : 0)
+          };
+          await sb.from('project_items').update(patch).eq('id', itemId);
+        }
+
+        closeModal();
+        await refreshAllData();
+        showToast('تم تسجيل حركة التكلفة التراكمية وتحديث الرصيد.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function updateItemProgress(itemId, val) {
+      if (!sb) return;
+      const pct = Math.min(100, Math.max(0, Number(val) || 0));
+      try {
+        await sb.from('project_items').update({ completion_percentage: pct }).eq('id', itemId);
+        await refreshAllData();
+        showToast('تم تحديث نسبة إنجاز البند.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function addCustomProjectItem(e, projectId) {
+      e.preventDefault();
+      if (!sb) return;
+      const title = document.getElementById('custom-item-input').value.trim();
+      if (!title) return;
+      try {
+        await sb.from('project_items').insert({
+          project_id: projectId,
+          title,
+          sort_order: STATE.items.filter((i) => i.project_id === projectId).length + 1,
+          is_default_item: false
+        });
+        await refreshAllData();
+        showToast('تمت إضافة البند المخصص.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function submitDailyReport(e, projectId) {
+      e.preventDefault();
+      if (!sb) return;
+      try {
+        await sb.from('daily_reports').insert({
+          project_id: projectId,
+          report_date: document.getElementById('rep-date').value,
+          workers_count: Number(document.getElementById('rep-workers').value) || 0,
+          work_done: document.getElementById('rep-done').value.trim(),
+          obstacles: document.getElementById('rep-obs').value.trim(),
+          created_by: STATE.session?.user?.id || null
+        });
+        await refreshAllData();
+        showToast('تم حفظ تقرير الموقع اليومي.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 7. صفحة الحسابات، المصروفات العامة، وسحوبات المكتب
+    // =========================================================================
+    function openOfficeWithdrawModal(projectId, projectName) {
+      const today = new Date().toISOString().slice(0, 10);
+      openModal(`
+        <div class="space-y-4 text-xs">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+            <div>
+              <h4 class="font-black text-sm text-[#2D1B14]">تسجيل سحب للمكتب</h4>
+              <p class="text-[#A85438] font-bold">${projectName}</p>
+            </div>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD]">✕</button>
+          </div>
+          <form onsubmit="submitOfficeWithdrawal(event, '${projectId}')" class="space-y-3">
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">القائم بالسحب *</label>
+              <select id="wd-by" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                <option value="مهندس عمر">مهندس عمر</option>
+                <option value="المكتب">المكتب</option>
+                <option value="شريك / إدارة">شريك / إدارة</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ المسحوب (ج.م) *</label>
+                <input id="wd-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+              <div>
+                <label class="block font-extrabold text-[#5C4438] mb-1">تاريخ السحب</label>
+                <input id="wd-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              </div>
+            </div>
+            <div>
+              <label class="block font-extrabold text-[#5C4438] mb-1">ملاحظات</label>
+              <input id="wd-notes" type="text" placeholder="مثال: دفعة من أتعاب الإشراف" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+            </div>
+            <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 font-bold">
+              سيتم خصم هذا المبلغ مباشرة من الرصيد المتاح للمشروع ومن مستحقات المكتب.
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#2D1B14] text-white font-extrabold cursor-pointer">تأكيد السحب والخصم</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitOfficeWithdrawal(e, projectId) {
+      e.preventDefault();
+      const amount = Number(document.getElementById('wd-amount').value);
+      const withdrawn_by = document.getElementById('wd-by').value;
+      const withdrawal_date = document.getElementById('wd-date').value;
+      const notes = document.getElementById('wd-notes').value.trim();
+
+      if (!amount || amount <= 0) return;
+
+      const row = {
+        id: crypto.randomUUID(),
+        project_id: projectId,
+        amount,
+        withdrawn_by,
+        withdrawal_date,
+        notes,
+        created_at: new Date().toISOString()
+      };
+
+      // حفظ فوري محلياً وضمان ظهوره في الواجهة حتى لو كان جدول Supabase غير مهيأ
+      const local = getLocalWithdrawals();
+      local.unshift(row);
+      saveLocalWithdrawals(local);
+      STATE.officeWithdrawals = [row, ...STATE.officeWithdrawals];
+
+      if (sb) {
+        try {
+          const { data: inserted, error } = await sb.from('office_withdrawals').insert({
+            project_id: projectId,
+            amount,
+            withdrawn_by,
+            withdrawal_date,
+            notes
+          }).select().single();
+          if (!error && inserted) {
+            // إزالة النسخة المحلية المؤقتة بعد نجاح الحفظ في السحابة لمنع التكرار
+            const cleanedLocal = getLocalWithdrawals().filter((x) => x.id !== row.id);
+            saveLocalWithdrawals(cleanedLocal);
+          }
+        } catch (_) {}
+      }
+
+      closeModal();
+      renderCurrentView();
+      await refreshAllData();
+      showToast(`تم تسجيل سحب (${formatEGP(amount)}) باسم ${withdrawn_by} وخصمه من الرصيد المتاح للمشروع.`);
+    }
+
+    function renderAccountsAndExpensesView(allowed) {
+      const today = new Date().toISOString().slice(0, 10);
+      const target = STATE.accountsProjectFilter === 'ALL'
+        ? allowed
+        : allowed.filter((p) => p.id === STATE.accountsProjectFilter);
+      const targetIds = new Set(target.map((p) => p.id));
+      const filteredExpenses = STATE.expenses.filter((e) => targetIds.has(e.project_id));
+      const filteredWithdrawals = STATE.officeWithdrawals.filter((w) => targetIds.has(w.project_id));
+
+      return `
+        <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 flex flex-wrap items-center justify-between gap-3 no-print shadow-2xs">
+          <div class="flex items-center gap-2.5 text-xs">
+            <span class="text-[#5C4438] font-extrabold">تصفية حسب المشروع:</span>
+            <select onchange="STATE.accountsProjectFilter = this.value; renderCurrentView()"
+              class="px-4 py-2 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+              <option value="ALL" ${STATE.accountsProjectFilter === 'ALL' ? 'selected' : ''}>جميع المشاريع</option>
+              ${allowed.map((p) => `<option value="${p.id}" ${STATE.accountsProjectFilter === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+            </select>
+          </div>
+          <button onclick="window.print()" class="px-5 py-2.5 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] font-extrabold text-xs cursor-pointer">طباعة / تصدير التقرير</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          ${target.map((p) => {
+            const f = computeFinancials(p);
+            return `
+              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 shadow-2xs">
+                <div class="flex justify-between items-center pb-2.5 border-b border-[#E6D9CC]">
+                  <div>
+                    <h4 class="font-black text-sm text-[#2D1B14]">${p.name}</h4>
+                    <span class="text-[11px] text-[#7A6457]">نسبة المكتب: <strong class="text-[#A85438]">${f.officePct}%</strong></span>
+                  </div>
+                  ${canSeeFinance() ? `
+                    <button onclick="openOfficeWithdrawModal('${p.id}', '${p.name.replace(/'/g, '')}')"
+                      class="px-3.5 py-1.5 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] text-[11px] font-extrabold cursor-pointer">
+                      + سحب للمكتب
+                    </button>` : ''}
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                  <div class="p-2.5 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] block">دفعات العميل</span><strong class="text-[#2D1B14] font-extrabold">${canSeeFinance() ? formatEGP(f.paymentsTotal) : '---'}</strong></div>
+                  <div class="p-2.5 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] block">إجمالي المصروف</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(f.totalSpent)}</strong></div>
+                  <div class="p-2.5 rounded-2xl bg-[#A85438]/12 border border-[#A85438]/30"><span class="text-[#A85438] font-bold block">الرصيد المتاح (بعد خصم المكتب)</span><strong class="text-[#2D1B14] font-black">${canSeeFinance() ? formatEGP(f.balance) : '---'}</strong></div>
+                  ${canSeeFinance() ? `
+                    <div class="p-2.5 rounded-2xl bg-[#EFE6DD] border border-[#DFD2C5]"><span class="text-[#5C4438] block">مستحقات المكتب (${f.officePct}%)</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(f.officeEarned)}</strong></div>
+                    <div class="p-2.5 rounded-2xl bg-rose-50 border border-rose-200"><span class="text-rose-800 block">مسحوب للمكتب (مخصوم)</span><strong class="text-rose-900 font-extrabold">-${formatEGP(f.officeWithdrawn)}</strong></div>
+                    <div class="p-2.5 rounded-2xl bg-[#EFE6DD] border border-[#DFD2C5]"><span class="text-[#A85438] font-bold block">المتبقي للمكتب</span><strong class="text-[#2D1B14] font-black">${formatEGP(f.officeRemaining)}</strong></div>
+                  ` : ''}
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <form onsubmit="submitGlobalExpense(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit no-print shadow-2xs">
+            <h4 class="font-black text-sm text-[#A85438]">إضافة مصروف عام جديد</h4>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">المشروع *</label>
+              <select id="ge-proj" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                ${allowed.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">النوع</label>
+                <select id="ge-cat" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                  ${Object.entries(EXPENSE_CAT_AR).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">المبلغ (ج.م) *</label>
+                <input id="ge-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">الوصف *</label>
+              <input id="ge-desc" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">التاريخ</label>
+                <input id="ge-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              </div>
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">المسؤول</label>
+                <input id="ge-person" type="text" value="${STATE.profile?.full_name || 'م. عمر رضا'}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              </div>
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ المصروف</button>
+          </form>
+
+          <div class="lg:col-span-2 space-y-5">
+            <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl overflow-hidden shadow-2xs">
+              <div class="p-4 border-b border-[#E6D9CC] flex justify-between items-center">
+                <h4 class="font-black text-sm text-[#2D1B14]">سجل المصروفات العامة (${filteredExpenses.length})</h4>
+                <span class="text-xs font-extrabold text-[#A85438] bg-[#EFE6DD] px-3 py-1 rounded-xl">${formatEGP(filteredExpenses.reduce((s, e) => s + (Number(e.amount) || 0), 0))}</span>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                  <thead class="bg-[#EFE6DD] text-[#5C4438] font-extrabold">
+                    <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">النوع</th><th class="p-3.5">الوصف</th><th class="p-3.5">القيمة</th></tr>
+                  </thead>
+                  <tbody class="divide-y divide-[#E6D9CC]">
+                    ${filteredExpenses.length ? filteredExpenses.map((e) => `
+                      <tr>
+                        <td class="p-3.5 text-[#7A6457] whitespace-nowrap">${e.expense_date}</td>
+                        <td class="p-3.5 font-extrabold text-[#2D1B14]">${allowed.find((p) => p.id === e.project_id)?.name || 'مشروع'}</td>
+                        <td class="p-3.5 text-[#5C4438]">${EXPENSE_CAT_AR[e.category] || e.category}</td>
+                        <td class="p-3.5 text-[#2D1B14]">${e.description}</td>
+                        <td class="p-3.5 font-black text-[#A85438] whitespace-nowrap">${formatEGP(e.amount)}</td>
+                      </tr>`).join('') : '<tr><td colspan="5" class="p-8 text-center text-[#7A6457] font-bold">لا توجد مصروفات عامة مسجلة.</td></tr>'}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            ${canSeeFinance() ? `
+            <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl overflow-hidden shadow-2xs">
+              <div class="p-4 border-b border-[#E6D9CC] flex justify-between items-center">
+                <h4 class="font-black text-sm text-[#2D1B14]">سجل سحوبات المكتب (${filteredWithdrawals.length})</h4>
+                <span class="text-xs font-extrabold text-rose-800 bg-rose-50 px-3 py-1 rounded-xl">-${formatEGP(filteredWithdrawals.reduce((s, w) => s + (Number(w.amount) || 0), 0))}</span>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                  <thead class="bg-[#EFE6DD] text-[#5C4438] font-extrabold">
+                    <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">القائم بالسحب</th><th class="p-3.5">ملاحظات</th><th class="p-3.5">المبلغ</th></tr>
+                  </thead>
+                  <tbody class="divide-y divide-[#E6D9CC]">
+                    ${filteredWithdrawals.length ? filteredWithdrawals.map((w) => `
+                      <tr>
+                        <td class="p-3.5 text-[#7A6457] whitespace-nowrap">${w.withdrawal_date}</td>
+                        <td class="p-3.5 font-extrabold text-[#2D1B14]">${allowed.find((p) => p.id === w.project_id)?.name || 'مشروع'}</td>
+                        <td class="p-3.5"><span class="px-2.5 py-0.5 rounded-lg bg-[#2D1B14] text-[#FAF6F2] font-bold">${w.withdrawn_by || 'مهندس عمر'}</span></td>
+                        <td class="p-3.5 text-[#5C4438]">${w.notes || '-'}</td>
+                        <td class="p-3.5 font-black text-rose-800 whitespace-nowrap">-${formatEGP(w.amount)}</td>
+                      </tr>`).join('') : '<tr><td colspan="5" class="p-8 text-center text-[#7A6457] font-bold">لا توجد سحوبات مسجلة للمكتب حتى الآن.</td></tr>'}
+                  </tbody>
+                </table>
+              </div>
+            </div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    async function submitGlobalExpense(e) {
+      e.preventDefault();
+      if (!sb) return;
+      try {
+        const { error } = await sb.from('general_expenses').insert({
+          project_id: document.getElementById('ge-proj').value,
+          category: document.getElementById('ge-cat').value,
+          amount: Number(document.getElementById('ge-amount').value),
+          description: document.getElementById('ge-desc').value.trim(),
+          expense_date: document.getElementById('ge-date').value,
+          responsible_person: document.getElementById('ge-person').value.trim()
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم حفظ المصروف العام وتحديث الرصيد المتاح.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 8. صفحة دفعات العملاء
+    // =========================================================================
+    function renderClientPaymentsView(allowed) {
+      const today = new Date().toISOString().slice(0, 10);
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <form onsubmit="submitGlobalPayment(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+            <h4 class="font-black text-sm text-[#2D1B14]">تسجيل دفعة عميل</h4>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">المشروع *</label>
+              <select id="gp-proj" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                ${allowed.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">المبلغ (ج.م) *</label>
+                <input id="gp-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              </div>
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">التاريخ</label>
+                <input id="gp-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">طريقة الدفع</label>
+                <select id="gp-method" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                  ${Object.entries(PAYMENT_METHOD_AR).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">رقم الإيصال</label>
+                <input id="gp-receipt" type="text" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              </div>
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ الدفعة</button>
+          </form>
+
+          <div class="lg:col-span-2 bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl overflow-hidden shadow-2xs">
+            <div class="p-4 border-b border-[#E6D9CC] flex justify-between items-center">
+              <h4 class="font-black text-sm text-[#2D1B14]">سجل دفعات العملاء (${STATE.payments.length})</h4>
+              <span class="text-xs font-extrabold text-[#A85438] bg-[#EFE6DD] px-3 py-1 rounded-xl">${formatEGP(STATE.payments.reduce((s, p) => s + (Number(p.amount) || 0), 0))}</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-right text-xs">
+                <thead class="bg-[#EFE6DD] text-[#5C4438] font-extrabold">
+                  <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">الطريقة</th><th class="p-3.5">الإيصال</th><th class="p-3.5">المبلغ</th></tr>
+                </thead>
+                <tbody class="divide-y divide-[#E6D9CC]">
+                  ${STATE.payments.length ? STATE.payments.map((pay) => `
+                    <tr>
+                      <td class="p-3.5 text-[#7A6457]">${pay.payment_date}</td>
+                      <td class="p-3.5 font-extrabold text-[#2D1B14]">${allowed.find((p) => p.id === pay.project_id)?.name || 'مشروع'}</td>
+                      <td class="p-3.5 text-[#5C4438]">${PAYMENT_METHOD_AR[pay.payment_method] || pay.payment_method}</td>
+                      <td class="p-3.5 text-[#7A6457]">${pay.receipt_number || '-'}</td>
+                      <td class="p-3.5 font-black text-[#A85438]">${formatEGP(pay.amount)}</td>
+                    </tr>`).join('') : '<tr><td colspan="5" class="p-8 text-center text-[#7A6457] font-bold">لا توجد دفعات عملاء مسجلة.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function submitGlobalPayment(e) {
+      e.preventDefault();
+      if (!sb) return;
+      try {
+        const { error } = await sb.from('client_payments').insert({
+          project_id: document.getElementById('gp-proj').value,
+          amount: Number(document.getElementById('gp-amount').value),
+          payment_date: document.getElementById('gp-date').value,
+          payment_method: document.getElementById('gp-method').value,
+          receipt_number: document.getElementById('gp-receipt').value.trim() || null
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم تسجيل دفعة العميل وتحديث الرصيد المتاح.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 9. صفحة الخامات والموردين
+    // =========================================================================
+    function renderMaterialsView(allowed) {
+      const today = new Date().toISOString().slice(0, 10);
+      const filtered = STATE.materials.filter((m) => STATE.materialsStatusFilter === 'ALL' || m.status === STATE.materialsStatusFilter);
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <form onsubmit="submitMaterialReq(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+            <h4 class="font-black text-sm text-[#2D1B14]">طلب خامة جديدة للموقع</h4>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">المشروع *</label>
+              <select id="mr-proj" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                ${allowed.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">اسم الخامة *</label>
+              <input id="mr-name" type="text" required placeholder="مثال: أسمنت / مواسير / سلك كهرباء" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">الكمية *</label>
+                <input id="mr-qty" type="number" required min="1" value="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              </div>
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">الوحدة</label>
+                <select id="mr-unit" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                  <option value="شيكارة">شيكارة</option>
+                  <option value="متر">متر</option>
+                  <option value="لوح">لوح</option>
+                  <option value="كرتونة">كرتونة</option>
+                  <option value="لفة">لفة</option>
+                  <option value="عدد">عدد</option>
+                  <option value="طن">طن</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">تاريخ الاحتياج</label>
+              <input id="mr-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">ملاحظات للمكتب / المورد</label>
+              <input id="mr-notes" type="text" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">إرسال طلب الخامة</button>
+          </form>
+
+          <div class="lg:col-span-2 space-y-4">
+            <div class="flex flex-wrap gap-2">
+              ${[
+                { id: 'ALL', label: 'الكل' },
+                { id: 'pending_review', label: 'قيد المراجعة' },
+                { id: 'approved', label: 'معتمدة' },
+                { id: 'in_transit', label: 'في الطريق' },
+                { id: 'received', label: 'مستلمة' }
+              ].map((st) => `
+                <button onclick="STATE.materialsStatusFilter='${st.id}'; renderCurrentView()"
+                  class="px-4 py-2 rounded-full text-xs font-extrabold cursor-pointer ${
+                    STATE.materialsStatusFilter === st.id ? 'bg-[#2D1B14] text-[#FAF6F2]' : 'bg-[#FAF6F2] text-[#5C4438] border border-[#DFD2C5]'
+                  }">${st.label}</button>`).join('')}
+            </div>
+
+            ${filtered.length ? filtered.map((m) => `
+              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
+                <div>
+                  <h4 class="font-black text-sm text-[#2D1B14]">${m.material_name} (${m.quantity} ${m.unit})</h4>
+                  <p class="text-[#7A6457] font-semibold mt-0.5">${allowed.find((p) => p.id === m.project_id)?.name || 'مشروع'} • احتياج: ${m.needed_date}</p>
+                  ${m.engineer_notes ? `<p class="text-[#5C4438] mt-1">${m.engineer_notes}</p>` : ''}
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-3 py-1 rounded-full bg-[#EFE6DD] text-[#2D1B14] font-extrabold border border-[#DFD2C5]">${MATERIAL_STATUS_AR[m.status] || m.status}</span>
+                  ${isMainAdmin() && m.status === 'pending_review' ? `
+                    <button onclick="updateMatStatus('${m.id}', 'approved')" class="px-3.5 py-1.5 rounded-full bg-[#3A6B4C] text-white font-bold cursor-pointer">اعتماد</button>
+                    <button onclick="updateMatStatus('${m.id}', 'rejected')" class="px-3.5 py-1.5 rounded-full bg-rose-700 text-white font-bold cursor-pointer">رفض</button>
+                  ` : ''}
+                  ${(m.status === 'approved' || m.status === 'in_transit') ? `
+                    <button onclick="updateMatStatus('${m.id}', 'received')" class="px-3.5 py-1.5 rounded-full bg-[#2D1B14] text-white font-bold cursor-pointer">تم الاستلام</button>
+                  ` : ''}
+                </div>
+              </div>`).join('') : '<div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-10 text-center text-xs font-bold text-[#7A6457]">لا توجد طلبات خامات في هذا التصنيف.</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    async function submitMaterialReq(e) {
+      e.preventDefault();
+      if (!sb) return;
+      try {
+        const { error } = await sb.from('material_requests').insert({
+          project_id: document.getElementById('mr-proj').value,
+          material_name: document.getElementById('mr-name').value.trim(),
+          quantity: Number(document.getElementById('mr-qty').value) || 1,
+          unit: document.getElementById('mr-unit').value,
+          needed_date: document.getElementById('mr-date').value,
+          engineer_notes: document.getElementById('mr-notes').value.trim(),
+          status: 'pending_review'
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم إرسال طلب الخامة للمراجعة.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function updateMatStatus(id, status) {
+      if (!sb) return;
+      try {
+        await sb.from('material_requests').update({ status }).eq('id', id);
+        await refreshAllData();
+        showToast('تم تحديث حالة طلب الخامة.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 10. صفحة المواعيد والمهام
+    // =========================================================================
+    function renderAppointmentsView(allowed) {
+      const nowLocal = new Date().toISOString().slice(0, 16);
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <form onsubmit="submitAppointment(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+            <h4 class="font-black text-sm text-[#2D1B14]">إضافة موعد أو مهمة جديدة</h4>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">العنوان *</label>
+              <input id="ap-title" type="text" required placeholder="مثال: معاينة شقة / استلام محارة" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">النوع</label>
+              <select id="ap-type" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                ${Object.entries(TASK_TYPE_AR).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">التاريخ والوقت *</label>
+              <input id="ap-date" type="datetime-local" required value="${nowLocal}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">المشروع المرتبط</label>
+              <select id="ap-proj" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                <option value="">عام / بدون مشروع</option>
+                ${allowed.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
+              </select>
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ الموعد</button>
+          </form>
+
+          <div class="lg:col-span-2 space-y-3">
+            ${STATE.tasks.length ? STATE.tasks.map((t) => `
+              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
+                <div>
+                  <span class="px-3 py-0.5 rounded-full bg-[#2D1B14] text-[#FAF6F2] text-[10px] font-extrabold">${TASK_TYPE_AR[t.entry_type] || t.entry_type}</span>
+                  <h4 class="font-black text-sm text-[#2D1B14] mt-1.5">${t.title}</h4>
+                  <p class="text-[#7A6457] font-semibold mt-0.5">${new Date(t.scheduled_at).toLocaleString('ar-EG')} • ${allowed.find((p) => p.id === t.project_id)?.name || 'عام'}</p>
+                </div>
+                <select onchange="updateAppointmentStatus('${t.id}', this.value)" class="px-3.5 py-2 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-extrabold">
+                  ${Object.entries(TASK_STATUS_AR).map(([k, v]) => `<option value="${k}" ${t.status === k ? 'selected' : ''}>${v}</option>`).join('')}
+                </select>
+              </div>`).join('') : '<div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-10 text-center text-xs font-bold text-[#7A6457]">لا توجد مواعيد أو مهام مسجلة حالياً.</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    async function submitAppointment(e) {
+      e.preventDefault();
+      if (!sb) return;
+      try {
+        const { error } = await sb.from('appointments_tasks').insert({
+          title: document.getElementById('ap-title').value.trim(),
+          entry_type: document.getElementById('ap-type').value,
+          scheduled_at: new Date(document.getElementById('ap-date').value).toISOString(),
+          project_id: document.getElementById('ap-proj').value || null,
+          status: 'new',
+          priority: 'high'
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم حفظ الموعد / المهمة بنجاح.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function updateAppointmentStatus(id, status) {
+      if (!sb) return;
+      try {
+        await sb.from('appointments_tasks').update({ status }).eq('id', id);
+        await refreshAllData();
+        showToast('تم تحديث حالة المهمة.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 11. صفحة العمال والصنايعية
+    // =========================================================================
+    function renderWorkersView(allowed) {
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <form onsubmit="submitWorker(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+            <h4 class="font-black text-sm text-[#2D1B14]">إضافة عامل / صنايعي للدليل</h4>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">الاسم الكامل *</label>
+              <input id="wk-name" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">التخصص (سباك، كهربائي، محارة...) *</label>
+              <input id="wk-spec" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">رقم الهاتف / واتساب *</label>
+              <input id="wk-phone" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">المنطقة</label>
+              <input id="wk-area" type="text" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ في الدليل</button>
+          </form>
+
+          <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            ${STATE.workers.length ? STATE.workers.map((w) => `
+              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 flex items-center justify-between gap-3 text-xs shadow-2xs">
+                <div>
+                  <h4 class="font-black text-sm text-[#2D1B14]">${w.full_name}</h4>
+                  <p class="text-[#A85438] font-extrabold mt-0.5">${w.specialty}</p>
+                  <p class="text-[#7A6457] font-semibold mt-0.5">${w.phone} ${w.area_address ? '• ' + w.area_address : ''}</p>
+                </div>
+                <a href="https://wa.me/${w.whatsapp}" target="_blank" class="px-4 py-2 rounded-full bg-[#3A6B4C] hover:bg-[#2E553C] text-white font-extrabold">واتساب</a>
+              </div>`).join('') : '<div class="col-span-2 bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-10 text-center text-xs font-bold text-[#7A6457]">لا يوجد عمال أو صنايعية مسجلون بعد.</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    async function submitWorker(e) {
+      e.preventDefault();
+      if (!sb) return;
+      const phone = document.getElementById('wk-phone').value.trim();
+      const digits = phone.replace(/\D/g, '');
+      const wa = digits.startsWith('0') ? '2' + digits : digits;
+      try {
+        const { error } = await sb.from('workers').insert({
+          full_name: document.getElementById('wk-name').value.trim(),
+          specialty: document.getElementById('wk-spec').value.trim(),
+          phone,
+          whatsapp: wa,
+          area_address: document.getElementById('wk-area').value.trim(),
+          availability_status: 'available'
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تمت إضافة العامل / الصنايعي للدليل.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 12. صفحة إدارة الفريق والصلاحيات
+    // =========================================================================
+    function renderTeamView() {
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <form onsubmit="submitTeamMember(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+            <h4 class="font-black text-sm text-[#2D1B14]">إضافة / تحديث موظف وصلاحياته</h4>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">الاسم الكامل *</label>
+              <input id="tm-name" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">البريد الإلكتروني *</label>
+              <input id="tm-email" type="email" required dir="ltr" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] text-left font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[#5C4438] font-extrabold mb-1">الدور الوظيفي</label>
+              <select id="tm-role" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                <option value="engineer">مهندس موقع</option>
+                <option value="accountant">محاسب</option>
+                <option value="admin">مدير مكتب</option>
+              </select>
+            </div>
+            <label class="flex items-center gap-2 font-bold text-[#5C4438] cursor-pointer pt-1">
+              <input id="tm-fin" type="checkbox" />
+              <span>السماح برؤية التفاصيل المالية ونسبة المكتب</span>
+            </label>
+            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ الصلاحيات</button>
+          </form>
+
+          <div class="lg:col-span-2 space-y-3">
+            ${STATE.profiles.map((u) => `
+              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 sm:p-5 flex justify-between items-center text-xs shadow-2xs">
+                <div>
+                  <h4 class="font-black text-sm text-[#2D1B14]">${u.full_name}</h4>
+                  <p class="text-[#7A6457]" dir="ltr">${u.email}</p>
+                  <p class="text-[#A85438] font-extrabold mt-1">الدور: ${u.role === 'admin' ? 'مدير' : u.role === 'accountant' ? 'محاسب' : 'مهندس موقع'}</p>
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    async function submitTeamMember(e) {
+      e.preventDefault();
+      if (!sb) return;
+      const email = document.getElementById('tm-email').value.trim().toLowerCase();
+      const role = document.getElementById('tm-role').value;
+      const canFin = document.getElementById('tm-fin').checked || role !== 'engineer';
+      try {
+        const existing = STATE.profiles.find((p) => p.email.toLowerCase() === email);
+        if (existing) {
+          await sb.from('profiles').update({
+            full_name: document.getElementById('tm-name').value.trim(),
+            role,
+            can_view_sensitive_finance: canFin
+          }).eq('id', existing.id);
+        } else {
+          await sb.from('profiles').insert({
+            id: crypto.randomUUID(),
+            full_name: document.getElementById('tm-name').value.trim(),
+            email,
+            role,
+            can_view_sensitive_finance: canFin,
+            is_active: true
+          });
+        }
+        await refreshAllData();
+        showToast('تم حفظ بيانات وصلاحيات الموظف.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 13. صفحة الأدوات السريعة والمفكرة
+    // =========================================================================
+    function renderToolsView(allowed) {
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
+          <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3.5 shadow-2xs">
+            <h4 class="font-black text-sm text-[#2D1B14]">حاسبة كميات التشطيبات</h4>
+            <select id="calc-kind" onchange="updateQtyCalc()" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+              <option value="ceramic">سيراميك / بورسلين</option>
+              <option value="paint">دهانات</option>
+              <option value="plaster">محارة</option>
+              <option value="gypsum">جبس بورد</option>
+            </select>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">المساحة (م²)</label>
+                <input id="calc-area" type="number" value="120" oninput="updateQtyCalc()" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold" />
+              </div>
+              <div>
+                <label class="block text-[#5C4438] font-extrabold mb-1">نسبة الهالك (%)</label>
+                <input id="calc-waste" type="number" value="10" oninput="updateQtyCalc()" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold" />
+              </div>
+            </div>
+            <div id="calc-out" class="p-4 rounded-2xl bg-[#2D1B14] text-[#FAF6F2] font-black text-sm">132.0 م² خامات شاملة الهالك (10%)</div>
+          </div>
+
+          <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3.5 shadow-2xs">
+            <h4 class="font-black text-sm text-[#2D1B14]">المفكرة السريعة (Scratchpad)</h4>
+            <form onsubmit="submitQuickNote(event)" class="flex gap-2">
+              <input id="qn-text" type="text" required placeholder="اكتب ملاحظة سريعة أو مقاس..." class="flex-1 px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <button type="submit" class="px-5 py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ</button>
+            </form>
+            <div class="space-y-2 max-h-56 overflow-y-auto">
+              ${STATE.notes.map((n) => `
+                <div class="p-3 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5] font-bold text-[#2D1B14]">${n.content}</div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateQtyCalc() {
+      const kind = document.getElementById('calc-kind')?.value || 'ceramic';
+      const area = Number(document.getElementById('calc-area')?.value) || 0;
+      const waste = Number(document.getElementById('calc-waste')?.value) || 0;
+      const base = area * (1 + waste / 100);
+      const out = document.getElementById('calc-out');
+      if (!out) return;
+      if (kind === 'ceramic') out.textContent = `${base.toFixed(1)} م² خامات شاملة الهالك (${waste}%)`;
+      else if (kind === 'paint') out.textContent = `${Math.max(1, Math.ceil(base / 10))} بستلة دهان تقريباً`;
+      else if (kind === 'plaster') out.textContent = `${Math.max(1, Math.ceil(base * 0.22))} شيكارة أسمنت تقريباً`;
+      else out.textContent = `${Math.max(1, Math.ceil(base / 2.88))} لوح جبس بورد تقريباً`;
+    }
+
+    async function submitQuickNote(e) {
+      e.preventDefault();
+      if (!sb) return;
+      const content = document.getElementById('qn-text').value.trim();
+      if (!content) return;
+      try {
+        await sb.from('quick_notes').insert({
+          user_id: STATE.session?.user?.id,
+          content
+        });
+        await refreshAllData();
+        showToast('تم حفظ الملاحظة.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 14. إدارة الجلسة وتحميل البيانات
+    // =========================================================================
+    function showLoginScreen() {
+      document.getElementById('boot-screen').classList.add('hidden');
+      document.getElementById('app-shell').classList.add('hidden');
+      document.getElementById('app-shell').classList.remove('flex');
+      document.getElementById('login-screen').classList.remove('hidden');
+    }
+
+    function showAppShell() {
+      document.getElementById('boot-screen').classList.add('hidden');
+      document.getElementById('login-screen').classList.add('hidden');
+      const shell = document.getElementById('app-shell');
+      shell.classList.remove('hidden');
+      shell.classList.add('flex');
+
+      const name = STATE.profile?.full_name || (isMainAdmin() ? 'م. عمر رضا' : STATE.session?.user?.email || 'مستخدم');
+      const role = isMainAdmin() ? 'مدير المكتب' : STATE.profile?.role === 'accountant' ? 'محاسب' : 'مهندس موقع';
+      const initial = name.replace(/^م\.\s*/, '').charAt(0) || 'م';
+
+      document.getElementById('sidebar-user-name').textContent = name;
+      document.getElementById('sidebar-user-role').textContent = role;
+      document.getElementById('sidebar-avatar').textContent = initial;
+      document.getElementById('mobile-avatar').textContent = initial;
+
+      renderNavigation();
+      renderCurrentView();
+    }
+
+    async function loadUserProfile(user) {
+      if (!sb || !user) return null;
+      try {
+        const { data } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+        if (data) {
+          STATE.profile = data;
+          return data;
+        }
+        if ((user.email || '').toLowerCase() === ADMIN_EMAIL) {
+          const row = {
+            id: user.id,
+            full_name: 'م. عمر رضا',
+            email: user.email,
+            role: 'admin',
+            assigned_project_ids: [],
+            can_view_sensitive_finance: true,
+            is_active: true
+          };
+          const { data: up } = await sb.from('profiles').upsert(row, { onConflict: 'email' }).select().maybeSingle();
+          STATE.profile = up || row;
+          return STATE.profile;
+        }
+      } catch (_) {}
+      return null;
+    }
+
+    async function refreshAllData() {
+      if (!sb || !STATE.session?.user) return;
+      try {
+        const [
+          profRes, projRes, itemsRes, txRes, payRes, expRes,
+          workRes, assignRes, evalRes, repRes, matRes, taskRes, chkRes, fileRes, noteRes, wdRes
+        ] = await Promise.all([
+          sb.from('profiles').select('*').order('created_at', { ascending: false }),
+          sb.from('projects').select('*').order('created_at', { ascending: false }),
+          sb.from('project_items').select('*').order('sort_order', { ascending: true }),
+          sb.from('item_cost_transactions').select('*').order('transaction_date', { ascending: false }),
+          sb.from('client_payments').select('*').order('payment_date', { ascending: false }),
+          sb.from('general_expenses').select('*').order('expense_date', { ascending: false }),
+          sb.from('workers').select('*').order('created_at', { ascending: false }),
+          sb.from('worker_assignments').select('*').order('created_at', { ascending: false }),
+          sb.from('worker_evaluations').select('*').order('created_at', { ascending: false }),
+          sb.from('daily_reports').select('*').order('report_date', { ascending: false }),
+          sb.from('material_requests').select('*').order('created_at', { ascending: false }),
+          sb.from('appointments_tasks').select('*').order('scheduled_at', { ascending: true }),
+          sb.from('quality_checklists').select('*').order('updated_at', { ascending: false }),
+          sb.from('project_files').select('*').order('created_at', { ascending: false }),
+          sb.from('quick_notes').select('*').order('created_at', { ascending: false }),
+          sb.from('office_withdrawals').select('*').order('withdrawal_date', { ascending: false })
+        ]);
+
+        if (!profRes.error && profRes.data) STATE.profiles = profRes.data;
+        if (!projRes.error && projRes.data) STATE.projects = projRes.data;
+        if (!itemsRes.error && itemsRes.data) STATE.items = itemsRes.data;
+        if (!txRes.error && txRes.data) STATE.transactions = txRes.data;
+        if (!payRes.error && payRes.data) STATE.payments = payRes.data;
+        if (!expRes.error && expRes.data) STATE.expenses = expRes.data;
+        if (!workRes.error && workRes.data) STATE.workers = workRes.data;
+        if (!assignRes.error && assignRes.data) STATE.assignments = assignRes.data;
+        if (!evalRes.error && evalRes.data) STATE.evaluations = evalRes.data;
+        if (!repRes.error && repRes.data) STATE.reports = repRes.data;
+        if (!matRes.error && matRes.data) STATE.materials = matRes.data;
+        if (!taskRes.error && taskRes.data) STATE.tasks = taskRes.data;
+        if (!chkRes.error && chkRes.data) STATE.checklists = chkRes.data;
+        if (!fileRes.error && fileRes.data) STATE.files = fileRes.data;
+        if (!noteRes.error && noteRes.data) STATE.notes = noteRes.data;
+
+        const localWd = getLocalWithdrawals();
+        if (!wdRes.error && Array.isArray(wdRes.data)) {
+          const dbIds = new Set(wdRes.data.map((w) => w.id));
+          const mergedWd = [...wdRes.data, ...localWd.filter((w) => !dbIds.has(w.id))];
+          mergedWd.sort((a, b) => String(b.withdrawal_date || '').localeCompare(String(a.withdrawal_date || '')));
+          STATE.officeWithdrawals = mergedWd;
+        } else {
+          STATE.officeWithdrawals = localWd;
+        }
+
+        await splitAllExistingCombinedMepItems();
+      } catch (err) {
+        showToast(translateError(err, 'حدث خطأ أثناء تحميل البيانات.'), 'error');
+      }
+      renderCurrentView();
+    }
+
+    async function logoutUser() {
+      try {
+        if (sb) await sb.auth.signOut();
+      } catch (_) {}
+      STATE.session = null;
+      STATE.profile = null;
+      STATE.selectedProjectId = null;
+      STATE.activeTab = 'home';
+      showLoginScreen();
+      showToast('تم تسجيل الخروج بنجاح.');
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!sb) {
+        showToast('تعذر تحميل مكتبة الاتصال، يرجى تحديث الصفحة.', 'error');
+        return;
+      }
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      try {
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        if (data?.session) {
+          STATE.session = data.session;
+          await loadUserProfile(data.session.user);
+          showAppShell();
+          await refreshAllData();
+          showToast('تم تسجيل الدخول بنجاح.');
+        }
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    (async function initApp() {
+      const fallbackTimer = setTimeout(() => {
+        if (!STATE.session) showLoginScreen();
+      }, 3500);
+
+      try {
+        if (!sb) {
+          clearTimeout(fallbackTimer);
+          showLoginScreen();
+          return;
+        }
+        const { data } = await sb.auth.getSession();
+        clearTimeout(fallbackTimer);
+        if (data?.session?.user) {
+          STATE.session = data.session;
+          await loadUserProfile(data.session.user);
+          showAppShell();
+          await refreshAllData();
+        } else {
+          showLoginScreen();
+        }
+      } catch (_) {
+        clearTimeout(fallbackTimer);
+        showLoginScreen();
+      }
+    })();
+  </script>
+</body>
+</html>
