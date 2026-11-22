@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="مكتب التشطيبات" />
+  <title>مكتب التشطيبات | إدارة مشاريع التشطيبات والحسابات</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { font-family: 'Cairo', sans-serif; }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+  <!-- إشعارات عائمة -->
+  <div id="toast-container" class="fixed bottom-4 left-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
+
+  <!-- شاشة تسجيل الدخول -->
+  <div id="login-screen" class="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-emerald-950 flex flex-col justify-center items-center p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+      <div class="bg-slate-900 p-7 text-center">
+        <div class="w-16 h-16 bg-emerald-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-600/30 mb-3 text-white text-2xl font-extrabold">
+          🏢
+        </div>
+        <h1 class="text-2xl font-extrabold text-white">مكتب التشطيبات</h1>
+        <p class="text-emerald-300 text-xs font-semibold mt-1">نظام إدارة مشاريع التشطيبات والحسابات (ج.م)</p>
+      </div>
+
+      <div class="p-6 sm:p-8">
+        <form id="login-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-extrabold text-slate-700 mb-1.5">البريد الإلكتروني</label>
+            <input id="login-email" type="email" required value="omarreda62@gmail.com" dir="ltr"
+              class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-sm text-left focus:border-emerald-600 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-extrabold text-slate-700 mb-1.5">كلمة المرور</label>
+            <input id="login-password" type="password" required placeholder="أدخل كلمة المرور" dir="ltr"
+              class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-sm text-left focus:border-emerald-600 outline-none" />
+          </div>
+          <button id="login-btn" type="submit"
+            class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-lg transition-all cursor-pointer">
+            دخول إلى مكتب التشطيبات ←
+          </button>
+        </form>
+
+        <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> متصل بقاعدة بياناتك
+          </span>
+          <span>RTL • الجنيه المصري (ج.م)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- التطبيق الرئيسي -->
+  <div id="app-shell" class="hidden min-h-screen flex-col lg:flex-row">
+    <!-- القائمة الجانبية للكمبيوتر -->
+    <aside class="hidden lg:flex lg:flex-col lg:w-72 bg-slate-900 text-white shrink-0 sticky top-0 h-screen z-30 shadow-xl no-print">
+      <div class="p-5 border-b border-slate-800 flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-xl font-extrabold shrink-0">🏢</div>
+        <div>
+          <h1 class="font-extrabold text-lg leading-tight">مكتب التشطيبات</h1>
+          <span class="text-[11px] text-emerald-400 font-bold">الجنيه المصري (ج.م)</span>
+        </div>
+      </div>
+
+      <div class="mx-3 mt-3 p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/70">
+        <p id="sidebar-user-name" class="text-xs font-extrabold text-white truncate">م. عمر رضا</p>
+        <p id="sidebar-user-role" class="text-[11px] text-emerald-400 font-semibold mt-0.5">مدير المكتب</p>
+      </div>
+
+      <nav id="desktop-nav" class="flex-1 overflow-y-auto px-3 py-3 space-y-1"></nav>
+
+      <div class="p-3 border-t border-slate-800">
+        <button onclick="logoutUser()"
+          class="w-full py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-200 hover:text-white font-bold text-xs transition-all cursor-pointer">
+          تسجيل الخروج
+        </button>
+      </div>
+    </aside>
+
+    <!-- قائمة الموبايل -->
+    <div id="mobile-drawer" class="fixed inset-0 z-50 hidden lg:hidden">
+      <div class="fixed inset-0 bg-slate-950/60" onclick="toggleMobileMenu(false)"></div>
+      <div class="relative w-72 max-w-[85vw] bg-slate-900 text-white h-full flex flex-col z-10 shadow-2xl">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <span class="font-extrabold text-sm">مكتب التشطيبات</span>
+          <button onclick="toggleMobileMenu(false)" class="px-2.5 py-1 rounded-lg bg-slate-800 text-xs">✕</button>
+        </div>
+        <nav id="mobile-nav" class="flex-1 overflow-y-auto p-3 space-y-1"></nav>
+        <div class="p-3 border-t border-slate-800">
+          <button onclick="logoutUser()" class="w-full py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs">
+            تسجيل الخروج
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex items-center justify-between shadow-2xs no-print">
+        <div class="flex items-center gap-3 min-w-0">
+          <button onclick="toggleMobileMenu(true)" class="lg:hidden px-3 py-2 rounded-xl bg-slate-100 text-slate-800 font-bold text-sm">☰</button>
+          <div class="min-w-0">
+            <h2 id="header-title" class="text-sm sm:text-lg font-extrabold text-slate-900 truncate">الرئيسية</h2>
+            <p class="text-[11px] text-emerald-700 font-bold">● متصل بقاعدة البيانات • الجنيه المصري (ج.م)</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="refreshAllData()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">
+            ↻ تحديث
+          </button>
+          <button onclick="logoutUser()" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 text-xs font-extrabold cursor-pointer">
+            تسجيل الخروج
+          </button>
+        </div>
+      </header>
+
+      <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto"></main>
+    </div>
+  </div>
+
+  <!-- حاوية النوافذ المنبثقة -->
+  <div id="modal-root" class="fixed inset-0 z-50 bg-slate-950/60 hidden items-center justify-center p-4 overflow-y-auto"></div>
+
+  <script>
+    // =========================================================================
+    // 1. إعداد الاتصال المباشر بـ Supabase
+    // =========================================================================
+    const SUPABASE_URL = 'https://nzfwavvqemwpwrlxcgem.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_oCZs-Hj6Kxw5ymCOdToArA_SOB1cTJ5';
+    const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+    const DEFAULT_BOQ_TITLES = [
+      'المباني والتعديلات المعمارية',
+      'العزل المائي والحراري',
+      'تأسيس السباكة والكهرباء والتكييف',
+      'المحارة (اللياسة)',
+      'النجارة والحلوق',
+      'الجبس بورد والأسقف المعلقة',
+      'الأرضيات والتكسيات',
+      'الدهانات',
+      'التركيبات النهائية'
+    ];
+
+    const STATUS_LABELS = { new: 'جديد', in_progress: 'قيد التنفيذ', on_hold: 'معلق', completed: 'مكتمل', stopped: 'متوقف' };
+    const STAGE_LABELS = { in_beginning: 'في البداية', in_progress: 'جاري التنفيذ', near_delivery: 'قرب التسليم', stalled: 'متعثر', completed: 'مكتمل' };
+    const EXPENSE_LABELS = { transportation: 'مواصلات', tips: 'إكراميات', tools: 'أدوات', loading_transport: 'تحميل ونقل', daily_labor: 'عمالة يومية', other: 'مصروفات أخرى' };
+    const PAYMENT_LABELS = { cash: 'نقدي', instapay: 'إنستاباي', bank_transfer: 'تحويل بنكي', vodafone_cash: 'فودافون كاش', cheque: 'شيك', other: 'أخرى' };
+    const MATERIAL_LABELS = { pending_review: 'قيد المراجعة', approved: 'تم الاعتماد', ordered_from_supplier: 'تم الطلب من المورد', in_transit: 'في الطريق', received: 'تم الاستلام', rejected: 'مرفوض' };
+    const TASK_TYPE_LABELS = { inspection: 'معاينة', meeting: 'اجتماع', site_visit: 'زيارة موقع', item_handover: 'استلام بند', supplier: 'موعد مورد', task: 'مهمة' };
+    const TASK_STATUS_LABELS = { new: 'جديدة', in_progress: 'جاري العمل', completed: 'مكتملة', overdue: 'متأخرة' };
+
+    const STATE = {
+      session: null,
+      profile: null,
+      tab: 'home',
+      selectedProjectId: null,
+      projectSubTab: 'items',
+      profiles: [],
+      projects: [],
+      items: [],
+      transactions: [],
+      payments: [],
+      expenses: [],
+      workers: [],
+      assignments: [],
+      evaluations: [],
+      reports: [],
+      materials: [],
+      tasks: [],
+      checklists: [],
+      files: [],
+      notes: []
+    };
+
+    const formatEGP = (n) => `${(Number(n) || 0).toLocaleString('ar-EG')} ج.م`;
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const bg = type === 'error' ? 'bg-rose-900 border-rose-700' : 'bg-emerald-800 border-emerald-600';
+      el.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-bold text-white border ${bg}`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 4500);
+    }
+
+    function translateError(err, fallback = 'تعذر إتمام العملية حالياً، يرجى التحقق من البيانات والمحاولة مرة أخرى.') {
+      const m = String(err?.message || err || '').toLowerCase();
+      if (m.includes('invalid login')) return 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+      if (m.includes('email not confirmed')) return 'يرجى تأكيد البريد الإلكتروني أولاً.';
+      if (m.includes('duplicate') || m.includes('unique')) return 'هذا السجل مسجل مسبقاً في النظام.';
+      if (m.includes('permission') || m.includes('policy') || m.includes('row-level')) return 'ليس لديك صلاحية لتنفيذ هذا الإجراء.';
+      return fallback;
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // =========================================================================
+    // 2. المصادقة وتحميل البيانات
+    // =========================================================================
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!sb) return showToast('تعذر تحميل مكتبة الاتصال بالخادم، أعد تحميل الصفحة.', 'error');
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.textContent = 'جاري الدخول...';
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) {
+          showToast(translateError(error), 'error');
+          return;
+        }
+        STATE.session = data.session;
+        await initAfterAuth();
+        showToast('تم تسجيل الدخول بنجاح، مرحباً بك في مكتب التشطيبات.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'دخول إلى مكتب التشطيبات ←';
+      }
+    });
+
+    async function logoutUser() {
+      if (sb) await sb.auth.signOut();
+      STATE.session = null;
+      STATE.profile = null;
+      STATE.selectedProjectId = null;
+      document.getElementById('app-shell').classList.add('hidden');
+      document.getElementById('app-shell').classList.remove('flex');
+      document.getElementById('login-screen').classList.remove('hidden');
+      showToast('تم تسجيل الخروج بنجاح.');
+    }
+
+    async function initAfterAuth() {
+      const user = STATE.session?.user;
+      if (!user) return;
+
+      const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      if (prof) {
+        STATE.profile = prof;
+      } else if ((user.email || '').toLowerCase() === 'omarreda62@gmail.com') {
+        const adminRow = {
+          id: user.id,
+          full_name: 'م. عمر رضا',
+          email: user.email,
+          role: 'admin',
+          assigned_project_ids: [],
+          can_view_sensitive_finance: true,
+          is_active: true
+        };
+        await sb.from('profiles').upsert(adminRow, { onConflict: 'email' });
+        STATE.profile = adminRow;
+      }
+
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-shell').classList.remove('hidden');
+      document.getElementById('app-shell').classList.add('flex');
+
+      const role = getRole();
+      document.getElementById('sidebar-user-name').textContent = STATE.profile?.full_name || user.email;
+      document.getElementById('sidebar-user-role').textContent =
+        role === 'admin' ? 'مدير المكتب' : role === 'engineer' ? 'مهندس موقع' : 'محاسب';
+
+      renderNavigation();
+      await refreshAllData();
+    }
+
+    function getRole() {
+      return STATE.profile?.role || ((STATE.session?.user?.email || '').toLowerCase() === 'omarreda62@gmail.com' ? 'admin' : 'engineer');
+    }
+
+    function canViewFinance() {
+      const r = getRole();
+      return r === 'admin' || r === 'accountant' || Boolean(STATE.profile?.can_view_sensitive_finance);
+    }
+
+    function getAllowedProjects() {
+      const r = getRole();
+      if (r === 'admin' || r === 'accountant') return STATE.projects;
+      const ids = Array.isArray(STATE.profile?.assigned_project_ids) ? STATE.profile.assigned_project_ids : [];
+      return STATE.projects.filter((p) => ids.includes(p.id));
+    }
+
+    async function refreshAllData() {
+      if (!sb || !STATE.session) return;
+      try {
+        const [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15] = await Promise.all([
+          sb.from('profiles').select('*').order('created_at', { ascending: false }),
+          sb.from('projects').select('*').order('created_at', { ascending: false }),
+          sb.from('project_items').select('*').order('sort_order', { ascending: true }),
+          sb.from('item_cost_transactions').select('*').order('transaction_date', { ascending: false }),
+          sb.from('client_payments').select('*').order('payment_date', { ascending: false }),
+          sb.from('general_expenses').select('*').order('expense_date', { ascending: false }),
+          sb.from('workers').select('*').order('created_at', { ascending: false }),
+          sb.from('worker_assignments').select('*').order('created_at', { ascending: false }),
+          sb.from('worker_evaluations').select('*').order('created_at', { ascending: false }),
+          sb.from('daily_reports').select('*').order('report_date', { ascending: false }),
+          sb.from('material_requests').select('*').order('created_at', { ascending: false }),
+          sb.from('appointments_tasks').select('*').order('scheduled_at', { ascending: true }),
+          sb.from('quality_checklists').select('*').order('updated_at', { ascending: false }),
+          sb.from('project_files').select('*').order('created_at', { ascending: false }),
+          sb.from('quick_notes').select('*').order('created_at', { ascending: false })
+        ]);
+
+        STATE.profiles = p1.data || [];
+        STATE.projects = p2.data || [];
+        STATE.items = p3.data || [];
+        STATE.transactions = p4.data || [];
+        STATE.payments = p5.data || [];
+        STATE.expenses = p6.data || [];
+        STATE.workers = p7.data || [];
+        STATE.assignments = p8.data || [];
+        STATE.evaluations = p9.data || [];
+        STATE.reports = p10.data || [];
+        STATE.materials = p11.data || [];
+        STATE.tasks = p12.data || [];
+        STATE.checklists = p13.data || [];
+        STATE.files = p14.data || [];
+        STATE.notes = p15.data || [];
+
+        renderMainView();
+      } catch (err) {
+        showToast(translateError(err, 'حدث خطأ أثناء تحميل البيانات.'), 'error');
+      }
+    }
+
+    function computeFinancials(project) {
+      const items = STATE.items.filter((i) => i.project_id === project.id);
+      const totalItems = items.reduce((s, i) => {
+        const t = i.total_cost != null ? Number(i.total_cost) : (Number(i.materials_cost) || 0) + (Number(i.labor_cost) || 0) + (Number(i.staging_cost) || 0);
+        return s + t;
+      }, 0);
+      const avgCompletion = items.length ? Math.round(items.reduce((s, i) => s + (Number(i.completion_percentage) || 0), 0) / items.length) : 0;
+      const totalPayments = STATE.payments.filter((p) => p.project_id === project.id).reduce((s, p) => s + (Number(p.amount) || 0), 0);
+      const totalExpenses = STATE.expenses.filter((e) => e.project_id === project.id).reduce((s, e) => s + (Number(e.amount) || 0), 0);
+      const designCost = (Number(project.design_3d_cost) || 0) + (Number(project.execution_plans_cost) || 0);
+      const outflow = totalItems + totalExpenses + designCost;
+      const contract = Number(project.contract_value) || 0;
+      return {
+        avgCompletion,
+        totalItems,
+        totalPayments,
+        totalExpenses,
+        designCost,
+        outflow,
+        contract,
+        remainingOnClient: Math.max(0, contract - totalPayments),
+        availableBalance: totalPayments - outflow,
+        netProfit: contract - outflow
+      };
+    }
+
+    // =========================================================================
+    // 3. التنقل والقائمة الجانبية
+    // =========================================================================
+    function getNavItems() {
+      const r = getRole();
+      return [
+        { id: 'home', label: 'الرئيسية', show: true },
+        { id: 'operations', label: 'لوحة التشغيل', show: true },
+        { id: 'projects', label: 'المشاريع', show: true },
+        { id: 'workers', label: 'العمال والصنايعية', show: r !== 'accountant' },
+        { id: 'accounts', label: 'حسابات المشروع', show: true },
+        { id: 'payments', label: 'دفعات العميل', show: canViewFinance() },
+        { id: 'appointments', label: 'المواعيد', show: true },
+        { id: 'materials', label: 'الموردون والخامات', show: true },
+        { id: 'team', label: 'إدارة الفريق', show: r === 'admin' },
+        { id: 'settings', label: 'الإعدادات والأدوات', show: true }
+      ].filter((x) => x.show);
+    }
+
+    function renderNavigation() {
+      const items = getNavItems();
+      const html = items
+        .map(
+          (it) => `
+          <button onclick="switchTab('${it.id}')"
+            class="w-full text-right px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              STATE.tab === it.id ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            }">
+            ${it.label}
+          </button>`
+        )
+        .join('');
+      document.getElementById('desktop-nav').innerHTML = html;
+      document.getElementById('mobile-nav').innerHTML = html;
+    }
+
+    function toggleMobileMenu(open) {
+      const el = document.getElementById('mobile-drawer');
+      if (open) el.classList.remove('hidden');
+      else el.classList.add('hidden');
+    }
+
+    function switchTab(tabId) {
+      STATE.tab = tabId;
+      if (tabId !== 'projects') STATE.selectedProjectId = null;
+      toggleMobileMenu(false);
+      renderNavigation();
+      renderMainView();
+    }
+
+    function openProject(projectId) {
+      STATE.tab = 'projects';
+      STATE.selectedProjectId = projectId;
+      renderNavigation();
+      renderMainView();
+    }
+
+    // =========================================================================
+    // 4. عرض الصفحات (الرئيسية، التشغيل، المشاريع، الحسابات، الدفعات، إلخ)
+    // =========================================================================
+    function renderMainView() {
+      const navItem = getNavItems().find((n) => n.id === STATE.tab);
+      const selectedProj = STATE.projects.find((p) => p.id === STATE.selectedProjectId);
+      document.getElementById('header-title').textContent = selectedProj ? selectedProj.name : navItem?.label || 'مكتب التشطيبات';
+
+      const container = document.getElementById('main-content');
+      if (STATE.tab === 'home') container.innerHTML = renderHomeView();
+      else if (STATE.tab === 'operations') container.innerHTML = renderOperationsView();
+      else if (STATE.tab === 'projects' && !selectedProj) container.innerHTML = renderProjectsListView();
+      else if (STATE.tab === 'projects' && selectedProj) container.innerHTML = renderProjectDetailView(selectedProj);
+      else if (STATE.tab === 'workers') container.innerHTML = renderWorkersView();
+      else if (STATE.tab === 'accounts') container.innerHTML = renderAccountsView();
+      else if (STATE.tab === 'payments') container.innerHTML = renderPaymentsView();
+      else if (STATE.tab === 'appointments') container.innerHTML = renderAppointmentsView();
+      else if (STATE.tab === 'materials') container.innerHTML = renderMaterialsView();
+      else if (STATE.tab === 'team') container.innerHTML = renderTeamView();
+      else if (STATE.tab === 'settings') container.innerHTML = renderSettingsView();
+    }
+
+    function renderHomeView() {
+      const projs = getAllowedProjects();
+      let contracts = 0, collected = 0, outflow = 0, profit = 0;
+      projs.forEach((p) => {
+        const f = computeFinancials(p);
+        contracts += f.contract;
+        collected += f.totalPayments;
+        outflow += f.outflow;
+        profit += f.netProfit;
+      });
+
+      const financeCards = canViewFinance()
+        ? `
+        <div class="bg-white p-5 rounded-2xl border border-slate-200">
+          <span class="text-xs font-bold text-slate-500">إجمالي قيمة العقود</span>
+          <p class="text-xl font-extrabold text-slate-900 mt-1">${formatEGP(contracts)}</p>
+          <p class="text-xs text-emerald-700 font-bold mt-1">المحصل: ${formatEGP(collected)}</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200">
+          <span class="text-xs font-bold text-slate-500">إجمالي التكاليف والمصروفات</span>
+          <p class="text-xl font-extrabold text-amber-800 mt-1">${formatEGP(outflow)}</p>
+        </div>
+        <div class="bg-slate-900 text-white p-5 rounded-2xl">
+          <span class="text-xs font-bold text-emerald-300">صافي الربح / الخسارة</span>
+          <p class="text-xl font-extrabold mt-1">${formatEGP(profit)}</p>
+        </div>`
+        : '';
+
+      const cardsHtml = projs
+        .map((p) => {
+          const f = computeFinancials(p);
+          return `
+          <div onclick="openProject('${p.id}')" class="p-4 rounded-2xl border border-slate-200 hover:border-emerald-500 bg-white cursor-pointer space-y-2.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold">${STAGE_LABELS[p.visual_stage] || p.visual_stage}</span>
+              <span class="font-extrabold text-emerald-800">${f.avgCompletion}%</span>
+            </div>
+            <h4 class="font-extrabold text-slate-900 text-sm">${escapeHtml(p.name)}</h4>
+            <p class="text-xs text-slate-500">العميل: ${escapeHtml(p.client_name)}</p>
+            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-600" style="width:${f.avgCompletion}%"></div>
+            </div>
+          </div>`;
+        })
+        .join('');
+
+      return `
+        <div class="space-y-6">
+          <div class="bg-gradient-to-l from-slate-900 via-blue-950 to-emerald-900 rounded-3xl p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-xl font-extrabold">مرحباً بك في مكتب التشطيبات</h3>
+              <p class="text-xs text-slate-200 mt-1">جميع العمليات المالية تراكمية وتُحسب تلقائياً بالجنيه المصري (ج.م).</p>
+            </div>
+            <button onclick="switchTab('projects')" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs cursor-pointer">
+              + إدارة المشاريع
+            </button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200">
+              <span class="text-xs font-bold text-slate-500">المشاريع النشطة</span>
+              <p class="text-2xl font-extrabold text-slate-900 mt-1">${projs.length} مشروع</p>
+            </div>
+            ${financeCards}
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${cardsHtml || '<p class="text-xs text-slate-500">لا توجد مشاريع مضافة بعد. اضغط على إدارة المشاريع لإضافة أول مشروع.</p>'}
+          </div>
+        </div>`;
+    }
+
+    function renderOperationsView() {
+      const projs = getAllowedProjects();
+      const openTasks = STATE.tasks.filter((t) => t.status !== 'completed');
+      const pendingMat = STATE.materials.filter((m) => m.status === 'pending_review' || m.status === 'in_transit');
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+              <h3 class="font-extrabold text-slate-900 text-sm">المشاريع النشطة ونسب التقدم</h3>
+              ${projs
+                .map((p) => {
+                  const f = computeFinancials(p);
+                  return `
+                  <div onclick="openProject('${p.id}')" class="p-4 rounded-xl border border-slate-200 hover:border-emerald-500 cursor-pointer space-y-2">
+                    <div class="flex justify-between text-xs font-extrabold">
+                      <span>${escapeHtml(p.name)}</span>
+                      <span class="text-emerald-700">${f.avgCompletion}%</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div class="h-full bg-emerald-600" style="width:${f.avgCompletion}%"></div>
+                    </div>
+                  </div>`;
+                })
+                .join('')}
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-2.5">
+              <h4 class="font-extrabold text-slate-900 text-sm">مهام ومواعيد اليوم (${openTasks.length})</h4>
+              ${openTasks
+                .slice(0, 5)
+                .map(
+                  (t) => `
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                  <p class="font-extrabold text-slate-900">${escapeHtml(t.title)}</p>
+                  <p class="text-slate-500 mt-0.5">${new Date(t.scheduled_at).toLocaleString('ar-EG')}</p>
+                </div>`
+                )
+                .join('') || '<p class="text-xs text-slate-400">لا توجد مهام معلقة</p>'}
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-2.5">
+              <h4 class="font-extrabold text-slate-900 text-sm">طلبات الخامات المعلقة (${pendingMat.length})</h4>
+              ${pendingMat
+                .slice(0, 5)
+                .map(
+                  (m) => `
+                <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200 text-xs">
+                  <p class="font-extrabold text-slate-900">${escapeHtml(m.material_name)} (${m.quantity} ${escapeHtml(m.unit)})</p>
+                  <p class="text-amber-900 font-bold mt-0.5">${MATERIAL_LABELS[m.status] || m.status}</p>
+                </div>`
+                )
+                .join('') || '<p class="text-xs text-slate-400">لا توجد طلبات معلقة</p>'}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderProjectsListView() {
+      const projs = getAllowedProjects();
+      const canAdd = getRole() !== 'accountant';
+      return `
+        <div class="space-y-6">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center">
+            <h3 class="font-extrabold text-slate-900 text-sm">قائمة المشاريع (${projs.length})</h3>
+            ${
+              canAdd
+                ? `<button onclick="openNewProjectModal()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs cursor-pointer">+ مشروع جديد</button>`
+                : ''
+            }
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            ${projs
+              .map((p) => {
+                const f = computeFinancials(p);
+                return `
+                <div onclick="openProject('${p.id}')" class="bg-white rounded-2xl border border-slate-200 hover:border-emerald-500 p-5 cursor-pointer space-y-3">
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold">${STAGE_LABELS[p.visual_stage] || p.visual_stage}</span>
+                    <span class="bg-slate-100 px-2 py-0.5 rounded font-bold">${STATUS_LABELS[p.status] || p.status}</span>
+                  </div>
+                  <h4 class="font-extrabold text-slate-900 text-base">${escapeHtml(p.name)}</h4>
+                  <p class="text-xs text-slate-600">العميل: ${escapeHtml(p.client_name)} • ${escapeHtml(p.client_phone)}</p>
+                  <p class="text-xs text-slate-500">${escapeHtml(p.address)}</p>
+                  <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-600" style="width:${f.avgCompletion}%"></div>
+                  </div>
+                  <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs">
+                    ${canViewFinance() ? `<strong>${formatEGP(f.contract)}</strong>` : `<span>التسليم: ${p.delivery_date}</span>`}
+                    <span class="text-emerald-700 font-extrabold">فتح المشروع ←</span>
+                  </div>
+                </div>`;
+              })
+              .join('')}
+          </div>
+        </div>`;
+    }
+
+    function openNewProjectModal() {
+      const root = document.getElementById('modal-root');
+      root.classList.remove('hidden');
+      root.classList.add('flex');
+      root.innerHTML = `
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl my-8">
+          <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+            <div>
+              <h3 class="font-extrabold text-slate-900 text-base">إضافة مشروع جديد</h3>
+              <p class="text-xs text-emerald-700 font-bold">يتم إنشاء البنود الـ 9 الأساسية تلقائياً عند الحفظ</p>
+            </div>
+            <button onclick="closeModal()" class="px-3 py-1.5 rounded-xl bg-slate-100 text-xs font-bold cursor-pointer">✕</button>
+          </div>
+          <form onsubmit="submitNewProject(event)" class="space-y-3 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="sm:col-span-2">
+                <label class="block font-bold mb-1">اسم المشروع *</label>
+                <input id="np-name" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              </div>
+              <div>
+                <label class="block font-bold mb-1">اسم العميل *</label>
+                <input id="np-client" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              </div>
+              <div>
+                <label class="block font-bold mb-1">رقم الهاتف *</label>
+                <input id="np-phone" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block font-bold mb-1">عنوان المشروع *</label>
+                <input id="np-address" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              </div>
+              ${
+                canViewFinance()
+                  ? `<div><label class="block font-bold mb-1">قيمة العقد (ج.م)</label><input id="np-contract" type="number" min="0" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" /></div>`
+                  : ''
+              }
+              <div>
+                <label class="block font-bold mb-1">حالة المشروع</label>
+                <select id="np-status" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+                  <option value="new">جديد</option>
+                  <option value="in_progress">قيد التنفيذ</option>
+                  <option value="on_hold">معلق</option>
+                  <option value="completed">مكتمل</option>
+                  <option value="stopped">متوقف</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold mb-1">تاريخ البداية *</label>
+                <input id="np-start" type="date" required value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              </div>
+              <div>
+                <label class="block font-bold mb-1">تاريخ التسليم *</label>
+                <input id="np-delivery" type="date" required value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              </div>
+              <div>
+                <label class="block font-bold mb-1">تكلفة التصميمات 3D (ج.م)</label>
+                <input id="np-3d" type="number" min="0" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              </div>
+              <div>
+                <label class="block font-bold mb-1">تكلفة المخططات التنفيذية (ج.م)</label>
+                <input id="np-plans" type="number" min="0" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block font-bold mb-1">ملاحظات عامة</label>
+                <textarea id="np-notes" rows="2" class="w-full px-3.5 py-2 rounded-xl border border-slate-300"></textarea>
+              </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-100 font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ المشروع</button>
+            </div>
+          </form>
+        </div>`;
+    }
+
+    function closeModal() {
+      const root = document.getElementById('modal-root');
+      root.classList.add('hidden');
+      root.classList.remove('flex');
+      root.innerHTML = '';
+    }
+
+    async function submitNewProject(e) {
+      e.preventDefault();
+      try {
+        const payload = {
+          name: document.getElementById('np-name').value.trim(),
+          client_name: document.getElementById('np-client').value.trim(),
+          client_phone: document.getElementById('np-phone').value.trim(),
+          address: document.getElementById('np-address').value.trim(),
+          contract_value: Number(document.getElementById('np-contract')?.value) || 0,
+          status: document.getElementById('np-status').value,
+          visual_stage: 'in_beginning',
+          start_date: document.getElementById('np-start').value,
+          delivery_date: document.getElementById('np-delivery').value,
+          design_3d_cost: Number(document.getElementById('np-3d').value) || 0,
+          execution_plans_cost: Number(document.getElementById('np-plans').value) || 0,
+          notes: document.getElementById('np-notes').value.trim(),
+          created_by: STATE.session?.user?.id || null
+        };
+        const { error } = await sb.from('projects').insert(payload);
+        if (error) throw error;
+        closeModal();
+        await refreshAllData();
+        showToast('تم إنشاء المشروع وتوليد البنود الـ 9 الأساسية بنجاح.');
+      } catch (err) {
+        showToast(translateError(err, 'تعذر حفظ المشروع.'), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 5. صفحة تفاصيل المشروع المستقلة (البنود التراكمية، الملخص، التقارير، الملفات)
+    // =========================================================================
+    function renderProjectDetailView(project) {
+      const f = computeFinancials(project);
+      const items = STATE.items.filter((i) => i.project_id === project.id);
+      const canEdit = getRole() !== 'accountant';
+
+      let bodyHtml = '';
+      if (STATE.projectSubTab === 'items') {
+        bodyHtml = `
+          <div class="space-y-4">
+            ${
+              canEdit
+                ? `<form onsubmit="addCustomProjectItem(event, '${project.id}')" class="bg-white p-4 rounded-2xl border border-slate-200 flex gap-2">
+                    <input id="custom-item-input" required placeholder="إضافة بند مخصص جديد..." class="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-xs" />
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer">+ إضافة بند</button>
+                  </form>`
+                : ''
+            }
+            ${items
+              .map((it, idx) => {
+                const total = it.total_cost != null ? Number(it.total_cost) : (Number(it.materials_cost) || 0) + (Number(it.labor_cost) || 0) + (Number(it.staging_cost) || 0);
+                const txs = STATE.transactions.filter((t) => t.item_id === it.id);
+                return `
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+                  <div class="flex flex-wrap justify-between items-center gap-2 pb-2 border-b border-slate-100">
+                    <h4 class="font-extrabold text-slate-900 text-sm">${idx + 1}. ${escapeHtml(it.title)}</h4>
+                    <div class="flex items-center gap-2">
+                      ${
+                        canEdit
+                          ? `<label class="text-xs font-bold text-slate-600">الإنجاز %:
+                              <input type="number" min="0" max="100" value="${it.completion_percentage || 0}"
+                                onchange="updateItemCompletion('${it.id}', this.value)"
+                                class="w-14 text-center px-1.5 py-1 rounded-lg border border-slate-300 font-extrabold text-emerald-700" />
+                            </label>
+                            <button onclick="openCostTxModal('${project.id}', '${it.id}', '${escapeHtml(it.title)}')"
+                              class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs cursor-pointer">+ تكلفة تراكمية</button>`
+                          : `<span class="text-xs font-extrabold text-emerald-700">${it.completion_percentage || 0}%</span>`
+                      }
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                    <div class="p-2.5 rounded-xl bg-slate-50"><span class="text-slate-500 block">الخامات</span><strong>${formatEGP(it.materials_cost)}</strong></div>
+                    <div class="p-2.5 rounded-xl bg-slate-50"><span class="text-slate-500 block">المصنعية</span><strong>${formatEGP(it.labor_cost)}</strong></div>
+                    <div class="p-2.5 rounded-xl bg-slate-50"><span class="text-slate-500 block">التشوين</span><strong>${formatEGP(it.staging_cost)}</strong></div>
+                    <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200"><span class="text-emerald-800 font-bold block">الإجمالي</span><strong>${formatEGP(total)}</strong></div>
+                  </div>
+                  ${
+                    txs.length
+                      ? `<div class="pt-2 border-t border-slate-100 space-y-1">
+                          <p class="text-[11px] font-bold text-slate-500">سجل حركات التكلفة (${txs.length}):</p>
+                          ${txs
+                            .map(
+                              (tx) => `
+                            <div class="flex justify-between text-xs bg-slate-50 px-3 py-1.5 rounded-lg">
+                              <span>[${tx.cost_type === 'materials' ? 'خامات' : tx.cost_type === 'labor' ? 'مصنعية' : 'تشوين'}] ${escapeHtml(tx.description || '')}</span>
+                              <strong>${formatEGP(tx.amount)} • ${tx.transaction_date}</strong>
+                            </div>`
+                            )
+                            .join('')}
+                        </div>`
+                      : ''
+                  }
+                </div>`;
+              })
+              .join('')}
+          </div>`;
+      } else if (STATE.projectSubTab === 'summary') {
+        bodyHtml = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${canViewFinance() ? `<div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">قيمة العقد</span><p class="text-lg font-extrabold mt-1">${formatEGP(f.contract)}</p></div>` : ''}
+            ${canViewFinance() ? `<div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">دفعات العميل</span><p class="text-lg font-extrabold text-emerald-700 mt-1">${formatEGP(f.totalPayments)}</p></div>` : ''}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">إجمالي تكاليف البنود</span><p class="text-lg font-extrabold mt-1">${formatEGP(f.totalItems)}</p></div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">المصروفات العامة والتصميم</span><p class="text-lg font-extrabold text-amber-800 mt-1">${formatEGP(f.totalExpenses + f.designCost)}</p></div>
+            ${canViewFinance() ? `<div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">المتبقي على العميل</span><p class="text-lg font-extrabold text-blue-900 mt-1">${formatEGP(f.remainingOnClient)}</p></div>` : ''}
+            ${canViewFinance() ? `<div class="bg-slate-900 text-white p-4 rounded-2xl"><span class="text-xs text-emerald-300">صافي الربح / الخسارة</span><p class="text-lg font-extrabold mt-1">${formatEGP(f.netProfit)}</p></div>` : ''}
+          </div>`;
+      } else if (STATE.projectSubTab === 'reports') {
+        const reps = STATE.reports.filter((r) => r.project_id === project.id);
+        bodyHtml = `
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            ${
+              canEdit
+                ? `<form onsubmit="submitDailyReport(event, '${project.id}')" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit">
+                    <h4 class="font-extrabold text-sm">تقرير موقع يومي</h4>
+                    <input id="rep-date" type="date" required value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                    <input id="rep-workers" type="number" min="0" value="4" placeholder="عدد العمال" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                    <textarea id="rep-work" rows="3" required placeholder="ما تم تنفيذه اليوم *" class="w-full px-3 py-2 rounded-xl border border-slate-300"></textarea>
+                    <input id="rep-obs" placeholder="المعوقات والمشاكل" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                    <input id="rep-req" placeholder="المطلوب من المكتب" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+                    <input id="rep-photo" type="file" accept="image/*" class="w-full" />
+                    <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ التقرير</button>
+                  </form>`
+                : ''
+            }
+            <div class="lg:col-span-2 space-y-3">
+              ${reps
+                .map(
+                  (r) => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                  <div class="flex justify-between font-extrabold"><span>${r.report_date}</span><span class="text-emerald-700">عدد العمال: ${r.workers_count}</span></div>
+                  <p class="text-sm font-semibold">${escapeHtml(r.work_done)}</p>
+                  ${r.obstacles ? `<p class="text-rose-800 bg-rose-50 p-2 rounded-lg">المعوقات: ${escapeHtml(r.obstacles)}</p>` : ''}
+                </div>`
+                )
+                .join('') || '<p class="text-xs text-slate-400">لا توجد تقارير مسجلة لهذا المشروع.</p>'}
+            </div>
+          </div>`;
+      } else if (STATE.projectSubTab === 'files') {
+        const pFiles = STATE.files.filter((fl) => fl.project_id === project.id);
+        bodyHtml = `
+          <div class="space-y-4">
+            ${
+              canEdit
+                ? `<form onsubmit="uploadProjectFile(event, '${project.id}')" class="bg-white p-4 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <select id="pf-cat" class="px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
+                      <option value="execution_plans">مخططات تنفيذية</option>
+                      <option value="3d_designs">تصميمات 3D</option>
+                      <option value="before_after">صور قبل وبعد</option>
+                      <option value="quotes_invoices">عروض أسعار وفواتير</option>
+                      <option value="boq">جداول كميات</option>
+                    </select>
+                    <input id="pf-file" type="file" required class="self-center" />
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">رفع للمكتبة</button>
+                  </form>`
+                : ''
+            }
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              ${pFiles
+                .map(
+                  (fl) => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center text-xs">
+                  <span class="font-bold truncate">${escapeHtml(fl.file_name)}</span>
+                  <a href="${escapeHtml(fl.file_url)}" target="_blank" class="px-3 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-bold">فتح</a>
+                </div>`
+                )
+                .join('')}
+            </div>
+          </div>`;
+      }
+
+      return `
+        <div class="space-y-6">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <div class="flex flex-wrap justify-between items-center gap-3">
+              <div class="flex items-center gap-3">
+                <button onclick="STATE.selectedProjectId=null; renderMainView()" class="px-3 py-1.5 rounded-xl bg-slate-100 text-xs font-extrabold cursor-pointer">→ رجوع</button>
+                <div>
+                  <h3 class="text-lg font-extrabold text-slate-900">${escapeHtml(project.name)}</h3>
+                  <p class="text-xs text-slate-500">العميل: ${escapeHtml(project.client_name)} • ${escapeHtml(project.address)}</p>
+                </div>
+              </div>
+              <span class="text-lg font-extrabold text-emerald-700">${f.avgCompletion}%</span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-600" style="width:${f.avgCompletion}%"></div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            ${[
+              { id: 'items', label: 'البنود والتكاليف التراكمية' },
+              { id: 'summary', label: 'الملخص والحسابات' },
+              { id: 'reports', label: 'تقارير الموقع اليومية' },
+              { id: 'files', label: 'المخططات والملفات' }
+            ]
+              .map(
+                (t) => `
+              <button onclick="STATE.projectSubTab='${t.id}'; renderMainView()"
+                class="px-4 py-2 rounded-xl text-xs font-extrabold cursor-pointer ${
+                  STATE.projectSubTab === t.id ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-700'
+                }">${t.label}</button>`
+              )
+              .join('')}
+          </div>
+          ${bodyHtml}
+        </div>`;
+    }
+
+    function openCostTxModal(projectId, itemId, itemTitle) {
+      const root = document.getElementById('modal-root');
+      root.classList.remove('hidden');
+      root.classList.add('flex');
+      root.innerHTML = `
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+          <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+            <div>
+              <h4 class="font-extrabold text-sm">إضافة حركة تكلفة تراكمية</h4>
+              <p class="text-xs text-emerald-700 font-bold">${itemTitle}</p>
+            </div>
+            <button onclick="closeModal()" class="px-2.5 py-1 rounded-lg bg-slate-100 text-xs">✕</button>
+          </div>
+          <form onsubmit="submitCostTx(event, '${projectId}', '${itemId}')" class="space-y-3 text-xs">
+            <select id="tx-type" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+              <option value="materials">خامات</option>
+              <option value="labor">مصنعية</option>
+              <option value="staging">تشوين</option>
+            </select>
+            <input id="tx-amount" type="number" min="1" required placeholder="المبلغ (ج.م) *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="tx-date" type="date" required value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="tx-desc" placeholder="البيان / ملاحظات" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-100 font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">إضافة وحفظ</button>
+            </div>
+          </form>
+        </div>`;
+    }
+
+    async function submitCostTx(e, projectId, itemId) {
+      e.preventDefault();
+      try {
+        const { error } = await sb.from('item_cost_transactions').insert({
+          project_id: projectId,
+          item_id: itemId,
+          cost_type: document.getElementById('tx-type').value,
+          amount: Number(document.getElementById('tx-amount').value),
+          transaction_date: document.getElementById('tx-date').value,
+          description: document.getElementById('tx-desc').value.trim() || 'حركة تكلفة تراكمية',
+          created_by: STATE.session?.user?.id || null
+        });
+        if (error) throw error;
+        closeModal();
+        await refreshAllData();
+        showToast('تمت إضافة حركة التكلفة التراكمية وتحديث إجمالي البند فوراً.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function updateItemCompletion(itemId, val) {
+      try {
+        const { error } = await sb
+          .from('project_items')
+          .update({ completion_percentage: Math.min(100, Math.max(0, Number(val) || 0)) })
+          .eq('id', itemId);
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم تحديث نسبة إنجاز البند.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function addCustomProjectItem(e, projectId) {
+      e.preventDefault();
+      const title = document.getElementById('custom-item-input').value.trim();
+      if (!title) return;
+      try {
+        const { error } = await sb.from('project_items').insert({
+          project_id: projectId,
+          title,
+          sort_order: STATE.items.filter((i) => i.project_id === projectId).length + 1,
+          is_default_item: false
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تمت إضافة البند المخصص.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function submitDailyReport(e, projectId) {
+      e.preventDefault();
+      try {
+        const file = document.getElementById('rep-photo').files?.[0];
+        const photos = [];
+        if (file) {
+          const path = `${projectId}/reports/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+          const { error: upErr } = await sb.storage.from('project-files').upload(path, file);
+          if (!upErr) {
+            const { data: pub } = sb.storage.from('project-files').getPublicUrl(path);
+            if (pub?.publicUrl) photos.push(pub.publicUrl);
+          }
+        }
+        const { error } = await sb.from('daily_reports').insert({
+          project_id: projectId,
+          report_date: document.getElementById('rep-date').value,
+          workers_count: Number(document.getElementById('rep-workers').value) || 0,
+          work_done: document.getElementById('rep-work').value.trim(),
+          obstacles: document.getElementById('rep-obs').value.trim(),
+          office_requests: document.getElementById('rep-req').value.trim(),
+          photos,
+          created_by: STATE.session?.user?.id || null
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم حفظ تقرير الموقع اليومي.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function uploadProjectFile(e, projectId) {
+      e.preventDefault();
+      const file = document.getElementById('pf-file').files?.[0];
+      if (!file) return;
+      try {
+        const cat = document.getElementById('pf-cat').value;
+        const path = `${projectId}/${cat}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const { error: upErr } = await sb.storage.from('project-files').upload(path, file);
+        if (upErr) throw upErr;
+        const { data: pub } = sb.storage.from('project-files').getPublicUrl(path);
+        const { error } = await sb.from('project_files').insert({
+          project_id: projectId,
+          category: cat,
+          file_name: file.name,
+          file_url: pub?.publicUrl || path,
+          uploaded_by: STATE.session?.user?.id || null
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم رفع الملف بنجاح.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 6. بقية الصفحات (العمال، الحسابات، الدفعات، المواعيد، الخامات، الفريق، الإعدادات)
+    // =========================================================================
+    function renderWorkersView() {
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <form onsubmit="submitNewWorker(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit">
+            <h3 class="font-extrabold text-sm">إضافة عامل / صنايعي</h3>
+            <input id="wk-name" required placeholder="الاسم *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="wk-spec" required placeholder="التخصص (سباك، كهربائي، محارة...) *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="wk-phone" required placeholder="رقم الهاتف *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="wk-area" placeholder="المنطقة / العنوان" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ في الدليل</button>
+          </form>
+          <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${STATE.workers
+              .map(
+                (w) => `
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                <div class="flex justify-between font-extrabold">
+                  <span class="text-sm">${escapeHtml(w.full_name)}</span>
+                  <span class="text-amber-700">★ ${Number(w.rating || 5).toFixed(1)}</span>
+                </div>
+                <p class="text-emerald-700 font-bold">${escapeHtml(w.specialty)}</p>
+                <p class="text-slate-500">${escapeHtml(w.area_address || '')} • ${escapeHtml(w.phone)}</p>
+                <a href="https://wa.me/${escapeHtml(w.whatsapp)}" target="_blank"
+                  class="inline-block px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white font-bold">واتساب مباشر</a>
+              </div>`
+              )
+              .join('')}
+          </div>
+        </div>`;
+    }
+
+    async function submitNewWorker(e) {
+      e.preventDefault();
+      const phone = document.getElementById('wk-phone').value.trim();
+      const digits = phone.replace(/\D/g, '');
+      const wa = digits.startsWith('0') ? '2' + digits : digits;
+      try {
+        const { error } = await sb.from('workers').insert({
+          full_name: document.getElementById('wk-name').value.trim(),
+          specialty: document.getElementById('wk-spec').value.trim(),
+          phone,
+          whatsapp: wa,
+          area_address: document.getElementById('wk-area').value.trim()
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تمت إضافة العامل بنجاح.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    function renderAccountsView() {
+      const projs = getAllowedProjects();
+      return `
+        <div class="space-y-6">
+          <div class="flex justify-end no-print">
+            <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer">طباعة / تصدير التقرير المالي</button>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            ${projs
+              .map((p) => {
+                const f = computeFinancials(p);
+                return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                  <h4 class="font-extrabold text-sm pb-2 border-b border-slate-100">${escapeHtml(p.name)}</h4>
+                  <div class="grid grid-cols-2 gap-2">
+                    ${canViewFinance() ? `<div class="p-2 rounded bg-slate-50">العقد: <strong>${formatEGP(f.contract)}</strong></div>` : ''}
+                    ${canViewFinance() ? `<div class="p-2 rounded bg-emerald-50">الدفعات: <strong>${formatEGP(f.totalPayments)}</strong></div>` : ''}
+                    <div class="p-2 rounded bg-slate-50">تكلفة البنود: <strong>${formatEGP(f.totalItems)}</strong></div>
+                    <div class="p-2 rounded bg-amber-50">المصروفات العامة: <strong>${formatEGP(f.totalExpenses)}</strong></div>
+                    ${canViewFinance() ? `<div class="p-2 rounded bg-blue-50">المتبقي على العميل: <strong>${formatEGP(f.remainingOnClient)}</strong></div>` : ''}
+                    ${canViewFinance() ? `<div class="p-2 rounded bg-slate-900 text-white">صافي الربح: <strong>${formatEGP(f.netProfit)}</strong></div>` : ''}
+                  </div>
+                </div>`;
+              })
+              .join('')}
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <form onsubmit="submitGeneralExpense(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit no-print">
+              <h4 class="font-extrabold text-sm">إضافة مصروف عام</h4>
+              <select id="ex-proj" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+                ${projs.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')}
+              </select>
+              <select id="ex-cat" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+                ${Object.entries(EXPENSE_LABELS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+              </select>
+              <input id="ex-desc" required placeholder="الوصف *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              <input id="ex-amt" type="number" min="1" required placeholder="القيمة (ج.م) *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              <input id="ex-date" type="date" value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              <input id="ex-resp" value="${escapeHtml(STATE.profile?.full_name || 'مسؤول الموقع')}" placeholder="الشخص المسؤول" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ المصروف</button>
+            </form>
+
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+              <table class="w-full text-right text-xs">
+                <thead class="bg-slate-50 font-bold border-b border-slate-200">
+                  <tr><th class="p-3">التاريخ</th><th class="p-3">المشروع</th><th class="p-3">النوع</th><th class="p-3">الوصف</th><th class="p-3">القيمة</th></tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${STATE.expenses
+                    .map(
+                      (e) => `
+                    <tr>
+                      <td class="p-3">${e.expense_date}</td>
+                      <td class="p-3 font-bold">${escapeHtml(STATE.projects.find((p) => p.id === e.project_id)?.name || '')}</td>
+                      <td class="p-3">${EXPENSE_LABELS[e.category] || e.category}</td>
+                      <td class="p-3">${escapeHtml(e.description)}</td>
+                      <td class="p-3 font-extrabold">${formatEGP(e.amount)}</td>
+                    </tr>`
+                    )
+                    .join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    async function submitGeneralExpense(e) {
+      e.preventDefault();
+      try {
+        const { error } = await sb.from('general_expenses').insert({
+          project_id: document.getElementById('ex-proj').value,
+          category: document.getElementById('ex-cat').value,
+          description: document.getElementById('ex-desc').value.trim(),
+          amount: Number(document.getElementById('ex-amt').value),
+          expense_date: document.getElementById('ex-date').value,
+          responsible_person: document.getElementById('ex-resp').value.trim(),
+          created_by: STATE.session?.user?.id || null
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم تسجيل المصروف وتحديث رصيد المشروع فوراً.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    function renderPaymentsView() {
+      const projs = getAllowedProjects();
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <form onsubmit="submitClientPayment(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit">
+            <h3 class="font-extrabold text-sm">تسجيل دفعة عميل</h3>
+            <select id="pay-proj" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+              ${projs.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')}
+            </select>
+            <input id="pay-amt" type="number" min="1" required placeholder="المبلغ (ج.م) *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="pay-date" type="date" value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <select id="pay-method" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+              ${Object.entries(PAYMENT_LABELS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+            </select>
+            <input id="pay-rec" placeholder="رقم الإيصال" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="pay-notes" placeholder="ملاحظات" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ الدفعة</button>
+          </form>
+
+          <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-50 font-bold border-b border-slate-200">
+                <tr><th class="p-3">التاريخ</th><th class="p-3">المشروع</th><th class="p-3">المبلغ</th><th class="p-3">الطريقة</th><th class="p-3">الإيصال</th></tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${STATE.payments
+                  .map(
+                    (pay) => `
+                  <tr>
+                    <td class="p-3">${pay.payment_date}</td>
+                    <td class="p-3 font-bold">${escapeHtml(STATE.projects.find((p) => p.id === pay.project_id)?.name || '')}</td>
+                    <td class="p-3 font-extrabold text-emerald-700">${formatEGP(pay.amount)}</td>
+                    <td class="p-3">${PAYMENT_LABELS[pay.payment_method] || pay.payment_method}</td>
+                    <td class="p-3">${escapeHtml(pay.receipt_number || '-')}</td>
+                  </tr>`
+                  )
+                  .join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+    }
+
+    async function submitClientPayment(e) {
+      e.preventDefault();
+      try {
+        const { error } = await sb.from('client_payments').insert({
+          project_id: document.getElementById('pay-proj').value,
+          amount: Number(document.getElementById('pay-amt').value),
+          payment_date: document.getElementById('pay-date').value,
+          payment_method: document.getElementById('pay-method').value,
+          receipt_number: document.getElementById('pay-rec').value.trim() || null,
+          notes: document.getElementById('pay-notes').value.trim(),
+          created_by: STATE.session?.user?.id || null
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم تسجيل دفعة العميل وتحديث الرصيد.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    function renderAppointmentsView() {
+      const projs = getAllowedProjects();
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <form onsubmit="submitNewTask(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit">
+            <h3 class="font-extrabold text-sm">إضافة موعد / مهمة</h3>
+            <input id="tk-title" required placeholder="العنوان *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <select id="tk-type" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+              ${Object.entries(TASK_TYPE_LABELS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+            </select>
+            <input id="tk-date" type="datetime-local" required value="${new Date().toISOString().slice(0, 16)}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <select id="tk-proj" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+              <option value="">عام</option>
+              ${projs.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')}
+            </select>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ</button>
+          </form>
+          <div class="lg:col-span-2 space-y-3">
+            ${STATE.tasks
+              .map(
+                (t) => `
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center text-xs">
+                <div>
+                  <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-bold">${TASK_TYPE_LABELS[t.entry_type] || t.entry_type}</span>
+                  <h4 class="font-extrabold text-sm mt-1">${escapeHtml(t.title)}</h4>
+                  <p class="text-slate-500">${new Date(t.scheduled_at).toLocaleString('ar-EG')}</p>
+                </div>
+                <select onchange="updateTaskStatus('${t.id}', this.value)" class="px-3 py-1.5 rounded-xl border border-slate-200 font-bold bg-slate-50">
+                  ${Object.entries(TASK_STATUS_LABELS).map(([k, v]) => `<option value="${k}" ${t.status === k ? 'selected' : ''}>${v}</option>`).join('')}
+                </select>
+              </div>`
+              )
+              .join('')}
+          </div>
+        </div>`;
+    }
+
+    async function submitNewTask(e) {
+      e.preventDefault();
+      try {
+        const { error } = await sb.from('appointments_tasks').insert({
+          title: document.getElementById('tk-title').value.trim(),
+          entry_type: document.getElementById('tk-type').value,
+          scheduled_at: new Date(document.getElementById('tk-date').value).toISOString(),
+          project_id: document.getElementById('tk-proj').value || null,
+          status: 'new',
+          created_by: STATE.session?.user?.id || null
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم حفظ الموعد بنجاح.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function updateTaskStatus(id, status) {
+      await sb.from('appointments_tasks').update({ status }).eq('id', id);
+      await refreshAllData();
+      showToast('تم تحديث الحالة.');
+    }
+
+    function renderMaterialsView() {
+      const projs = getAllowedProjects();
+      const isAdmin = getRole() === 'admin';
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <form onsubmit="submitMaterialReq(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit">
+            <h3 class="font-extrabold text-sm">طلب خامة جديدة</h3>
+            <select id="mr-proj" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+              ${projs.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')}
+            </select>
+            <input id="mr-name" required placeholder="اسم الخامة *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <div class="grid grid-cols-2 gap-2">
+              <input id="mr-qty" type="number" min="1" required placeholder="الكمية *" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+              <input id="mr-unit" value="شيكارة" placeholder="الوحدة" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+            </div>
+            <input id="mr-date" type="date" value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2 rounded-xl border border-slate-300" />
+            <input id="mr-notes" placeholder="ملاحظات" class="w-full px-3.5 py-2 rounded-xl border border-slate-300" />
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">إرسال الطلب</button>
+          </form>
+
+          <div class="lg:col-span-2 space-y-3">
+            ${STATE.materials
+              .map(
+                (m) => `
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
+                <div class="flex justify-between items-center">
+                  <h4 class="font-extrabold text-sm">${escapeHtml(m.material_name)} (${m.quantity} ${escapeHtml(m.unit)})</h4>
+                  <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 font-extrabold">${MATERIAL_LABELS[m.status] || m.status}</span>
+                </div>
+                <p class="text-slate-500">${escapeHtml(STATE.projects.find((p) => p.id === m.project_id)?.name || '')} • احتياج: ${m.needed_date}</p>
+                <div class="flex gap-2 pt-1">
+                  ${isAdmin && m.status === 'pending_review' ? `<button onclick="updateMaterialStatus('${m.id}', 'approved')" class="px-3 py-1 rounded-lg bg-emerald-600 text-white font-bold cursor-pointer">اعتماد</button><button onclick="updateMaterialStatus('${m.id}', 'rejected')" class="px-3 py-1 rounded-lg bg-rose-600 text-white font-bold cursor-pointer">رفض</button>` : ''}
+                  ${m.status === 'approved' || m.status === 'in_transit' ? `<button onclick="updateMaterialStatus('${m.id}', 'received')" class="px-3 py-1 rounded-lg bg-slate-900 text-white font-bold cursor-pointer">تم الاستلام</button>` : ''}
+                </div>
+              </div>`
+              )
+              .join('')}
+          </div>
+        </div>`;
+    }
+
+    async function submitMaterialReq(e) {
+      e.preventDefault();
+      try {
+        const { error } = await sb.from('material_requests').insert({
+          project_id: document.getElementById('mr-proj').value,
+          material_name: document.getElementById('mr-name').value.trim(),
+          quantity: Number(document.getElementById('mr-qty').value) || 1,
+          unit: document.getElementById('mr-unit').value.trim() || 'وحدة',
+          needed_date: document.getElementById('mr-date').value,
+          engineer_notes: document.getElementById('mr-notes').value.trim(),
+          status: 'pending_review',
+          created_by: STATE.session?.user?.id || null
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم إرسال طلب الخامة للمراجعة.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function updateMaterialStatus(id, status) {
+      await sb.from('material_requests').update({ status }).eq('id', id);
+      await refreshAllData();
+      showToast('تم تحديث حالة الطلب.');
+    }
+
+    function renderTeamView() {
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <form onsubmit="submitTeamMember(event)" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs h-fit">
+            <h3 class="font-extrabold text-sm">إضافة / تحديث موظف</h3>
+            <input id="tm-name" required placeholder="الاسم الكامل *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" />
+            <input id="tm-email" type="email" required dir="ltr" placeholder="employee@email.com *" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-left" />
+            <select id="tm-role" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+              <option value="engineer">مهندس موقع</option>
+              <option value="accountant">محاسب</option>
+            </select>
+            <label class="flex items-center gap-2 font-bold">
+              <input id="tm-fin" type="checkbox" />
+              <span>السماح برؤية قيمة العقود والأرباح</span>
+            </label>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ الصلاحيات</button>
+          </form>
+
+          <div class="lg:col-span-2 space-y-3">
+            ${STATE.profiles
+              .map(
+                (u) => `
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 text-xs">
+                <h4 class="font-extrabold text-sm">${escapeHtml(u.full_name)}</h4>
+                <p class="text-slate-500" dir="ltr">${escapeHtml(u.email)}</p>
+                <p class="mt-1">الدور: <strong>${u.role}</strong> • العقود والأرباح: <strong>${u.can_view_sensitive_finance ? 'مسموح' : 'مخفي'}</strong></p>
+              </div>`
+              )
+              .join('')}
+          </div>
+        </div>`;
+    }
+
+    async function submitTeamMember(e) {
+      e.preventDefault();
+      const email = document.getElementById('tm-email').value.trim().toLowerCase();
+      const full_name = document.getElementById('tm-name').value.trim();
+      const role = document.getElementById('tm-role').value;
+      const can_view_sensitive_finance = role === 'accountant' ? true : document.getElementById('tm-fin').checked;
+      try {
+        const existing = STATE.profiles.find((p) => p.email.toLowerCase() === email);
+        if (existing) {
+          await sb.from('profiles').update({ full_name, role, can_view_sensitive_finance }).eq('id', existing.id);
+        } else {
+          await sb.from('profiles').insert({
+            id: crypto.randomUUID(),
+            full_name,
+            email,
+            role,
+            can_view_sensitive_finance,
+            is_active: true
+          });
+        }
+        await refreshAllData();
+        showToast('تم حفظ بيانات الموظف وصلاحياته.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    function renderSettingsView() {
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs">
+            <h3 class="font-extrabold text-sm">حاسبة كميات التشطيبات</h3>
+            <select id="calc-kind" onchange="updateCalc()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 font-bold bg-white">
+              <option value="ceramic">سيراميك</option>
+              <option value="porcelain">بورسلين</option>
+              <option value="paint">دهانات</option>
+              <option value="plaster">محارة</option>
+              <option value="gypsum">جبس بورد</option>
+            </select>
+            <div class="grid grid-cols-2 gap-2">
+              <input id="calc-area" type="number" value="120" oninput="updateCalc()" placeholder="المساحة م²" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+              <input id="calc-waste" type="number" value="10" oninput="updateCalc()" placeholder="نسبة الهالك %" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold" />
+            </div>
+            <div id="calc-res" class="p-4 rounded-2xl bg-emerald-900 text-white font-extrabold text-sm">132.0 م² خامات (شاملة الهالك 10%)</div>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs">
+            <h3 class="font-extrabold text-sm">المفكرة السريعة (Scratchpad)</h3>
+            <form onsubmit="submitQuickNote(event)" class="flex gap-2">
+              <input id="qn-text" required placeholder="سجّل ملاحظة سريعة أو رقم..." class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300" />
+              <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ</button>
+            </form>
+            <div class="space-y-2 max-h-56 overflow-y-auto">
+              ${STATE.notes
+                .map(
+                  (n) => `
+                <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200 font-bold text-slate-900">
+                  ${escapeHtml(n.content)}
+                </div>`
+                )
+                .join('')}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function updateCalc() {
+      const k = document.getElementById('calc-kind')?.value || 'ceramic';
+      const area = Number(document.getElementById('calc-area')?.value) || 0;
+      const waste = Number(document.getElementById('calc-waste')?.value) || 0;
+      const base = area * (1 + waste / 100);
+      let txt = `${base.toFixed(1)} م² خامات (شاملة الهالك ${waste}%)`;
+      if (k === 'paint') txt = `${Math.max(1, Math.ceil(base / 10))} بستلة دهان تقريباً`;
+      if (k === 'plaster') txt = `${Math.max(1, Math.ceil(base * 0.22))} شيكارة أسمنت تقريباً`;
+      if (k === 'gypsum') txt = `${Math.max(1, Math.ceil(base / 2.88))} لوح جبس بورد تقريباً`;
+      const el = document.getElementById('calc-res');
+      if (el) el.textContent = txt;
+    }
+
+    async function submitQuickNote(e) {
+      e.preventDefault();
+      const content = document.getElementById('qn-text').value.trim();
+      if (!content) return;
+      try {
+        const { error } = await sb.from('quick_notes').insert({
+          user_id: STATE.session?.user?.id,
+          content
+        });
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم حفظ الملاحظة.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    // فحص الجلسة الحالية عند فتح الصفحة
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (!sb) return;
+      try {
+        const { data } = await sb.auth.getSession();
+        if (data?.session) {
+          STATE.session = data.session;
+          await initAfterAuth();
+        }
+      } catch (_) {}
+    });
+  </script>
+</body>
+</html>
