@@ -2016,6 +2016,11 @@
         try {
           await sb.from('office_withdrawals').update(patch).eq('id', wdId);
         } catch (_) {}
+        try {
+          await sb.from('quick_notes').update({
+            content: `[STUDIO_WD]${JSON.stringify({ id: wdId, project_id: STATE.officeWithdrawals.find((x) => x.id === wdId)?.project_id, ...patch })}`
+          }).like('content', `[STUDIO_WD]%"id":"${wdId}"%`);
+        } catch (_) {}
       }
 
       closeModal();
@@ -2032,6 +2037,9 @@
       if (sb) {
         try {
           await sb.from('office_withdrawals').delete().eq('id', wdId);
+        } catch (_) {}
+        try {
+          await sb.from('quick_notes').delete().like('content', `[STUDIO_WD]%"id":"${wdId}"%`);
         } catch (_) {}
       }
 
@@ -2108,7 +2116,7 @@
         created_at: new Date().toISOString()
       };
 
-      // حفظ فوري محلياً وضمان ظهوره في الواجهة حتى لو كان جدول Supabase غير مهيأ
+      // حفظ دائم محلياً لضمان عدم ضياع السحوبات أبداً عند إعادة تحميل الصفحة
       const local = getLocalWithdrawals();
       local.unshift(row);
       saveLocalWithdrawals(local);
@@ -2116,18 +2124,22 @@
 
       if (sb) {
         try {
-          const { data: inserted, error } = await sb.from('office_withdrawals').insert({
+          await sb.from('office_withdrawals').insert({
+            id: row.id,
             project_id: projectId,
             amount,
             withdrawn_by,
             withdrawal_date,
             notes
-          }).select().single();
-          if (!error && inserted) {
-            // إزالة النسخة المحلية المؤقتة بعد نجاح الحفظ في السحابة لمنع التكرار
-            const cleanedLocal = getLocalWithdrawals().filter((x) => x.id !== row.id);
-            saveLocalWithdrawals(cleanedLocal);
-          }
+          });
+        } catch (_) {}
+        // حفظ نسخة احتياطية سحابية في جدول quick_notes لضمان ثباتها عبر كل الأجهزة والمتصفحات
+        try {
+          await sb.from('quick_notes').insert({
+            user_id: STATE.session?.user?.id || null,
+            project_id: projectId,
+            content: `[STUDIO_WD]${JSON.stringify(row)}`
+          });
         } catch (_) {}
       }
 
@@ -3118,7 +3130,7 @@
               <button type="submit" class="px-5 py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ</button>
             </form>
             <div class="space-y-2 max-h-56 overflow-y-auto">
-              ${STATE.notes.map((n) => `
+              ${STATE.notes.filter((n) => !String(n.content || '').startsWith('[STUDIO_WD]')).map((n) => `
                 <div class="p-3 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5] font-bold text-[#2D1B14]">${n.content}</div>
               `).join('')}
             </div>
@@ -3255,14 +3267,28 @@
         if (!noteRes.error && noteRes.data) STATE.notes = noteRes.data;
 
         const localWd = getLocalWithdrawals();
+        const cloudNoteWd = (STATE.notes || [])
+          .filter((n) => String(n.content || '').startsWith('[STUDIO_WD]'))
+          .map((n) => {
+            try {
+              return JSON.parse(String(n.content).replace('[STUDIO_WD]', ''));
+            } catch (_) {
+              return null;
+            }
+          })
+          .filter(Boolean);
+
+        const mergedMap = new Map();
+        localWd.forEach((w) => { if (w?.id) mergedMap.set(w.id, w); });
+        cloudNoteWd.forEach((w) => { if (w?.id) mergedMap.set(w.id, w); });
         if (!wdRes.error && Array.isArray(wdRes.data)) {
-          const dbIds = new Set(wdRes.data.map((w) => w.id));
-          const mergedWd = [...wdRes.data, ...localWd.filter((w) => !dbIds.has(w.id))];
-          mergedWd.sort((a, b) => String(b.withdrawal_date || '').localeCompare(String(a.withdrawal_date || '')));
-          STATE.officeWithdrawals = mergedWd;
-        } else {
-          STATE.officeWithdrawals = localWd;
+          wdRes.data.forEach((w) => { if (w?.id) mergedMap.set(w.id, w); });
         }
+
+        const mergedWd = Array.from(mergedMap.values());
+        mergedWd.sort((a, b) => String(b.withdrawal_date || '').localeCompare(String(a.withdrawal_date || '')));
+        STATE.officeWithdrawals = mergedWd;
+        saveLocalWithdrawals(mergedWd);
 
         await splitAllExistingCombinedMepItems();
       } catch (err) {
