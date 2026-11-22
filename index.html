@@ -196,7 +196,7 @@
   </div>
 
   <!-- حاوية النوافذ المنبثقة -->
-  <div id="modal-root" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto"></div>
+  <div id="modal-root" class="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs hidden items-end sm:items-center justify-center p-0 sm:p-4"></div>
 
   <script>
     // =========================================================================
@@ -650,71 +650,73 @@
       root.classList.remove('hidden');
       root.classList.add('flex');
       root.innerHTML = `
-        <div class="bg-white rounded-[30px] max-w-2xl w-full p-6 shadow-2xl my-8 border border-[#EAE5DC]">
-          <div class="flex justify-between items-center pb-3 border-b border-[#F0ECE3] mb-4">
+        <div class="bg-white rounded-t-[30px] sm:rounded-[30px] max-w-2xl w-full max-h-[92dvh] flex flex-col shadow-2xl border border-[#EAE5DC] overflow-hidden">
+          <div class="flex justify-between items-center px-5 py-4 border-b border-[#F0ECE3] bg-white shrink-0">
             <div>
               <h3 class="font-extrabold text-[#1E2822] text-base">إضافة مشروع جديد</h3>
-              <p class="text-xs text-[#243D2D] font-bold">يتم إنشاء البنود الـ 9 الأساسية تلقائياً عند الحفظ</p>
+              <p class="text-[11px] text-[#243D2D] font-bold">يتم إنشاء البنود الـ 9 الأساسية تلقائياً</p>
             </div>
-            <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-[#F4F0E8] text-xs font-bold cursor-pointer">✕</button>
+            <button type="button" onclick="closeModal()" class="w-9 h-9 rounded-full bg-[#F4F0E8] text-sm font-bold cursor-pointer">✕</button>
           </div>
-          <form onsubmit="submitNewProject(event)" class="space-y-3 text-xs">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="sm:col-span-2">
-                <label class="block font-bold mb-1">اسم المشروع *</label>
-                <input id="np-name" required class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
-              </div>
-              <div>
-                <label class="block font-bold mb-1">اسم العميل *</label>
-                <input id="np-client" required class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
-              </div>
-              <div>
-                <label class="block font-bold mb-1">رقم الهاتف *</label>
-                <input id="np-phone" required class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
-              </div>
-              <div class="sm:col-span-2">
-                <label class="block font-bold mb-1">عنوان المشروع *</label>
-                <input id="np-address" required class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
-              </div>
-              ${
-                canViewFinance()
-                  ? `<div><label class="block font-bold mb-1">قيمة العقد (اختياري - ج.م)</label><input id="np-contract" type="number" min="0" placeholder="اتركه فارغاً للحساب الفعلي" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" /></div>`
-                  : ''
-              }
-              <div>
-                <label class="block font-bold mb-1">حالة المشروع</label>
-                <select id="np-status" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] font-bold bg-[#FAF8F4]">
-                  <option value="new">جديد</option>
-                  <option value="in_progress">قيد التنفيذ</option>
-                  <option value="on_hold">معلق</option>
-                  <option value="completed">مكتمل</option>
-                  <option value="stopped">متوقف</option>
-                </select>
-              </div>
-              <div>
-                <label class="block font-bold mb-1">تاريخ البداية *</label>
-                <input id="np-start" type="date" required value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
-              </div>
-              <div>
-                <label class="block font-bold mb-1">تاريخ التسليم *</label>
-                <input id="np-delivery" type="date" required value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
-              </div>
-              <div>
-                <label class="block font-bold mb-1">تكلفة التصميمات 3D (ج.م)</label>
-                <input id="np-3d" type="number" min="0" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
-              </div>
-              <div>
-                <label class="block font-bold mb-1">تكلفة المخططات التنفيذية (ج.م)</label>
-                <input id="np-plans" type="number" min="0" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
-              </div>
-              <div class="sm:col-span-2">
-                <label class="block font-bold mb-1">ملاحظات عامة</label>
-                <textarea id="np-notes" rows="2" class="w-full px-3.5 py-2 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]"></textarea>
+          <form onsubmit="submitNewProject(event)" class="flex-1 flex flex-col min-h-0">
+            <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3 text-base sm:text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-bold mb-1">اسم المشروع *</label>
+                  <input id="np-name" required class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">اسم العميل *</label>
+                  <input id="np-client" required class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">رقم الهاتف *</label>
+                  <input id="np-phone" type="tel" required class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-bold mb-1">عنوان المشروع *</label>
+                  <input id="np-address" required class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
+                </div>
+                ${
+                  canViewFinance()
+                    ? `<div><label class="block text-xs font-bold mb-1">قيمة العقد (اختياري - ج.م)</label><input id="np-contract" type="number" min="0" placeholder="اتركه فارغاً للحساب الفعلي" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" /></div>`
+                    : ''
+                }
+                <div>
+                  <label class="block text-xs font-bold mb-1">حالة المشروع</label>
+                  <select id="np-status" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] font-bold bg-[#FAF8F4]">
+                    <option value="new">جديد</option>
+                    <option value="in_progress">قيد التنفيذ</option>
+                    <option value="on_hold">معلق</option>
+                    <option value="completed">مكتمل</option>
+                    <option value="stopped">متوقف</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">تاريخ البداية *</label>
+                  <input id="np-start" type="date" required value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">تاريخ التسليم *</label>
+                  <input id="np-delivery" type="date" required value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">تكلفة التصميمات 3D (ج.م)</label>
+                  <input id="np-3d" type="number" min="0" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold mb-1">تكلفة المخططات التنفيذية (ج.م)</label>
+                  <input id="np-plans" type="number" min="0" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-bold mb-1">ملاحظات عامة</label>
+                  <textarea id="np-notes" rows="2" class="w-full px-3.5 py-2 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]"></textarea>
+                </div>
               </div>
             </div>
-            <div class="flex justify-end gap-2 pt-3 border-t border-[#F0ECE3]">
-              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#F4F0E8] font-bold cursor-pointer">إلغاء</button>
-              <button type="submit" class="px-6 py-2.5 rounded-full bg-[#243D2D] text-[#FAF8F4] font-extrabold cursor-pointer">حفظ المشروع</button>
+            <div class="flex justify-end gap-2 px-5 py-3.5 border-t border-[#F0ECE3] bg-white shrink-0">
+              <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-full bg-[#F4F0E8] text-xs font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="flex-1 sm:flex-none px-6 py-2.5 rounded-full bg-[#243D2D] text-[#FAF8F4] text-xs font-extrabold cursor-pointer">حفظ المشروع</button>
             </div>
           </form>
         </div>`;
@@ -964,15 +966,15 @@
       root.classList.remove('hidden');
       root.classList.add('flex');
       root.innerHTML = `
-        <div class="bg-white rounded-[30px] max-w-md w-full p-6 shadow-2xl space-y-4 border border-[#EAE5DC]">
-          <div class="flex justify-between items-center pb-2 border-b border-[#F0ECE3]">
+        <div class="bg-white rounded-t-[30px] sm:rounded-[30px] max-w-md w-full max-h-[90dvh] flex flex-col shadow-2xl border border-[#EAE5DC] overflow-hidden">
+          <div class="flex justify-between items-center px-5 py-4 border-b border-[#F0ECE3] bg-white shrink-0">
             <div>
               <h4 class="font-extrabold text-sm">إضافة تكلفة تراكمية</h4>
               <p class="text-xs text-[#243D2D] font-bold">${itemTitle}</p>
             </div>
-            <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-[#F4F0E8] text-xs font-bold">✕</button>
+            <button type="button" onclick="closeModal()" class="w-9 h-9 rounded-full bg-[#F4F0E8] text-sm font-bold cursor-pointer">✕</button>
           </div>
-          <form onsubmit="submitCostTx(event, '${projectId}', '${itemId}')" class="space-y-3 text-xs">
+          <form onsubmit="submitCostTx(event, '${projectId}', '${itemId}')" class="p-5 space-y-3 text-base sm:text-xs overflow-y-auto">
             <select id="tx-type" class="w-full px-3 py-2.5 rounded-xl border border-[#E6E0D5] font-bold bg-[#FAF8F4]">
               <option value="materials">خامات</option>
               <option value="labor">مصنعية</option>
@@ -982,8 +984,8 @@
             <input id="tx-date" type="date" required value="${new Date().toISOString().slice(0, 10)}" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
             <input id="tx-desc" placeholder="البيان / ملاحظات" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E0D5] bg-[#FAF8F4]" />
             <div class="flex justify-end gap-2 pt-2">
-              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#F4F0E8] font-bold cursor-pointer">إلغاء</button>
-              <button type="submit" class="px-5 py-2 rounded-full bg-[#243D2D] text-[#FAF8F4] font-extrabold cursor-pointer">إضافة وحفظ</button>
+              <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-full bg-[#F4F0E8] text-xs font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="flex-1 sm:flex-none px-5 py-2.5 rounded-full bg-[#243D2D] text-[#FAF8F4] text-xs font-extrabold cursor-pointer">إضافة وحفظ</button>
             </div>
           </form>
         </div>`;
