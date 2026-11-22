@@ -15,48 +15,85 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
     * { font-family: 'Cairo', sans-serif; }
+    body { background-color: #F6F7F9; color: #111315; }
+    .arch-card {
+      background: #FFFFFF;
+      border: 1px solid #EAECEF;
+      border-radius: 28px;
+      box-shadow: 0 10px 30px -12px rgba(17, 19, 21, 0.06);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    }
+    .arch-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px -14px rgba(17, 19, 21, 0.12);
+      border-color: #D1D5DB;
+    }
+    .arch-pill {
+      border-radius: 9999px;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     @media print {
       .no-print { display: none !important; }
       body { background: #fff !important; }
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
+<body class="bg-[#F6F7F9] text-[#111315] min-h-screen pb-24 lg:pb-0">
 
   <!-- إشعارات عائمة -->
-  <div id="toast-container" class="fixed bottom-4 left-4 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
+  <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 max-w-sm w-full px-4 pointer-events-none"></div>
 
-  <!-- شاشة تسجيل الدخول -->
-  <div id="login-screen" class="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-emerald-950 flex flex-col justify-center items-center p-4">
-    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-      <div class="bg-slate-900 p-7 text-center">
-        <div class="w-16 h-16 bg-emerald-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-emerald-600/30 mb-3 text-white text-2xl font-extrabold">
-          🏢
+  <!-- شاشة تسجيل الدخول المعمارية -->
+  <div id="login-screen" class="min-h-screen bg-[#DCE6EE] flex flex-col justify-center items-center p-4 relative overflow-hidden">
+    <div class="w-[520px] h-[520px] rounded-full border border-white/50 absolute pointer-events-none"></div>
+    <div class="w-[780px] h-[780px] rounded-full border border-white/30 absolute pointer-events-none"></div>
+
+    <div class="w-full max-w-md bg-white rounded-[36px] shadow-2xl overflow-hidden border border-white relative z-10">
+      <div class="relative h-44 bg-[#111315] overflow-hidden flex flex-col justify-end p-7">
+        <img
+          src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80"
+          onerror="this.style.display='none'"
+          alt="معمار حديث"
+          class="absolute inset-0 w-full h-full object-cover opacity-45"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-[#111315] via-[#111315]/50 to-transparent"></div>
+        <div class="relative z-10 flex items-center justify-between">
+          <div>
+            <span class="inline-block px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-white text-[11px] font-bold mb-1.5">
+              Architecture &amp; Finishing Studio
+            </span>
+            <h1 class="text-2xl font-extrabold text-white tracking-tight">مكتب التشطيبات</h1>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-white text-[#111315] flex items-center justify-center shadow-lg">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
+            </svg>
+          </div>
         </div>
-        <h1 class="text-2xl font-extrabold text-white">مكتب التشطيبات</h1>
-        <p class="text-emerald-300 text-xs font-semibold mt-1">نظام إدارة مشاريع التشطيبات والحسابات (ج.م)</p>
       </div>
 
-      <div class="p-6 sm:p-8">
+      <div class="p-6 sm:p-8 bg-white">
+        <p class="text-xs text-slate-500 font-semibold mb-5">اكتشف وتابع كافة مواقع التشطيبات والحسابات الهندسية في مكان واحد</p>
         <form id="login-form" class="space-y-4">
           <div>
-            <label class="block text-xs font-extrabold text-slate-700 mb-1.5">البريد الإلكتروني</label>
+            <label class="block text-xs font-extrabold text-[#111315] mb-1.5">البريد الإلكتروني</label>
             <input id="login-email" type="email" required value="omarreda62@gmail.com" dir="ltr"
-              class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-sm text-left focus:border-emerald-600 outline-none" />
+              class="w-full px-5 py-3.5 rounded-full border border-slate-200 bg-[#F6F7F9] text-sm text-left focus:border-[#111315] focus:bg-white outline-none transition-all" />
           </div>
           <div>
-            <label class="block text-xs font-extrabold text-slate-700 mb-1.5">كلمة المرور</label>
+            <label class="block text-xs font-extrabold text-[#111315] mb-1.5">كلمة المرور</label>
             <input id="login-password" type="password" required placeholder="أدخل كلمة المرور" dir="ltr"
-              class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-sm text-left focus:border-emerald-600 outline-none" />
+              class="w-full px-5 py-3.5 rounded-full border border-slate-200 bg-[#F6F7F9] text-sm text-left focus:border-[#111315] focus:bg-white outline-none transition-all" />
           </div>
           <button id="login-btn" type="submit"
-            class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-lg transition-all cursor-pointer">
-            دخول إلى مكتب التشطيبات ←
+            class="w-full py-4 rounded-full bg-[#111315] hover:bg-neutral-800 text-white font-extrabold text-sm shadow-xl transition-all cursor-pointer mt-2">
+            دخول إلى الاستوديو ←
           </button>
         </form>
 
-        <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold">
+        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+          <span class="inline-flex items-center gap-1.5 text-[#111315] font-bold">
             <span class="w-2 h-2 rounded-full bg-emerald-500"></span> متصل بقاعدة بياناتك
           </span>
           <span>RTL • الجنيه المصري (ج.م)</span>
@@ -67,42 +104,53 @@
 
   <!-- التطبيق الرئيسي -->
   <div id="app-shell" class="hidden min-h-screen flex-col lg:flex-row">
-    <!-- القائمة الجانبية للكمبيوتر -->
-    <aside class="hidden lg:flex lg:flex-col lg:w-72 bg-slate-900 text-white shrink-0 sticky top-0 h-screen z-30 shadow-xl no-print">
-      <div class="p-5 border-b border-slate-800 flex items-center gap-3">
-        <div class="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center text-white text-xl font-extrabold shrink-0">🏢</div>
-        <div>
-          <h1 class="font-extrabold text-lg leading-tight">مكتب التشطيبات</h1>
-          <span class="text-[11px] text-emerald-400 font-bold">الجنيه المصري (ج.م)</span>
+    <!-- القائمة الجانبية المعمارية للكمبيوتر -->
+    <aside class="hidden lg:flex lg:flex-col lg:w-72 bg-white border-l border-slate-200/80 text-[#111315] shrink-0 sticky top-0 h-screen z-30 no-print">
+      <div class="p-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full bg-[#111315] flex items-center justify-center text-white shrink-0 shadow-md">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="font-extrabold text-base leading-tight text-[#111315]">مكتب التشطيبات</h1>
+            <span class="text-[11px] text-slate-400 font-bold">Architecture &amp; Fit-Out</span>
+          </div>
         </div>
       </div>
 
-      <div class="mx-3 mt-3 p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700/70">
-        <p id="sidebar-user-name" class="text-xs font-extrabold text-white truncate">م. عمر رضا</p>
-        <p id="sidebar-user-role" class="text-[11px] text-emerald-400 font-semibold mt-0.5">مدير المكتب</p>
+      <div class="mx-4 mb-3 p-3.5 rounded-3xl bg-[#F6F7F9] border border-slate-200/60 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-[#111315] text-white flex items-center justify-center font-extrabold text-sm shrink-0">
+          ع
+        </div>
+        <div class="min-w-0">
+          <p id="sidebar-user-name" class="text-xs font-extrabold text-[#111315] truncate">م. عمر رضا</p>
+          <p id="sidebar-user-role" class="text-[11px] text-slate-500 font-semibold">مدير المكتب</p>
+        </div>
       </div>
 
-      <nav id="desktop-nav" class="flex-1 overflow-y-auto px-3 py-3 space-y-1"></nav>
+      <nav id="desktop-nav" class="flex-1 overflow-y-auto px-4 py-2 space-y-1.5 no-scrollbar"></nav>
 
-      <div class="p-3 border-t border-slate-800">
+      <div class="p-4 border-t border-slate-100">
         <button onclick="logoutUser()"
-          class="w-full py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-200 hover:text-white font-bold text-xs transition-all cursor-pointer">
+          class="w-full py-3 rounded-full bg-[#F6F7F9] hover:bg-rose-600 text-slate-700 hover:text-white font-extrabold text-xs transition-all cursor-pointer">
           تسجيل الخروج
         </button>
       </div>
     </aside>
 
-    <!-- قائمة الموبايل -->
+    <!-- قائمة الموبايل الكاملة -->
     <div id="mobile-drawer" class="fixed inset-0 z-50 hidden lg:hidden">
-      <div class="fixed inset-0 bg-slate-950/60" onclick="toggleMobileMenu(false)"></div>
-      <div class="relative w-72 max-w-[85vw] bg-slate-900 text-white h-full flex flex-col z-10 shadow-2xl">
-        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-          <span class="font-extrabold text-sm">مكتب التشطيبات</span>
-          <button onclick="toggleMobileMenu(false)" class="px-2.5 py-1 rounded-lg bg-slate-800 text-xs">✕</button>
+      <div class="fixed inset-0 bg-black/40 backdrop-blur-xs" onclick="toggleMobileMenu(false)"></div>
+      <div class="relative w-72 max-w-[85vw] bg-white text-[#111315] h-full flex flex-col z-10 shadow-2xl rounded-l-[32px]">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+          <span class="font-extrabold text-base">مكتب التشطيبات</span>
+          <button onclick="toggleMobileMenu(false)" class="w-9 h-9 rounded-full bg-[#F6F7F9] flex items-center justify-center text-xs font-bold">✕</button>
         </div>
-        <nav id="mobile-nav" class="flex-1 overflow-y-auto p-3 space-y-1"></nav>
-        <div class="p-3 border-t border-slate-800">
-          <button onclick="logoutUser()" class="w-full py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs">
+        <nav id="mobile-nav" class="flex-1 overflow-y-auto p-4 space-y-1.5"></nav>
+        <div class="p-4 border-t border-slate-100">
+          <button onclick="logoutUser()" class="w-full py-3 rounded-full bg-[#111315] text-white font-extrabold text-xs">
             تسجيل الخروج
           </button>
         </div>
@@ -111,30 +159,45 @@
 
     <!-- المحتوى الرئيسي -->
     <div class="flex-1 flex flex-col min-w-0">
-      <header class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex items-center justify-between shadow-2xs no-print">
+      <header class="sticky top-0 z-20 bg-[#F6F7F9]/90 backdrop-blur-md px-4 sm:px-8 py-4 flex items-center justify-between no-print">
         <div class="flex items-center gap-3 min-w-0">
-          <button onclick="toggleMobileMenu(true)" class="lg:hidden px-3 py-2 rounded-xl bg-slate-100 text-slate-800 font-bold text-sm">☰</button>
+          <button onclick="toggleMobileMenu(true)"
+            class="lg:hidden w-11 h-11 rounded-full bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center text-[#111315] shrink-0"
+            aria-label="القائمة">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="4" width="6" height="6" rx="1.5" />
+              <rect x="14" y="4" width="6" height="6" rx="1.5" />
+              <rect x="4" y="14" width="6" height="6" rx="1.5" />
+              <rect x="14" y="14" width="6" height="6" rx="1.5" />
+            </svg>
+          </button>
           <div class="min-w-0">
-            <h2 id="header-title" class="text-sm sm:text-lg font-extrabold text-slate-900 truncate">الرئيسية</h2>
-            <p class="text-[11px] text-emerald-700 font-bold">● متصل بقاعدة البيانات • الجنيه المصري (ج.م)</p>
+            <h2 id="header-title" class="text-lg sm:text-2xl font-extrabold text-[#111315] tracking-tight truncate">الرئيسية</h2>
+            <p class="text-[11px] text-slate-500 font-semibold">● متصل بقاعدة البيانات • الجنيه المصري (ج.م)</p>
           </div>
         </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <button onclick="refreshAllData()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">
-            ↻ تحديث
+        <div class="flex items-center gap-2.5 shrink-0">
+          <button onclick="refreshAllData()"
+            class="w-10 h-10 rounded-full bg-white border border-slate-200/80 hover:border-[#111315] text-[#111315] flex items-center justify-center text-sm font-bold shadow-2xs cursor-pointer"
+            title="تحديث البيانات">
+            ↻
           </button>
-          <button onclick="logoutUser()" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 text-xs font-extrabold cursor-pointer">
-            تسجيل الخروج
+          <button onclick="logoutUser()"
+            class="px-4 py-2.5 rounded-full bg-white hover:bg-[#111315] text-[#111315] hover:text-white border border-slate-200/80 text-xs font-extrabold shadow-2xs transition-all cursor-pointer">
+            خروج
           </button>
         </div>
       </header>
 
-      <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto"></main>
+      <main id="main-content" class="flex-1 px-4 sm:px-8 pb-8 max-w-7xl w-full mx-auto"></main>
     </div>
+
+    <!-- شريط تنقل عائم للموبايل مطابق للتصميم المعماري -->
+    <div id="mobile-floating-dock" class="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-[#111315] text-white px-2.5 py-2 rounded-full shadow-2xl flex items-center gap-1.5 no-print"></div>
   </div>
 
   <!-- حاوية النوافذ المنبثقة -->
-  <div id="modal-root" class="fixed inset-0 z-50 bg-slate-950/60 hidden items-center justify-center p-4 overflow-y-auto"></div>
+  <div id="modal-root" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto"></div>
 
   <script>
     // =========================================================================
@@ -170,6 +233,7 @@
       tab: 'home',
       selectedProjectId: null,
       projectSubTab: 'items',
+      projectFilterStage: 'ALL',
       profiles: [],
       projects: [],
       items: [],
@@ -217,134 +281,88 @@
     }
 
     // =========================================================================
-    // 2. المصادقة وتحميل البيانات
+    // 3. التنقل والقائمة الجانبية + شريط الموبايل العائم
     // =========================================================================
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!sb) return showToast('تعذر تحميل مكتبة الاتصال بالخادم، أعد تحميل الصفحة.', 'error');
-      const email = document.getElementById('login-email').value.trim();
-      const password = document.getElementById('login-password').value;
-      const btn = document.getElementById('login-btn');
-      btn.disabled = true;
-      btn.textContent = 'جاري الدخول...';
-      try {
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) {
-          showToast(translateError(error), 'error');
-          return;
-        }
-        STATE.session = data.session;
-        await initAfterAuth();
-        showToast('تم تسجيل الدخول بنجاح، مرحباً بك في مكتب التشطيبات.');
-      } catch (err) {
-        showToast(translateError(err), 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'دخول إلى مكتب التشطيبات ←';
-      }
-    });
+    const NAV_ICONS = {
+      home: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg>',
+      operations: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
+      projects: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>',
+      workers: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+      accounts: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>',
+      payments: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+      appointments: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+      materials: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>',
+      team: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+      settings: '<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
+    };
 
-    async function logoutUser() {
-      if (sb) await sb.auth.signOut();
-      STATE.session = null;
-      STATE.profile = null;
-      STATE.selectedProjectId = null;
-      document.getElementById('app-shell').classList.add('hidden');
-      document.getElementById('app-shell').classList.remove('flex');
-      document.getElementById('login-screen').classList.remove('hidden');
-      showToast('تم تسجيل الخروج بنجاح.');
+    const ARCH_COVERS = [
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=80',
+      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80'
+    ];
+
+    function getProjectCover(project, index = 0) {
+      const uploadedImg = STATE.files.find(
+        (fl) => fl.project_id === project.id && fl.file_url && /\.(jpg|jpeg|png|webp)$/i.test(fl.file_url)
+      );
+      if (uploadedImg) return uploadedImg.file_url;
+      return ARCH_COVERS[index % ARCH_COVERS.length];
     }
 
-    async function initAfterAuth() {
-      const user = STATE.session?.user;
-      if (!user) return;
-
-      const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-      if (prof) {
-        STATE.profile = prof;
-      } else if ((user.email || '').toLowerCase() === 'omarreda62@gmail.com') {
-        const adminRow = {
-          id: user.id,
-          full_name: 'م. عمر رضا',
-          email: user.email,
-          role: 'admin',
-          assigned_project_ids: [],
-          can_view_sensitive_finance: true,
-          is_active: true
-        };
-        await sb.from('profiles').upsert(adminRow, { onConflict: 'email' });
-        STATE.profile = adminRow;
-      }
-
-      document.getElementById('login-screen').classList.add('hidden');
-      document.getElementById('app-shell').classList.remove('hidden');
-      document.getElementById('app-shell').classList.add('flex');
-
-      const role = getRole();
-      document.getElementById('sidebar-user-name').textContent = STATE.profile?.full_name || user.email;
-      document.getElementById('sidebar-user-role').textContent =
-        role === 'admin' ? 'مدير المكتب' : role === 'engineer' ? 'مهندس موقع' : 'محاسب';
-
-      renderNavigation();
-      await refreshAllData();
-    }
-
-    function getRole() {
-      return STATE.profile?.role || ((STATE.session?.user?.email || '').toLowerCase() === 'omarreda62@gmail.com' ? 'admin' : 'engineer');
-    }
-
-    function canViewFinance() {
+    function getNavItems() {
       const r = getRole();
-      return r === 'admin' || r === 'accountant' || Boolean(STATE.profile?.can_view_sensitive_finance);
+      return [
+        { id: 'home', label: 'الرئيسية', show: true },
+        { id: 'operations', label: 'لوحة التشغيل', show: true },
+        { id: 'projects', label: 'المشاريع', show: true },
+        { id: 'workers', label: 'العمال والصنايعية', show: r !== 'accountant' },
+        { id: 'accounts', label: 'حسابات المشروع', show: true },
+        { id: 'payments', label: 'دفعات العميل', show: canViewFinance() },
+        { id: 'appointments', label: 'المواعيد', show: true },
+        { id: 'materials', label: 'الموردون والخامات', show: true },
+        { id: 'team', label: 'إدارة الفريق', show: r === 'admin' },
+        { id: 'settings', label: 'الإعدادات والأدوات', show: true }
+      ].filter((x) => x.show);
     }
 
-    function getAllowedProjects() {
-      const r = getRole();
-      if (r === 'admin' || r === 'accountant') return STATE.projects;
-      const ids = Array.isArray(STATE.profile?.assigned_project_ids) ? STATE.profile.assigned_project_ids : [];
-      return STATE.projects.filter((p) => ids.includes(p.id));
-    }
+    function renderNavigation() {
+      const items = getNavItems();
+      const html = items
+        .map(
+          (it) => `
+          <button onclick="switchTab('${it.id}')"
+            class="w-full flex items-center gap-3 text-right px-4 py-3 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              STATE.tab === it.id ? 'bg-[#111315] text-white shadow-md' : 'text-slate-600 hover:bg-[#F6F7F9] hover:text-[#111315]'
+            }">
+            <span class="w-7 h-7 rounded-full flex items-center justify-center ${
+              STATE.tab === it.id ? 'bg-white text-[#111315]' : 'bg-[#F6F7F9] text-slate-700'
+            }">${NAV_ICONS[it.id] || ''}</span>
+            <span>${it.label}</span>
+          </button>`
+        )
+        .join('');
+      document.getElementById('desktop-nav').innerHTML = html;
+      document.getElementById('mobile-nav').innerHTML = html;
 
-    async function refreshAllData() {
-      if (!sb || !STATE.session) return;
-      try {
-        const [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15] = await Promise.all([
-          sb.from('profiles').select('*').order('created_at', { ascending: false }),
-          sb.from('projects').select('*').order('created_at', { ascending: false }),
-          sb.from('project_items').select('*').order('sort_order', { ascending: true }),
-          sb.from('item_cost_transactions').select('*').order('transaction_date', { ascending: false }),
-          sb.from('client_payments').select('*').order('payment_date', { ascending: false }),
-          sb.from('general_expenses').select('*').order('expense_date', { ascending: false }),
-          sb.from('workers').select('*').order('created_at', { ascending: false }),
-          sb.from('worker_assignments').select('*').order('created_at', { ascending: false }),
-          sb.from('worker_evaluations').select('*').order('created_at', { ascending: false }),
-          sb.from('daily_reports').select('*').order('report_date', { ascending: false }),
-          sb.from('material_requests').select('*').order('created_at', { ascending: false }),
-          sb.from('appointments_tasks').select('*').order('scheduled_at', { ascending: true }),
-          sb.from('quality_checklists').select('*').order('updated_at', { ascending: false }),
-          sb.from('project_files').select('*').order('created_at', { ascending: false }),
-          sb.from('quick_notes').select('*').order('created_at', { ascending: false })
-        ]);
-
-        STATE.profiles = p1.data || [];
-        STATE.projects = p2.data || [];
-        STATE.items = p3.data || [];
-        STATE.transactions = p4.data || [];
-        STATE.payments = p5.data || [];
-        STATE.expenses = p6.data || [];
-        STATE.workers = p7.data || [];
-        STATE.assignments = p8.data || [];
-        STATE.evaluations = p9.data || [];
-        STATE.reports = p10.data || [];
-        STATE.materials = p11.data || [];
-        STATE.tasks = p12.data || [];
-        STATE.checklists = p13.data || [];
-        STATE.files = p14.data || [];
-        STATE.notes = p15.data || [];
-
-        renderMainView();
-      } catch (err) {
-        showToast(translateError(err, 'حدث خطأ أثناء تحميل البيانات.'), 'error');
+      // شريط الموبايل العائم (5 أيقونات رئيسية)
+      const dockIds = ['home', 'operations', 'projects', 'accounts', 'materials'];
+      const dockItems = items.filter((i) => dockIds.includes(i.id)).slice(0, 5);
+      const dockEl = document.getElementById('mobile-floating-dock');
+      if (dockEl) {
+        dockEl.innerHTML = dockItems
+          .map((it) => {
+            const active = STATE.tab === it.id;
+            return `
+              <button onclick="switchTab('${it.id}')" aria-label="${it.label}"
+                class="w-11 h-11 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                  active ? 'bg-white text-[#111315] shadow-md scale-105' : 'text-slate-300 hover:text-white'
+                }">
+                ${NAV_ICONS[it.id] || ''}
+              </button>`;
+          })
+          .join('');
       }
     }
 
@@ -468,34 +486,71 @@
 
       const financeCards = canViewFinance()
         ? `
-        <div class="bg-white p-5 rounded-2xl border border-slate-200">
-          <span class="text-xs font-bold text-slate-500">إجمالي دفعات العملاء المحصلة</span>
-          <p class="text-xl font-extrabold text-emerald-700 mt-1">${formatEGP(collected)}</p>
-          ${contracts > 0 ? `<p class="text-xs text-slate-500 font-bold mt-1">عقود محددة: ${formatEGP(contracts)}</p>` : `<p class="text-xs text-slate-500 font-bold mt-1">نظام التكلفة الفعلية</p>`}
+        <div class="arch-card p-5">
+          <span class="text-xs font-bold text-slate-400">دفعات العملاء المحصلة</span>
+          <p class="text-xl font-extrabold text-[#111315] mt-1.5">${formatEGP(collected)}</p>
+          <p class="text-[11px] text-emerald-700 font-bold mt-1">${contracts > 0 ? 'عقود محددة: ' + formatEGP(contracts) : 'نظام التكلفة الفعلية'}</p>
         </div>
-        <div class="bg-white p-5 rounded-2xl border border-slate-200">
-          <span class="text-xs font-bold text-slate-500">إجمالي التكاليف الفعلية والمصروفات</span>
-          <p class="text-xl font-extrabold text-amber-800 mt-1">${formatEGP(outflow)}</p>
+        <div class="arch-card p-5">
+          <span class="text-xs font-bold text-slate-400">التكاليف الفعلية والمصروفات</span>
+          <p class="text-xl font-extrabold text-[#111315] mt-1.5">${formatEGP(outflow)}</p>
+          <p class="text-[11px] text-slate-500 font-semibold mt-1">تراكمي من البنود والمصروفات</p>
         </div>
-        <div class="bg-slate-900 text-white p-5 rounded-2xl">
-          <span class="text-xs font-bold text-emerald-300">صافي الرصيد المتاح بالمكتب</span>
-          <p class="text-xl font-extrabold mt-1">${formatEGP(netBalance)}</p>
+        <div class="bg-[#111315] text-white p-5 rounded-[28px] shadow-lg">
+          <span class="text-xs font-bold text-slate-300">الرصيد المتاح بالمكتب</span>
+          <p class="text-xl font-extrabold mt-1.5">${formatEGP(netBalance)}</p>
+          <p class="text-[11px] text-emerald-400 font-bold mt-1">محدّث لحظياً (ج.م)</p>
         </div>`
         : '';
 
-      const cardsHtml = projs
-        .map((p) => {
+      const filteredProjs =
+        STATE.projectFilterStage === 'ALL'
+          ? projs
+          : projs.filter((p) => p.visual_stage === STATE.projectFilterStage || p.status === STATE.projectFilterStage);
+
+      const cardsHtml = filteredProjs
+        .map((p, idx) => {
           const f = computeFinancials(p);
+          const cover = getProjectCover(p, idx);
+          const badgePrice = canViewFinance()
+            ? f.hasFixedContract
+              ? formatEGP(f.contract)
+              : formatEGP(f.outflow)
+            : `${f.avgCompletion}%`;
           return `
-          <div onclick="openProject('${p.id}')" class="p-4 rounded-2xl border border-slate-200 hover:border-emerald-500 bg-white cursor-pointer space-y-2.5">
-            <div class="flex justify-between items-center text-xs">
-              <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold">${STAGE_LABELS[p.visual_stage] || p.visual_stage}</span>
-              <span class="font-extrabold text-emerald-800">${f.avgCompletion}%</span>
+          <div onclick="openProject('${p.id}')" class="group relative h-80 rounded-[32px] overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all bg-slate-900">
+            <img src="${escapeHtml(cover)}" onerror="this.style.display='none'" alt="${escapeHtml(p.name)}"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/35"></div>
+
+            <!-- أعلى البطاقة: اسم المشروع والسعر/التكلفة -->
+            <div class="absolute top-5 inset-x-5 flex items-start justify-between gap-2 text-white">
+              <div class="min-w-0">
+                <h4 class="font-extrabold text-base leading-snug drop-shadow-xs truncate">${escapeHtml(p.name)}</h4>
+                <p class="text-xs text-white/80 font-semibold truncate">${escapeHtml(p.address)}</p>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-black/35 backdrop-blur-md text-xs font-extrabold whitespace-nowrap border border-white/15">
+                ${badgePrice}
+              </span>
             </div>
-            <h4 class="font-extrabold text-slate-900 text-sm">${escapeHtml(p.name)}</h4>
-            <p class="text-xs text-slate-500">العميل: ${escapeHtml(p.client_name)}</p>
-            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div class="h-full bg-emerald-600" style="width:${f.avgCompletion}%"></div>
+
+            <!-- شريط الإنجاز وأزرار البطاقة السفلية المطابقة للصورة -->
+            <div class="absolute bottom-5 inset-x-5 space-y-3">
+              <div class="flex items-center justify-between text-[11px] text-white/90 font-bold">
+                <span>${STAGE_LABELS[p.visual_stage] || p.visual_stage}</span>
+                <span>إنجاز ${f.avgCompletion}%</span>
+              </div>
+              <div class="w-full h-1.5 bg-white/25 rounded-full overflow-hidden">
+                <div class="h-full bg-white rounded-full" style="width:${f.avgCompletion}%"></div>
+              </div>
+              <div class="flex items-center gap-2.5 pt-1">
+                <span class="flex-1 py-3 px-5 rounded-full bg-white text-[#111315] font-extrabold text-xs text-center shadow-md group-hover:bg-slate-100 transition-colors">
+                  عرض المشروع
+                </span>
+                <span class="w-11 h-11 rounded-full bg-white/95 text-[#111315] flex items-center justify-center font-extrabold text-xs shadow-md shrink-0">
+                  ${f.avgCompletion}%
+                </span>
+              </div>
             </div>
           </div>`;
         })
@@ -503,24 +558,59 @@
 
       return `
         <div class="space-y-6">
-          <div class="bg-gradient-to-l from-slate-900 via-blue-950 to-emerald-900 rounded-3xl p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <!-- رأس معماري نظيف مطابق للصورة -->
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-1">
             <div>
-              <h3 class="text-xl font-extrabold">مرحباً بك في مكتب التشطيبات</h3>
-              <p class="text-xs text-slate-200 mt-1">جميع العمليات المالية تراكمية وتُحسب تلقائياً بالجنيه المصري (ج.م).</p>
+              <h3 class="text-2xl sm:text-3xl font-extrabold text-[#111315] leading-tight">
+                مشاريع التشطيبات<br class="hidden sm:inline" /> والتنفيذ المعماري
+              </h3>
+              <p class="text-xs text-slate-500 font-semibold mt-1">اختر المشروع لمتابعة البنود التراكمية والتقارير والحسابات</p>
             </div>
-            <button onclick="switchTab('projects')" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs cursor-pointer">
-              + إدارة المشاريع
-            </button>
+            ${
+              getRole() !== 'accountant'
+                ? `<button onclick="openNewProjectModal()" class="px-6 py-3.5 rounded-full bg-[#111315] hover:bg-neutral-800 text-white font-extrabold text-xs shadow-md cursor-pointer self-start sm:self-auto">
+                    + مشروع جديد
+                  </button>`
+                : ''
+            }
           </div>
+
+          <!-- أزرار الفلترة الكبسولية (Pills) -->
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            ${[
+              { id: 'ALL', label: 'الكل' },
+              { id: 'in_progress', label: 'جاري التنفيذ' },
+              { id: 'in_beginning', label: 'في البداية' },
+              { id: 'near_delivery', label: 'قرب التسليم' },
+              { id: 'completed', label: 'مكتمل' }
+            ]
+              .map(
+                (pill) => `
+              <button onclick="STATE.projectFilterStage='${pill.id}'; renderMainView()"
+                class="px-5 py-2.5 rounded-full text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
+                  STATE.projectFilterStage === pill.id
+                    ? 'bg-[#111315] text-white shadow-sm'
+                    : 'bg-white text-slate-600 border border-slate-200/80 hover:border-[#111315]'
+                }">
+                ${pill.label}
+              </button>`
+              )
+              .join('')}
+          </div>
+
+          <!-- بطاقات الأرقام الرئيسية -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-5 rounded-2xl border border-slate-200">
-              <span class="text-xs font-bold text-slate-500">المشاريع النشطة</span>
-              <p class="text-2xl font-extrabold text-slate-900 mt-1">${projs.length} مشروع</p>
+            <div class="arch-card p-5">
+              <span class="text-xs font-bold text-slate-400">المشاريع النشطة</span>
+              <p class="text-2xl font-extrabold text-[#111315] mt-1.5">${projs.length} مشروع</p>
+              <p class="text-[11px] text-slate-500 font-semibold mt-1">مرتبطة بقاعدة البيانات</p>
             </div>
             ${financeCards}
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            ${cardsHtml || '<p class="text-xs text-slate-500">لا توجد مشاريع مضافة بعد. اضغط على إدارة المشاريع لإضافة أول مشروع.</p>'}
+
+          <!-- شبكة بطاقات المشاريع المعمارية -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            ${cardsHtml || '<div class="arch-card p-8 col-span-3 text-center text-xs text-slate-500">لا توجد مشاريع مطابقة حالياً. اضغط على «+ مشروع جديد» للبدء.</div>'}
           </div>
         </div>`;
     }
@@ -590,33 +680,52 @@
       const canAdd = getRole() !== 'accountant';
       return `
         <div class="space-y-6">
-          <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center">
-            <h3 class="font-extrabold text-slate-900 text-sm">قائمة المشاريع (${projs.length})</h3>
+          <div class="flex flex-wrap justify-between items-center gap-3">
+            <div>
+              <h3 class="font-extrabold text-[#111315] text-lg">كافة المشاريع المعمارية (${projs.length})</h3>
+              <p class="text-xs text-slate-500">اضغط على أي مشروع لفتح لوحة البنود والتقارير والحسابات</p>
+            </div>
             ${
               canAdd
-                ? `<button onclick="openNewProjectModal()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs cursor-pointer">+ مشروع جديد</button>`
+                ? `<button onclick="openNewProjectModal()" class="px-6 py-3 rounded-full bg-[#111315] hover:bg-neutral-800 text-white font-extrabold text-xs shadow-md cursor-pointer">+ مشروع جديد</button>`
                 : ''
             }
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             ${projs
-              .map((p) => {
+              .map((p, idx) => {
                 const f = computeFinancials(p);
+                const cover = getProjectCover(p, idx);
                 return `
-                <div onclick="openProject('${p.id}')" class="bg-white rounded-2xl border border-slate-200 hover:border-emerald-500 p-5 cursor-pointer space-y-3">
-                  <div class="flex justify-between items-center text-xs">
-                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold">${STAGE_LABELS[p.visual_stage] || p.visual_stage}</span>
-                    <span class="bg-slate-100 px-2 py-0.5 rounded font-bold">${STATUS_LABELS[p.status] || p.status}</span>
+                <div onclick="openProject('${p.id}')" class="group relative h-80 rounded-[32px] overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all bg-slate-900">
+                  <img src="${escapeHtml(cover)}" onerror="this.style.display='none'" alt="${escapeHtml(p.name)}"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/35"></div>
+                  <div class="absolute top-5 inset-x-5 flex justify-between items-start gap-2 text-white">
+                    <div class="min-w-0">
+                      <h4 class="font-extrabold text-base truncate">${escapeHtml(p.name)}</h4>
+                      <p class="text-xs text-white/80 truncate">${escapeHtml(p.client_name)} • ${escapeHtml(p.address)}</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full bg-black/40 backdrop-blur-md text-xs font-extrabold whitespace-nowrap">
+                      ${canViewFinance() ? (f.hasFixedContract ? formatEGP(f.contract) : formatEGP(f.outflow)) : STATUS_LABELS[p.status]}
+                    </span>
                   </div>
-                  <h4 class="font-extrabold text-slate-900 text-base">${escapeHtml(p.name)}</h4>
-                  <p class="text-xs text-slate-600">العميل: ${escapeHtml(p.client_name)} • ${escapeHtml(p.client_phone)}</p>
-                  <p class="text-xs text-slate-500">${escapeHtml(p.address)}</p>
-                  <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-emerald-600" style="width:${f.avgCompletion}%"></div>
-                  </div>
-                  <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs">
-                    ${canViewFinance() ? `<strong>${f.hasFixedContract ? 'العقد: ' + formatEGP(f.contract) : 'التكلفة: ' + formatEGP(f.outflow)}</strong>` : `<span>التسليم: ${p.delivery_date}</span>`}
-                    <span class="text-emerald-700 font-extrabold">فتح المشروع ←</span>
+                  <div class="absolute bottom-5 inset-x-5 space-y-3">
+                    <div class="flex justify-between text-[11px] text-white/90 font-bold">
+                      <span>${STAGE_LABELS[p.visual_stage] || p.visual_stage}</span>
+                      <span>${f.avgCompletion}%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-white/25 rounded-full overflow-hidden">
+                      <div class="h-full bg-white rounded-full" style="width:${f.avgCompletion}%"></div>
+                    </div>
+                    <div class="flex items-center gap-2.5 pt-1">
+                      <span class="flex-1 py-3 px-5 rounded-full bg-white text-[#111315] font-extrabold text-xs text-center shadow-md">
+                        فتح المشروع
+                      </span>
+                      <span class="w-11 h-11 rounded-full bg-white/95 text-[#111315] flex items-center justify-center font-extrabold text-xs shadow-md shrink-0">
+                        ←
+                      </span>
+                    </div>
                   </div>
                 </div>`;
               })
@@ -839,64 +948,64 @@
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 text-xs">
                   <div class="flex justify-between font-extrabold"><span>${r.report_date}</span><span class="text-emerald-700">عدد العمال: ${r.workers_count}</span></div>
                   <p class="text-sm font-semibold">${escapeHtml(r.work_done)}</p>
-                  ${r.obstacles ? `<p class="text-rose-800 bg-rose-50 p-2 rounded-lg">المعوقات: ${escapeHtml(r.obstacles)}</p>` : ''}
-                </div>`
-                )
-                .join('') || '<p class="text-xs text-slate-400">لا توجد تقارير مسجلة لهذا المشروع.</p>'}
-            </div>
-          </div>`;
-      } else if (STATE.projectSubTab === 'files') {
-        const pFiles = STATE.files.filter((fl) => fl.project_id === project.id);
-        bodyHtml = `
-          <div class="space-y-4">
-            ${
-              canEdit
-                ? `<form onsubmit="uploadProjectFile(event, '${project.id}')" class="bg-white p-4 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                    <select id="pf-cat" class="px-3 py-2 rounded-xl border border-slate-300 font-bold bg-white">
-                      <option value="execution_plans">مخططات تنفيذية</option>
-                      <option value="3d_designs">تصميمات 3D</option>
-                      <option value="before_after">صور قبل وبعد</option>
-                      <option value="quotes_invoices">عروض أسعار وفواتير</option>
-                      <option value="boq">جداول كميات</option>
-                    </select>
-                    <input id="pf-file" type="file" required class="self-center" />
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-extrabold cursor-pointer">رفع للمكتبة</button>
-                  </form>`
-                : ''
-            }
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              ${pFiles
-                .map(
-                  (fl) => `
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center text-xs">
-                  <span class="font-bold truncate">${escapeHtml(fl.file_name)}</span>
-                  <a href="${escapeHtml(fl.file_url)}" target="_blank" class="px-3 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-bold">فتح</a>
-                </div>`
-                )
-                .join('')}
-            </div>
-          </div>`;
-      }
+      const pIdx = Math.max(0, STATE.projects.findIndex((x) => x.id === project.id));
+      const cover = getProjectCover(project, pIdx);
 
       return `
         <div class="space-y-6">
-          <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-            <div class="flex flex-wrap justify-between items-center gap-3">
-              <div class="flex items-center gap-3">
-                <button onclick="STATE.selectedProjectId=null; renderMainView()" class="px-3 py-1.5 rounded-xl bg-slate-100 text-xs font-extrabold cursor-pointer">→ رجوع</button>
+          <!-- بطاقة المشروع المعمارية المتداخلة (مطابقة للشاشة اليمنى في الصورة) -->
+          <div class="rounded-[34px] overflow-hidden bg-white border border-slate-200/80 shadow-md">
+            <div class="relative h-56 sm:h-64 bg-[#111315]">
+              <img src="${escapeHtml(cover)}" onerror="this.style.display='none'" alt="${escapeHtml(project.name)}"
+                class="w-full h-full object-cover opacity-90" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
+              <div class="absolute top-4 inset-x-4 flex justify-between items-center">
+                <button onclick="STATE.selectedProjectId=null; renderMainView()"
+                  class="w-10 h-10 rounded-full bg-white/90 backdrop-blur-md text-[#111315] font-extrabold text-sm flex items-center justify-center shadow-md cursor-pointer">
+                  →
+                </button>
+                <span class="px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-md text-[#111315] text-xs font-extrabold shadow-md">
+                  ${STAGE_LABELS[project.visual_stage] || project.visual_stage}
+                </span>
+              </div>
+            </div>
+
+            <!-- اللوح الأبيض المتداخل -->
+            <div class="relative -mt-8 bg-white rounded-t-[32px] p-5 sm:p-7 space-y-4">
+              <div class="flex flex-wrap justify-between items-start gap-3">
                 <div>
-                  <h3 class="text-lg font-extrabold text-slate-900">${escapeHtml(project.name)}</h3>
-                  <p class="text-xs text-slate-500">العميل: ${escapeHtml(project.client_name)} • ${escapeHtml(project.address)}</p>
+                  <h3 class="text-xl sm:text-2xl font-extrabold text-[#111315]">${escapeHtml(project.name)}</h3>
+                  <p class="text-xs text-slate-500 font-semibold mt-0.5">${escapeHtml(project.address)} • العميل: ${escapeHtml(project.client_name)}</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-[#F6F7F9] border border-slate-200 flex items-center justify-center font-extrabold text-xs text-[#111315]">
+                  ${f.avgCompletion}%
                 </div>
               </div>
-              <span class="text-lg font-extrabold text-emerald-700">${f.avgCompletion}%</span>
-            </div>
-            <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-              <div class="h-full bg-emerald-600" style="width:${f.avgCompletion}%"></div>
+
+              <!-- بطاقات المواصفات السريعة (مثل Bedroom / Bathroom في الصورة) -->
+              <div class="grid grid-cols-3 gap-2.5 text-center">
+                <div class="py-2.5 px-3 rounded-2xl bg-[#F6F7F9] border border-slate-200/60">
+                  <span class="block text-[11px] text-slate-400 font-bold">البنود</span>
+                  <strong class="text-xs sm:text-sm text-[#111315]">${items.length} بند</strong>
+                </div>
+                <div class="py-2.5 px-3 rounded-2xl bg-[#F6F7F9] border border-slate-200/60">
+                  <span class="block text-[11px] text-slate-400 font-bold">التكلفة الفعلية</span>
+                  <strong class="text-xs sm:text-sm text-[#111315]">${formatEGP(f.outflow)}</strong>
+                </div>
+                <div class="py-2.5 px-3 rounded-2xl bg-[#F6F7F9] border border-slate-200/60">
+                  <span class="block text-[11px] text-slate-400 font-bold">التسليم</span>
+                  <strong class="text-xs sm:text-sm text-[#111315]">${project.delivery_date}</strong>
+                </div>
+              </div>
+
+              <div class="w-full h-2 bg-[#F6F7F9] rounded-full overflow-hidden">
+                <div class="h-full bg-[#111315] rounded-full" style="width:${f.avgCompletion}%"></div>
+              </div>
             </div>
           </div>
 
-          <div class="flex flex-wrap gap-2">
+          <!-- تبويبات كبسولية -->
+          <div class="flex overflow-x-auto no-scrollbar gap-2 pb-1">
             ${[
               { id: 'items', label: 'البنود والتكاليف التراكمية' },
               { id: 'summary', label: 'الملخص والحسابات' },
@@ -906,8 +1015,8 @@
               .map(
                 (t) => `
               <button onclick="STATE.projectSubTab='${t.id}'; renderMainView()"
-                class="px-4 py-2 rounded-xl text-xs font-extrabold cursor-pointer ${
-                  STATE.projectSubTab === t.id ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-700'
+                class="px-5 py-2.5 rounded-full text-xs font-extrabold whitespace-nowrap cursor-pointer ${
+                  STATE.projectSubTab === t.id ? 'bg-[#111315] text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-700'
                 }">${t.label}</button>`
               )
               .join('')}
