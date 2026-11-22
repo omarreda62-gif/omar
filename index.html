@@ -232,8 +232,24 @@
     const EXPENSE_LABELS = { transportation: 'مواصلات', tips: 'إكراميات', tools: 'أدوات', loading_transport: 'تحميل ونقل', daily_labor: 'عمالة يومية', other: 'مصروفات أخرى' };
     const PAYMENT_LABELS = { cash: 'نقدي', instapay: 'إنستاباي', bank_transfer: 'تحويل بنكي', vodafone_cash: 'فودافون كاش', cheque: 'شيك', other: 'أخرى' };
     const MATERIAL_LABELS = { pending_review: 'قيد المراجعة', approved: 'تم الاعتماد', ordered_from_supplier: 'تم الطلب من المورد', in_transit: 'في الطريق', received: 'تم الاستلام', rejected: 'مرفوض' };
+    const MATERIAL_STATUS_LABELS = MATERIAL_LABELS;
     const TASK_TYPE_LABELS = { inspection: 'معاينة', meeting: 'اجتماع', site_visit: 'زيارة موقع', item_handover: 'استلام بند', supplier: 'موعد مورد', task: 'مهمة' };
     const TASK_STATUS_LABELS = { new: 'جديدة', in_progress: 'جاري العمل', completed: 'مكتملة', overdue: 'متأخرة' };
+    const translateErrorToArabic = (err, fallback) => translateError(err, fallback);
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-xs font-extrabold text-center border ${
+        type === 'error'
+          ? 'bg-rose-950 text-rose-100 border-rose-700'
+          : 'bg-[#2A221C] text-[#F5EFE6] border-[#C6A984]'
+      }`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }
 
     const STATE = {
       session: null,
@@ -247,6 +263,7 @@
       transactions: [],
       payments: [],
       expenses: [],
+      withdrawals: [],
       workers: [],
       assignments: [],
       evaluations: [],
@@ -255,19 +272,38 @@
       tasks: [],
       checklists: [],
       files: [],
-      notes: []
+      notes: [],
+      officePctByProject: {}
     };
 
     const formatEGP = (n) => `${(Number(n) || 0).toLocaleString('ar-EG')} ج.م`;
 
-    function showToast(msg, type = 'success') {
-      const container = document.getElementById('toast-container');
-      const el = document.createElement('div');
-      const bg = type === 'error' ? 'bg-rose-950 border-rose-700 text-rose-100' : 'bg-[#261F1A] border-[#C6A984] text-[#F5EFE6]';
-      el.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm font-bold border ${bg}`;
-      el.textContent = msg;
-      container.appendChild(el);
-      setTimeout(() => el.remove(), 4200);
+    function loadLocalOfficeFallback() {
+      try {
+        const rawPct = localStorage.getItem('tashtibat_office_pct_v1');
+        if (rawPct) STATE.officePctByProject = JSON.parse(rawPct) || {};
+      } catch (_) {}
+      try {
+        const rawWd = localStorage.getItem('tashtibat_office_wd_v1');
+        if (rawWd && (!STATE.withdrawals || STATE.withdrawals.length === 0)) {
+          STATE.withdrawals = JSON.parse(rawWd) || [];
+        }
+      } catch (_) {}
+    }
+
+    function saveLocalOfficeFallback() {
+      try {
+        localStorage.setItem('tashtibat_office_pct_v1', JSON.stringify(STATE.officePctByProject || {}));
+        localStorage.setItem('tashtibat_office_wd_v1', JSON.stringify(STATE.withdrawals || []));
+      } catch (_) {}
+    }
+
+    function getProjectOfficePercent(project) {
+      const dbPct = Number(project?.office_percentage);
+      if (!Number.isNaN(dbPct) && dbPct >= 10 && dbPct <= 25) return dbPct;
+      const localPct = Number(STATE.officePctByProject?.[project?.id]);
+      if (!Number.isNaN(localPct) && localPct >= 10 && localPct <= 25) return localPct;
+      return 15;
     }
 
     function translateError(err, fallback = 'تعذر إتمام العملية حالياً، يرجى التحقق من البيانات والمحاولة مرة أخرى.') {
@@ -391,10 +427,136 @@
         .reduce((s, e) => s + (Number(e.amount) || 0), 0);
       const designCost = (Number(project.design_3d_cost) || 0) + (Number(project.execution_plans_cost) || 0);
       const totalActualCost = itemsCost + expensesTotal + designCost;
+      const officePct = getProjectOfficePercent(project);
+      const officeDue = Math.round((totalActualCost * officePct) / 100);
+      const withdrawnTotal = STATE.withdrawals
+        .filter((w) => w.project_id === project.id)
+        .reduce((s, w) => s + (Number(w.amount) || 0), 0);
+      const officeRemaining = officeDue - withdrawnTotal;
       const contractValue = Number(project.contract_value) || 0;
       const hasFixedContract = contractValue > 0;
       const balance = paymentsTotal - totalActualCost;
-      return { itemsCost, expensesTotal, designCost, totalActualCost, paymentsTotal, contractValue, hasFixedContract, balance, completionAvg };
+      return {
+        itemsCost,
+        expensesTotal,
+        designCost,
+        totalActualCost,
+        officePct,
+        officeDue,
+        withdrawnTotal,
+        officeRemaining,
+        paymentsTotal,
+        contractValue,
+        hasFixedContract,
+        balance,
+        completionAvg
+      };
+    }
+
+    async function updateProjectOfficePercent(projectId, newPct) {
+      const pct = Math.min(25, Math.max(10, Number(newPct) || 15));
+      STATE.officePctByProject[projectId] = pct;
+      saveLocalOfficeFallback();
+      if (sb) {
+        try {
+          await sb.from('projects').update({ office_percentage: pct }).eq('id', projectId);
+        } catch (_) {}
+      }
+      await refreshAllData();
+      showToast(`تم تحديث نسبة المكتب إلى ${pct}% وتحديث المستحقات تلقائياً.`);
+    }
+
+    function openOfficeWithdrawalModal(preselectProjId = '') {
+      const projects = getAllowedProjects();
+      const today = new Date().toISOString().slice(0, 10);
+      openModal(`
+        <div class="bg-[#1E1915] border border-[#322922] text-[#F5EFE6] rounded-t-[32px] sm:rounded-[32px] max-w-md w-full p-5 shadow-2xl space-y-3 text-xs">
+          <div class="flex justify-between items-center pb-2 border-b border-[#2F2721]">
+            <h4 class="font-extrabold text-sm text-[#C6A984]">تسجيل سحب من نسبة المكتب</h4>
+            <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-[#2A221C] cursor-pointer">✕</button>
+          </div>
+          <form onsubmit="submitOfficeWithdrawal(event)" class="space-y-3">
+            <div>
+              <label class="block text-[#C8BBAE] font-bold mb-1">المشروع *</label>
+              <select id="wd-proj" required class="luxe-input w-full px-4 py-3 rounded-2xl font-bold">
+                ${projects.map((p) => `<option value="${p.id}" ${p.id === preselectProjId ? 'selected' : ''}>${p.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-[#C8BBAE] font-bold mb-1">الشخص القائم بالسحب *</label>
+              <div class="flex flex-wrap gap-1.5 mb-2">
+                <button type="button" onclick="document.getElementById('wd-person').value='مهندس محمد'" class="px-3 py-1 rounded-full bg-[#2A221C] hover:bg-[#C6A984] hover:text-[#14110E] text-[#C6A984] font-bold text-[11px] cursor-pointer">مهندس محمد</button>
+                <button type="button" onclick="document.getElementById('wd-person').value='مهندس عمر'" class="px-3 py-1 rounded-full bg-[#2A221C] hover:bg-[#C6A984] hover:text-[#14110E] text-[#C6A984] font-bold text-[11px] cursor-pointer">مهندس عمر</button>
+              </div>
+              <input id="wd-person" type="text" required list="wd-person-list" value="مهندس عمر" placeholder="اختر أو اكتب اسم الشخص" class="luxe-input w-full px-4 py-3 rounded-2xl text-base sm:text-xs font-bold" />
+              <datalist id="wd-person-list">
+                <option value="مهندس محمد"></option>
+                <option value="مهندس عمر"></option>
+              </datalist>
+            </div>
+            <div>
+              <label class="block text-[#C8BBAE] font-bold mb-1">المبلغ المسحوب (ج.م) *</label>
+              <input id="wd-amount" type="number" required min="1" placeholder="أدخل مبلغ السحب" class="luxe-input w-full px-4 py-3 rounded-2xl text-base sm:text-xs" />
+            </div>
+            <div>
+              <label class="block text-[#C8BBAE] font-bold mb-1">تاريخ السحب *</label>
+              <input id="wd-date" type="date" required value="${today}" class="luxe-input w-full px-4 py-3 rounded-2xl" />
+            </div>
+            <div>
+              <label class="block text-[#C8BBAE] font-bold mb-1">ملاحظات السحب</label>
+              <input id="wd-notes" type="text" placeholder="مثال: سحب دفعة أتعاب إشراف" class="luxe-input w-full px-4 py-3 rounded-2xl" />
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#2A221C] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold cursor-pointer">حفظ السحب</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitOfficeWithdrawal(e) {
+      e.preventDefault();
+      const withdrawnBy = (document.getElementById('wd-person')?.value || '').trim() || 'مهندس عمر';
+      const row = {
+        id: crypto.randomUUID(),
+        project_id: document.getElementById('wd-proj').value,
+        withdrawn_by: withdrawnBy,
+        amount: Number(document.getElementById('wd-amount').value),
+        withdrawal_date: document.getElementById('wd-date').value,
+        notes: document.getElementById('wd-notes').value.trim() || 'سحب من نسبة المكتب',
+        created_at: new Date().toISOString()
+      };
+      if (!row.amount || row.amount <= 0) {
+        showToast('يرجى إدخال مبلغ سحب صحيح.', 'error');
+        return;
+      }
+      let savedInDb = false;
+      if (sb) {
+        try {
+          const { data, error } = await sb
+            .from('office_withdrawals')
+            .insert({
+              project_id: row.project_id,
+              withdrawn_by: row.withdrawn_by,
+              amount: row.amount,
+              withdrawal_date: row.withdrawal_date,
+              notes: row.notes
+            })
+            .select()
+            .single();
+          if (!error && data) {
+            savedInDb = true;
+          }
+        } catch (_) {}
+      }
+      if (!savedInDb) {
+        STATE.withdrawals = [row, ...(STATE.withdrawals || [])];
+        saveLocalOfficeFallback();
+      }
+      closeModal();
+      await refreshAllData();
+      showToast(`تم تسجيل السحب باسم (${withdrawnBy}) بنجاح.`);
     }
 
     // =========================================================================
@@ -476,6 +638,7 @@
 
     async function refreshAllData() {
       if (!sb || !STATE.session?.user) return;
+      loadLocalOfficeFallback();
       try {
         const [pRes, projRes, itRes, txRes, payRes, expRes, wRes, aRes, repRes, matRes, tRes, chkRes, fRes, nRes] =
           await Promise.all([
@@ -509,6 +672,17 @@
         if (chkRes.data) STATE.checklists = chkRes.data;
         if (fRes.data) STATE.files = fRes.data;
         if (nRes.data) STATE.notes = nRes.data;
+
+        try {
+          const { data: wdData, error: wdErr } = await sb
+            .from('office_withdrawals')
+            .select('*')
+            .order('withdrawal_date', { ascending: false });
+          if (!wdErr && Array.isArray(wdData)) {
+            STATE.withdrawals = wdData;
+            saveLocalOfficeFallback();
+          }
+        } catch (_) {}
       } catch (err) {
         showToast(translateErrorToArabic(err, 'حدث خطأ أثناء تحميل البيانات.'), 'error');
       }
@@ -536,7 +710,7 @@
           <div class="p-5 border-b border-[#2F2721] flex items-center justify-between shrink-0">
             <div>
               <h3 class="font-extrabold text-base">إضافة مشروع جديد</h3>
-              <p class="text-xs text-[#C6A984]">يتم إنشاء البنود الـ 9 الأساسية تلقائياً</p>
+              <p class="text-xs text-[#C6A984]">يتم إنشاء البنود الـ 9 الأساسية وحساب نسبة المكتب تلقائياً</p>
             </div>
             <button onclick="closeModal()" class="w-9 h-9 rounded-full bg-[#2A221C] flex items-center justify-center text-xs font-bold cursor-pointer">✕</button>
           </div>
@@ -559,10 +733,18 @@
               <label class="block font-bold text-[#C8BBAE] mb-1">عنوان المشروع *</label>
               <input id="np-address" type="text" required class="luxe-input w-full px-4 py-3 rounded-2xl text-base sm:text-xs" />
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label class="block font-bold text-[#C8BBAE] mb-1">قيمة العقد (اختياري - ج.م)</label>
                 <input id="np-contract" type="number" min="0" placeholder="اتركه فارغاً للحساب الفعلي" class="luxe-input w-full px-4 py-3 rounded-2xl text-base sm:text-xs" />
+              </div>
+              <div>
+                <label class="block font-bold text-[#C6A984] mb-1">نسبة المكتب (10% - 25%) *</label>
+                <select id="np-office-pct" required class="luxe-input w-full px-4 py-3 rounded-2xl text-base sm:text-xs font-extrabold text-[#C6A984]">
+                  ${Array.from({ length: 16 }, (_, idx) => idx + 10)
+                    .map((pct) => `<option value="${pct}" ${pct === 15 ? 'selected' : ''}>${pct}% من تكلفة المشروع</option>`)
+                    .join('')}
+                </select>
               </div>
               <div>
                 <label class="block font-bold text-[#C8BBAE] mb-1">حالة المشروع</label>
@@ -611,6 +793,7 @@
     async function submitNewProject(e) {
       e.preventDefault();
       try {
+        const selectedOfficePct = Math.min(25, Math.max(10, Number(document.getElementById('np-office-pct')?.value) || 15));
         const payload = {
           name: document.getElementById('np-name').value.trim(),
           client_name: document.getElementById('np-client').value.trim(),
@@ -624,10 +807,30 @@
           execution_plans_cost: Number(document.getElementById('np-plans').value) || 0,
           notes: document.getElementById('np-notes').value.trim()
         };
-        const { data: created, error } = await sb.from('projects').insert(payload).select().single();
-        if (error) throw error;
+
+        let created = null;
+        const { data: createdWithPct, error: errWithPct } = await sb
+          .from('projects')
+          .insert({ ...payload, office_percentage: selectedOfficePct })
+          .select()
+          .single();
+
+        if (errWithPct) {
+          const { data: createdFallback, error: errFallback } = await sb
+            .from('projects')
+            .insert(payload)
+            .select()
+            .single();
+          if (errFallback) throw errFallback;
+          created = createdFallback;
+        } else {
+          created = createdWithPct;
+        }
 
         if (created?.id) {
+          STATE.officePctByProject[created.id] = selectedOfficePct;
+          saveLocalOfficeFallback();
+
           const { data: existingItems } = await sb.from('project_items').select('id').eq('project_id', created.id);
           if (!existingItems || existingItems.length === 0) {
             const defaultTitles = [
@@ -694,9 +897,11 @@
             acc.collected += s.paymentsTotal;
             acc.actual += s.totalActualCost;
             acc.balance += s.balance;
+            acc.officeDue += s.officeDue;
+            acc.officeWithdrawn += s.withdrawnTotal;
             return acc;
           },
-          { collected: 0, actual: 0, balance: 0 }
+          { collected: 0, actual: 0, balance: 0, officeDue: 0, officeWithdrawn: 0 }
         );
 
         main.innerHTML = `
@@ -709,20 +914,22 @@
                 </div>
                 <div>
                   <h3 class="font-editorial text-2xl sm:text-3xl font-bold">متابعة المواقع والبنود التراكمية</h3>
-                  <p class="text-xs text-[#F5EFE6]/85 mt-1">كل تكلفة أو دفعة تُضاف تراكمياً وتظهر فوراً في رصيد المشروع.</p>
+                  <p class="text-xs text-[#F5EFE6]/85 mt-1">كل تكلفة أو دفعة تُضاف تراكمياً وتظهر فوراً في رصيد المشروع ونسبة المكتب.</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
                   ${getRole() !== 'accountant' ? `<button onclick="openNewProjectModal()" class="px-5 py-2.5 rounded-full bg-[#14110E] text-[#F5EFE6] font-extrabold text-xs cursor-pointer">+ مشروع جديد</button>` : ''}
+                  <button onclick="openOfficeWithdrawalModal('')" class="px-5 py-2.5 rounded-full bg-white text-[#14110E] font-extrabold text-xs cursor-pointer">- سحب من نسبة المكتب</button>
                   <button onclick="switchTab('projects')" class="px-5 py-2.5 rounded-full bg-white/15 text-white font-bold text-xs cursor-pointer">عرض المشاريع</button>
                 </div>
               </div>
 
               <div class="luxe-card p-6 flex flex-col justify-between">
-                <span class="text-xs font-bold text-[#9C8E80]">الرصيد المتاح بالمكتب</span>
-                <p class="text-2xl sm:text-3xl font-extrabold text-[#C6A984] my-2">${canViewFinance() ? formatEGP(totals.balance) : '—'}</p>
+                <span class="text-xs font-bold text-[#9C8E80]">مستحقات المكتب (10% - 25%)</span>
+                <p class="text-2xl sm:text-3xl font-extrabold text-[#C6A984] my-2">${canViewFinance() ? formatEGP(totals.officeDue) : '—'}</p>
                 <div class="text-xs text-[#B5A798] space-y-1 border-t border-[#2F2721] pt-3">
+                  <div class="flex justify-between"><span>المسحوب للمكتب:</span><strong class="text-amber-300">${canViewFinance() ? formatEGP(totals.officeWithdrawn) : '—'}</strong></div>
+                  <div class="flex justify-between"><span>المتبقي للمكتب:</span><strong class="text-emerald-400">${canViewFinance() ? formatEGP(totals.officeDue - totals.officeWithdrawn) : '—'}</strong></div>
                   <div class="flex justify-between"><span>المصروف الفعلي:</span><strong>${canViewFinance() ? formatEGP(totals.actual) : '—'}</strong></div>
-                  <div class="flex justify-between"><span>دفعات العملاء:</span><strong>${canViewFinance() ? formatEGP(totals.collected) : '—'}</strong></div>
                 </div>
               </div>
             </div>
@@ -798,18 +1005,51 @@
         return;
       }
 
-      main.innerHTML = `
-        <div class="luxe-card p-6 text-center space-y-3">
-          <h3 class="font-extrabold text-base text-[#C6A984]">${activeNav ? activeNav.label : 'القسم'}</h3>
-          <p class="text-xs text-[#9C8E80]">البيانات متصلة ومحدثة لحظياً من قاعدة بيانات Supabase.</p>
-          <button onclick="switchTab('projects')" class="px-5 py-2.5 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold text-xs cursor-pointer">الانتقال إلى المشاريع</button>
-        </div>
-      `;
+      if (STATE.tab === 'accounts') {
+        main.innerHTML = renderAccountsView(allowedProjects);
+        return;
+      }
+
+      if (STATE.tab === 'payments') {
+        main.innerHTML = renderPaymentsView(allowedProjects);
+        return;
+      }
+
+      if (STATE.tab === 'workers') {
+        main.innerHTML = renderWorkersView(allowedProjects);
+        return;
+      }
+
+      if (STATE.tab === 'materials') {
+        main.innerHTML = renderMaterialsView(allowedProjects);
+        return;
+      }
+
+      if (STATE.tab === 'appointments') {
+        main.innerHTML = renderAppointmentsView(allowedProjects);
+        return;
+      }
+
+      if (STATE.tab === 'team') {
+        main.innerHTML = renderTeamView();
+        return;
+      }
+
+      if (STATE.tab === 'settings') {
+        main.innerHTML = renderSettingsView(allowedProjects);
+        return;
+      }
     }
 
     function renderProjectDetailView(project) {
       const s = computeProjectStats(project);
       const projItems = STATE.items.filter((i) => i.project_id === project.id);
+      const projPayments = STATE.payments.filter((p) => p.project_id === project.id);
+      const projExpenses = STATE.expenses.filter((e) => e.project_id === project.id);
+      const projReports = STATE.reports.filter((r) => r.project_id === project.id);
+      const projFiles = STATE.files.filter((f) => f.project_id === project.id);
+      const sub = STATE.projectSubTab || 'items';
+
       return `
         <div class="space-y-5">
           <div class="luxe-card p-5 flex flex-wrap items-center justify-between gap-3">
@@ -820,57 +1060,689 @@
                 <p class="text-xs text-[#9C8E80]">${project.client_name} • ${project.client_phone} • ${project.address}</p>
               </div>
             </div>
-            <div class="text-left">
-              <span class="text-[11px] text-[#9C8E80] block">التكلفة الفعلية</span>
-              <strong class="text-base text-[#C6A984]">${formatEGP(s.totalActualCost)}</strong>
+            <div class="flex items-center gap-4">
+              <div class="text-left">
+                <span class="text-[11px] text-[#9C8E80] block">دفعات العميل</span>
+                <strong class="text-sm text-emerald-400">${canViewFinance() ? formatEGP(s.paymentsTotal) : '—'}</strong>
+              </div>
+              <div class="text-left">
+                <span class="text-[11px] text-[#9C8E80] block">التكلفة الفعلية</span>
+                <strong class="text-sm text-[#C6A984]">${formatEGP(s.totalActualCost)}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex overflow-x-auto gap-2 pb-1 no-scrollbar">
+            ${[
+              { id: 'items', label: 'البنود والتكاليف (9)' },
+              { id: 'finance', label: 'المصروفات العامة ودفعات العميل' },
+              { id: 'reports', label: 'تقارير الموقع اليومية' },
+              { id: 'files', label: 'الملفات والصور' }
+            ]
+              .map(
+                (t) => `
+              <button onclick="STATE.projectSubTab='${t.id}';renderApp()"
+                class="px-4 py-2.5 rounded-full text-xs font-extrabold whitespace-nowrap cursor-pointer ${
+                  sub === t.id ? 'bg-[#C6A984] text-[#14110E]' : 'bg-[#1E1915] text-[#B5A798] border border-[#2F2721]'
+                }">
+                ${t.label}
+              </button>`
+              )
+              .join('')}
+          </div>
+
+          ${
+            sub === 'items'
+              ? `
+            <div class="space-y-3">
+              ${projItems
+                .map((it, idx) => {
+                  const total =
+                    Number(it.total_cost) ||
+                    (Number(it.materials_cost) || 0) + (Number(it.labor_cost) || 0) + (Number(it.staging_cost) || 0);
+                  const itemTxs = STATE.transactions.filter((tx) => tx.item_id === it.id);
+                  return `
+                    <div class="luxe-card p-4 space-y-3">
+                      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <span class="text-sm font-extrabold text-[#C6A984]">${idx + 1}. ${it.title}</span>
+                          <p class="text-xs text-[#9C8E80] mt-1">خامات: ${formatEGP(it.materials_cost)} • مصنعية: ${formatEGP(it.labor_cost)} • تشوين: ${formatEGP(it.staging_cost)}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <strong class="text-xs text-[#F5EFE6] ml-2">${formatEGP(total)}</strong>
+                          <button onclick="openAddTxModal('${project.id}','${it.id}','${it.title}')" class="px-3.5 py-2 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold text-xs cursor-pointer">+ تكلفة</button>
+                        </div>
+                      </div>
+                      ${
+                    STATE.withdrawals
+                      .map((w) => {
+                        const proj = allowedProjects.find((p) => p.id === w.project_id);
+                        const personName = w.withdrawn_by || 'مهندس عمر';
+                        return `
+                      <div class="p-3.5 rounded-2xl bg-[#14110E] border border-[#2B231D] flex justify-between items-center gap-2 text-xs">
+                        <div>
+                          <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="px-2.5 py-0.5 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold">${personName}</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-[#2A221C] text-[#C6A984] font-bold">${proj?.name || 'مشروع'}</span>
+                          </div>
+                          <strong class="text-[#F5EFE6] block mt-1">${w.notes || 'سحب من نسبة المكتب'}</strong>
+                          <p class="text-[11px] text-[#9C8E80] mt-0.5">${w.withdrawal_date}</p>
+                        </div>
+                        <strong class="text-amber-300 text-sm">${formatEGP(w.amount)}</strong>
+                      </div>`;
+                      })
+                      .join('') || `<p class="text-xs text-[#9C8E80] text-center py-6">لا توجد سحوبات مسجلة للمكتب حتى الآن.</p>`
+                  }
+                    </div>
+                  `;
+                })
+                .join('')}
+            </div>`
+              : ''
+          }
+
+          ${
+            sub === 'finance'
+              ? `
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              <div class="luxe-card p-5 space-y-3">
+                <div class="flex justify-between items-center pb-2 border-b border-[#2F2721]">
+                  <h4 class="font-extrabold text-sm text-[#C6A984]">المصروفات العامة للمشروع</h4>
+                  <button onclick="openNewExpenseModal('${project.id}')" class="px-3.5 py-1.5 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold text-xs cursor-pointer">+ مصروف عام</button>
+                </div>
+                <div class="space-y-2">
+                  ${
+                    projExpenses
+                      .map(
+                        (e) => `
+                    <div class="p-3 rounded-2xl bg-[#14110E] border border-[#2B231D] flex justify-between items-center text-xs">
+                      <div>
+                        <p class="font-bold text-[#F5EFE6]">${e.description} <span class="text-[#C6A984]">(${EXPENSE_LABELS[e.category] || e.category})</span></p>
+                        <p class="text-[11px] text-[#9C8E80]">${e.expense_date} • ${e.responsible_person || ''}</p>
+                      </div>
+                      <strong class="text-amber-300">${formatEGP(e.amount)}</strong>
+                    </div>`
+                      )
+                      .join('') || `<p class="text-xs text-[#9C8E80] text-center py-4">لا توجد مصروفات عامة مسجلة لهذا المشروع.</p>`
+                  }
+                </div>
+              </div>
+
+              <div class="luxe-card p-5 space-y-3">
+                <div class="flex justify-between items-center pb-2 border-b border-[#2F2721]">
+                  <h4 class="font-extrabold text-sm text-emerald-400">دفعات العميل للمشروع</h4>
+                  ${
+                    canViewFinance()
+                      ? `<button onclick="openNewPaymentModal('${project.id}')" class="px-3.5 py-1.5 rounded-full bg-emerald-600 text-white font-extrabold text-xs cursor-pointer">+ دفعة عميل</button>`
+                      : ''
+                  }
+                </div>
+                <div class="space-y-2">
+                  ${
+                    projPayments
+                      .map(
+                        (p) => `
+                    <div class="p-3 rounded-2xl bg-[#14110E] border border-[#2B231D] flex justify-between items-center text-xs">
+                      <div>
+                        <p class="font-bold text-[#F5EFE6]">${PAYMENT_LABELS[p.payment_method] || p.payment_method} ${p.receipt_number ? `• إيصال #${p.receipt_number}` : ''}</p>
+                        <p class="text-[11px] text-[#9C8E80]">${p.payment_date} ${p.notes ? `• ${p.notes}` : ''}</p>
+                      </div>
+                      <strong class="text-emerald-400">${formatEGP(p.amount)}</strong>
+                    </div>`
+                      )
+                      .join('') || `<p class="text-xs text-[#9C8E80] text-center py-4">لا توجد دفعات مسجلة من العميل بعد.</p>`
+                  }
+                </div>
+              </div>
+            </div>`
+              : ''
+          }
+
+          ${
+            sub === 'reports'
+              ? `
+            <div class="space-y-4">
+              <div class="flex justify-between items-center">
+                <h4 class="font-extrabold text-sm">تقارير الموقع اليومية (${projReports.length})</h4>
+                <button onclick="openNewReportModal('${project.id}')" class="px-4 py-2 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold text-xs cursor-pointer">+ تقرير يومي</button>
+              </div>
+              <div class="space-y-3">
+                ${
+                  projReports
+                    .map(
+                      (r) => `
+                  <div class="luxe-card p-4 space-y-2 text-xs">
+                    <div class="flex justify-between text-[#C6A984] font-bold">
+                      <span>${r.report_date}</span>
+                      <span>عدد العمال: ${r.workers_count}</span>
+                    </div>
+                    <p class="text-sm font-bold text-[#F5EFE6]">${r.work_done}</p>
+                    ${r.obstacles ? `<p class="text-rose-300">المعوقات: ${r.obstacles}</p>` : ''}
+                    ${r.office_requests ? `<p class="text-amber-300">المطلوب من المكتب: ${r.office_requests}</p>` : ''}
+                  </div>`
+                    )
+                    .join('') || `<div class="luxe-card p-6 text-center text-xs text-[#9C8E80]">لا توجد تقارير موقع مسجلة بعد.</div>`
+                }
+              </div>
+            </div>`
+              : ''
+          }
+
+          ${
+            sub === 'files'
+              ? `
+            <div class="space-y-4">
+              <div class="flex justify-between items-center">
+                <h4 class="font-extrabold text-sm">مكتبة المخططات والصور (${projFiles.length})</h4>
+                <button onclick="openUploadFileModal('${project.id}')" class="px-4 py-2 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold text-xs cursor-pointer">+ رفع ملف / صورة</button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                ${
+                  projFiles
+                    .map(
+                      (f) => `
+                  <div class="luxe-card p-4 flex items-center justify-between gap-2 text-xs">
+                    <div class="min-w-0">
+                      <p class="font-extrabold truncate">${f.file_name}</p>
+                      <span class="text-[#C6A984] text-[11px]">${f.category}</span>
+                    </div>
+                    ${f.file_url ? `<a href="${f.file_url}" target="_blank" rel="noreferrer" class="px-3 py-1.5 rounded-full bg-[#2A221C] text-[#C6A984] font-bold">فتح</a>` : ''}
+                  </div>`
+                    )
+                    .join('') || `<div class="luxe-card p-6 text-center text-xs text-[#9C8E80] sm:col-span-3">لا توجد ملفات مرفوعة بعد.</div>`
+                }
+              </div>
+            </div>`
+              : ''
+          }
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 5. صفحات القائمة الجانبية الكاملة (الحسابات، الدفعات، العمال، الخامات، المواعيد، الفريق، الأدوات)
+    // =========================================================================
+    function renderAccountsView(allowedProjects) {
+      const totalOfficeDue = allowedProjects.reduce((s, p) => s + computeProjectStats(p).officeDue, 0);
+      const totalOfficeWithdrawn = allowedProjects.reduce((s, p) => s + computeProjectStats(p).withdrawnTotal, 0);
+
+      return `
+        <div class="space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="font-extrabold text-base">الحسابات ونسبة المكتب وسجل السحوبات</h3>
+              <p class="text-xs text-[#9C8E80]">مستحقات المكتب الكلية: <strong class="text-[#C6A984]">${formatEGP(totalOfficeDue)}</strong> • المسحوب: <strong class="text-amber-300">${formatEGP(totalOfficeWithdrawn)}</strong> • المتبقي للمكتب: <strong class="text-emerald-400">${formatEGP(totalOfficeDue - totalOfficeWithdrawn)}</strong></p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="openOfficeWithdrawalModal('')" class="px-4 py-2.5 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold text-xs cursor-pointer">- سحب من نسبة المكتب</button>
+              <button onclick="openNewExpenseModal('')" class="px-4 py-2.5 rounded-full bg-[#2A221C] text-[#F5EFE6] font-extrabold text-xs cursor-pointer">+ مصروف عام</button>
+              <button onclick="window.print()" class="px-4 py-2.5 rounded-full bg-[#2A221C] text-[#F5EFE6] font-bold text-xs cursor-pointer no-print">طباعة</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${allowedProjects
+              .map((p) => {
+                const s = computeProjectStats(p);
+                const pctOptions = [10, 12, 15, 18, 20, 22, 25];
+                return `
+                <div class="luxe-card p-5 space-y-3 text-xs">
+                  <div class="flex flex-wrap justify-between items-center gap-2 pb-2 border-b border-[#2F2721]">
+                    <h4 class="font-extrabold text-sm text-[#F5EFE6]">${p.name}</h4>
+                    <div class="flex items-center gap-2">
+                      <label class="text-[#C6A984] font-bold">نسبة المكتب:</label>
+                      <select onchange="updateProjectOfficePercent('${p.id}', this.value)" class="luxe-input px-2.5 py-1 rounded-full font-extrabold text-[#C6A984]">
+                        ${pctOptions.map((opt) => `<option value="${opt}" ${s.officePct === opt ? 'selected' : ''}>${opt}%</option>`).join('')}
+                        ${!pctOptions.includes(s.officePct) ? `<option value="${s.officePct}" selected>${s.officePct}%</option>` : ''}
+                      </select>
+                      <button onclick="openOfficeWithdrawalModal('${p.id}')" class="px-3 py-1 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold cursor-pointer">سحب</button>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2.5">
+                    <div class="p-3 rounded-2xl bg-[#14110E]"><span class="text-[#9C8E80] block">التكلفة الفعلية للمشروع</span><strong>${formatEGP(s.totalActualCost)}</strong></div>
+                    <div class="p-3 rounded-2xl bg-[#14110E]"><span class="text-[#C6A984] block">مستحق المكتب (${s.officePct}%)</span><strong class="text-[#C6A984]">${formatEGP(s.officeDue)}</strong></div>
+                    <div class="p-3 rounded-2xl bg-[#14110E]"><span class="text-[#9C8E80] block">تم سحبه للمكتب</span><strong class="text-amber-300">${formatEGP(s.withdrawnTotal)}</strong></div>
+                    <div class="p-3 rounded-2xl bg-[#14110E]"><span class="text-[#9C8E80] block">المتبقي للمكتب</span><strong class="text-emerald-400">${formatEGP(s.officeRemaining)}</strong></div>
+                  </div>
+                </div>`;
+              })
+              .join('')}
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="luxe-card p-5 space-y-3">
+              <div class="flex justify-between items-center">
+                <h4 class="font-extrabold text-sm text-[#C6A984]">سجل سحوبات المكتب (${STATE.withdrawals.length})</h4>
+                <button onclick="openOfficeWithdrawalModal('')" class="px-3 py-1 rounded-full bg-[#2A221C] text-[#C6A984] font-bold cursor-pointer">+ تسجيل سحب</button>
+              </div>
+              <div class="space-y-2">
+                ${
+                  STATE.withdrawals
+                    .map((w) => {
+                      const proj = allowedProjects.find((p) => p.id === w.project_id);
+                      return `
+                    <div class="p-3.5 rounded-2xl bg-[#14110E] border border-[#2B231D] flex justify-between items-center gap-2 text-xs">
+                      <div>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                          <span class="px-2.5 py-0.5 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold">${w.withdrawn_by || 'مهندس عمر'}</span>
+                          <span class="px-2.5 py-0.5 rounded-full bg-[#2A221C] text-[#C6A984] font-bold">${proj?.name || 'مشروع'}</span>
+                        </div>
+                        <strong class="text-[#F5EFE6] block mt-1">${w.notes || 'سحب من نسبة المكتب'}</strong>
+                        <p class="text-[11px] text-[#9C8E80] mt-0.5">${w.withdrawal_date}</p>
+                      </div>
+                      <strong class="text-amber-300 text-sm">${formatEGP(w.amount)}</strong>
+                    </div>`;
+                    })
+                    .join('') || `<p class="text-xs text-[#9C8E80] text-center py-6">لا توجد سحوبات مسجلة للمكتب حتى الآن.</p>`
+                }
+              </div>
+            </div>
+
+            <div class="luxe-card p-5 space-y-3">
+              <h4 class="font-extrabold text-sm text-[#C6A984]">سجل جميع المصروفات العامة (${STATE.expenses.length})</h4>
+              <div class="space-y-2">
+                ${
+                  STATE.expenses
+                    .map((e) => {
+                      const proj = allowedProjects.find((p) => p.id === e.project_id);
+                      return `
+                    <div class="p-3.5 rounded-2xl bg-[#14110E] border border-[#2B231D] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <div>
+                        <span class="px-2.5 py-0.5 rounded-full bg-[#2A221C] text-[#C6A984] font-bold ml-1.5">${proj?.name || 'مشروع'}</span>
+                        <strong class="text-[#F5EFE6]">${e.description}</strong>
+                        <p class="text-[11px] text-[#9C8E80] mt-1">${EXPENSE_LABELS[e.category] || e.category} • ${e.expense_date} • ${e.responsible_person || ''}</p>
+                      </div>
+                      <strong class="text-amber-300 text-sm">${formatEGP(e.amount)}</strong>
+                    </div>`;
+                    })
+                    .join('') || `<p class="text-xs text-[#9C8E80] text-center py-6">لا توجد مصروفات عامة مسجلة بعد.</p>`
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderWorkersView(allowedProjects) {
+      return `
+        <div class="space-y-5">
+          <div class="flex justify-between items-center">
+            <h3 class="font-extrabold text-base">العمال والصنايعية (${STATE.workers.length})</h3>
+            <button onclick="openNewWorkerModal()" class="px-4 py-2.5 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold text-xs cursor-pointer">+ إضافة عامل</button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${
+              STATE.workers
+                .map(
+                  (w) => `
+              <div class="luxe-card p-5 space-y-3 text-xs">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="font-extrabold text-base text-[#F5EFE6]">${w.full_name}</h4>
+                    <p class="text-[#C6A984] font-bold">${w.specialty}</p>
+                    <p class="text-[#9C8E80] mt-0.5">${w.area_address || ''} • ${w.phone}</p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-[#2A221C] text-[#C6A984] font-bold">★ ${Number(w.rating || 5).toFixed(1)}</span>
+                </div>
+                <div class="flex gap-2 pt-2 border-t border-[#2F2721]">
+                  <a href="https://wa.me/${w.whatsapp || w.phone}" target="_blank" rel="noreferrer" class="px-3.5 py-2 rounded-full bg-emerald-600 text-white font-bold">واتساب</a>
+                  <button onclick="openAssignWorkerModal('${w.id}','${w.full_name}')" class="px-3.5 py-2 rounded-full bg-[#2A221C] text-[#F5EFE6] font-bold cursor-pointer">تعيين لمشروع</button>
+                </div>
+              </div>`
+                )
+                .join('') || `<div class="luxe-card p-8 text-center text-xs text-[#9C8E80] md:col-span-3">لا يوجد عمال مسجلون بعد.</div>`
+            }
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMaterialsView(allowedProjects) {
+      const counts = {
+        all: STATE.materials.length,
+        pending: STATE.materials.filter((m) => m.status === 'pending_review').length,
+        transit: STATE.materials.filter((m) => ['approved', 'ordered_from_supplier', 'in_transit'].includes(m.status)).length,
+        received: STATE.materials.filter((m) => m.status === 'received').length
+      };
+
+      return `
+        <div class="space-y-5">
+          <div class="flex flex-wrap justify-between items-center gap-3">
+            <div>
+              <h3 class="font-extrabold text-base">طلبات الخامات والموردون (${counts.all})</h3>
+              <p class="text-xs text-[#9C8E80] mt-0.5">
+                قيد المراجعة: <strong class="text-amber-300">${counts.pending}</strong> • في الطريق / معتمد: <strong class="text-[#C6A984]">${counts.transit}</strong> • مستلم: <strong class="text-emerald-400">${counts.received}</strong>
+              </p>
+            </div>
+            <button onclick="openNewMaterialModal()" class="px-5 py-2.5 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold text-xs cursor-pointer">+ طلب خامة جديدة</button>
+          </div>
+          <div class="space-y-3">
+            ${
+              STATE.materials
+                .map((m) => {
+                  const proj = allowedProjects.find((p) => p.id === m.project_id);
+                  return `
+                <div class="luxe-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h4 class="font-extrabold text-sm text-[#F5EFE6]">${m.material_name}</h4>
+                      <span class="px-2.5 py-0.5 rounded-full bg-[#2A221C] text-[#C6A984] font-extrabold">${m.quantity} ${m.unit}</span>
+                    </div>
+                    <p class="text-[#9C8E80]">المشروع: <strong class="text-[#F5EFE6]">${proj?.name || 'مشروع عام'}</strong> • تاريخ الاحتياج: ${m.needed_date}</p>
+                    ${m.engineer_notes ? `<p class="text-[#B5A798] bg-[#14110E] px-3 py-1.5 rounded-xl border border-[#2B231D]">${m.engineer_notes}</p>` : ''}
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="px-3 py-1 rounded-full bg-[#2A221C] text-[#C6A984] font-bold">${MATERIAL_STATUS_LABELS[m.status] || m.status}</span>
+                    ${
+                      getRole() === 'admin' && m.status === 'pending_review'
+                        ? `<button onclick="updateMaterialStatus('${m.id}','approved')" class="px-3 py-1.5 rounded-full bg-emerald-600 text-white font-bold cursor-pointer">اعتماد</button>
+                           <button onclick="updateMaterialStatus('${m.id}','rejected')" class="px-3 py-1.5 rounded-full bg-rose-700 text-white font-bold cursor-pointer">رفض</button>`
+                        : ''
+                    }
+                    ${
+                      ['approved', 'ordered_from_supplier'].includes(m.status)
+                        ? `<button onclick="updateMaterialStatus('${m.id}','in_transit')" class="px-3 py-1.5 rounded-full bg-sky-700 text-white font-bold cursor-pointer">في الطريق</button>`
+                        : ''
+                    }
+                    ${
+                      m.status !== 'received' && m.status !== 'rejected'
+                        ? `<button onclick="updateMaterialStatus('${m.id}','received')" class="px-3 py-1.5 rounded-full bg-[#C6A984] text-[#14110E] font-bold cursor-pointer">تم الاستلام</button>`
+                        : ''
+                    }
+                  </div>
+                </div>`;
+                })
+                .join('') || `<div class="luxe-card p-8 text-center text-xs text-[#9C8E80]">لا توجد طلبات خامات حالياً. اضغط «+ طلب خامة جديدة» لإنشاء أول طلب.</div>`
+            }
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAppointmentsView(allowedProjects) {
+      const notifSupported = typeof window !== 'undefined' && 'Notification' in window;
+      const notifGranted = notifSupported && Notification.permission === 'granted';
+      const nowMs = Date.now();
+      const upcomingCount = STATE.tasks.filter(
+        (t) => t.status !== 'completed' && new Date(t.scheduled_at).getTime() >= nowMs - 3600000
+      ).length;
+
+      return `
+        <div class="space-y-5">
+          <div class="luxe-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <h3 class="font-extrabold text-base">المواعيد والمهام (${STATE.tasks.length})</h3>
+                <span class="px-2.5 py-0.5 rounded-full bg-[#2A221C] text-[#C6A984] text-[11px] font-bold">${upcomingCount} قادم</span>
+              </div>
+              <p class="text-xs text-[#9C8E80]">
+                ${notifGranted ? '● تنبيهات المواعيد مفعلة على هذا الجهاز وتصلك تلقائياً.' : 'فعّل إشعارات الجهاز ليصلك تنبيه صوتي ورسالة عند اقتراب أي موعد.'}
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              ${
+                notifSupported && !notifGranted
+                  ? `<button onclick="requestAppointmentNotifications()" class="px-4 py-2.5 rounded-full bg-[#2A221C] border border-[#C6A984]/50 text-[#C6A984] font-extrabold text-xs cursor-pointer">🔔 تفعيل الإشعارات</button>`
+                  : `<button onclick="testAppointmentNotification()" class="px-4 py-2.5 rounded-full bg-[#2A221C] text-[#C8BBAE] font-bold text-xs cursor-pointer">🔔 تجربة الإشعار</button>`
+              }
+              <button onclick="openNewTaskModal()" class="px-4 py-2.5 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold text-xs cursor-pointer">+ موعد / مهمة</button>
             </div>
           </div>
 
           <div class="space-y-3">
-            ${projItems
-              .map((it, idx) => {
-                const total =
-                  Number(it.total_cost) ||
-                  (Number(it.materials_cost) || 0) + (Number(it.labor_cost) || 0) + (Number(it.staging_cost) || 0);
-                return `
-                  <div class="luxe-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <span class="text-xs font-extrabold text-[#C6A984]">${idx + 1}. ${it.title}</span>
-                      <p class="text-[11px] text-[#9C8E80] mt-1">خامات: ${formatEGP(it.materials_cost)} • مصنعية: ${formatEGP(it.labor_cost)} • تشوين: ${formatEGP(it.staging_cost)}</p>
+            ${
+              STATE.tasks
+                .map((t) => {
+                  const proj = allowedProjects.find((p) => p.id === t.project_id);
+                  const schedDate = new Date(t.scheduled_at);
+                  const diffMins = Math.round((schedDate.getTime() - nowMs) / 60000);
+                  const isSoon = t.status !== 'completed' && diffMins >= -15 && diffMins <= 180;
+                  const timeBadge =
+                    t.status === 'completed'
+                      ? ''
+                      : diffMins < -15
+                      ? `<span class="px-2 py-0.5 rounded-full bg-rose-950 text-rose-200 border border-rose-700 text-[10px] font-bold">فات الموعد</span>`
+                      : diffMins <= 0
+                      ? `<span class="px-2 py-0.5 rounded-full bg-amber-900 text-amber-100 text-[10px] font-extrabold animate-pulse">الآن!</span>`
+                      : diffMins < 60
+                      ? `<span class="px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-700 text-[10px] font-bold">بعد ${diffMins} دقيقة</span>`
+                      : diffMins < 1440
+                      ? `<span class="px-2 py-0.5 rounded-full bg-[#2A221C] text-[#C6A984] text-[10px] font-bold">اليوم • بعد ${Math.round(diffMins / 60)} ساعة</span>`
+                      : '';
+
+                  return `
+                <div class="luxe-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${isSoon ? 'border-[#C6A984]' : ''}">
+                  <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="px-2.5 py-0.5 rounded-full bg-[#2A221C] text-[#C6A984] font-bold">${TASK_TYPE_LABELS[t.entry_type] || t.entry_type}</span>
+                      <strong class="text-sm text-[#F5EFE6]">${t.title}</strong>
+                      ${timeBadge}
                     </div>
-                    <div class="flex items-center gap-3">
-                      <strong class="text-xs text-[#F5EFE6]">${formatEGP(total)}</strong>
-                      <button onclick="openAddTxModal('${project.id}','${it.id}','${it.title}')" class="px-3.5 py-2 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold text-xs cursor-pointer">+ تكلفة</button>
-                    </div>
+                    <p class="text-[#9C8E80]">${proj?.name || 'موعد عام'} • ${schedDate.toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                    ${t.notes ? `<p class="text-[#B5A798] text-[11px]">${t.notes}</p>` : ''}
                   </div>
-                `;
-              })
+                  <div class="flex items-center gap-2">
+                    <button onclick="sendSingleTaskReminder('${t.id}')" title="إرسال تذكير الآن" class="w-9 h-9 rounded-full bg-[#2A221C] hover:bg-[#C6A984] text-[#C6A984] hover:text-[#14110E] flex items-center justify-center cursor-pointer">🔔</button>
+                    <select onchange="updateTaskStatus('${t.id}', this.value)" class="luxe-input px-3 py-2 rounded-full font-bold">
+                      ${Object.entries(TASK_STATUS_LABELS)
+                        .map(([k, v]) => `<option value="${k}" ${t.status === k ? 'selected' : ''}>${v}</option>`)
+                        .join('')}
+                    </select>
+                  </div>
+                </div>`;
+                })
+                .join('') || `<div class="luxe-card p-8 text-center text-xs text-[#9C8E80]">لا توجد مواعيد أو مهام مسجلة حالياً.</div>`
+            }
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTeamView() {
+      return `
+        <div class="space-y-5">
+          <div class="flex justify-between items-center">
+            <h3 class="font-extrabold text-base">إدارة الفريق والصلاحيات (${STATE.profiles.length})</h3>
+            <button onclick="openNewEmployeeModal()" class="px-4 py-2.5 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold text-xs cursor-pointer">+ إضافة موظف</button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${STATE.profiles
+              .map(
+                (u) => `
+              <div class="luxe-card p-5 text-xs space-y-1.5">
+                <h4 class="font-extrabold text-sm text-[#F5EFE6]">${u.full_name}</h4>
+                <p class="text-[#9C8E80]" dir="ltr">${u.email}</p>
+                <p class="text-[#C6A984] font-bold">الدور: ${u.role === 'admin' ? 'مدير' : u.role === 'accountant' ? 'محاسب' : 'مهندس موقع'}</p>
+              </div>`
+              )
               .join('')}
           </div>
         </div>
       `;
     }
 
-    function openAddTxModal(projectId, itemId, itemTitle) {
+    function renderSettingsView(allowedProjects) {
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div class="luxe-card p-5 space-y-3 text-xs">
+            <h4 class="font-extrabold text-sm text-[#C6A984]">حاسبة الكميات السريعة</h4>
+            <select id="calc-kind" onchange="runQuickCalc()" class="luxe-input w-full px-4 py-3 rounded-2xl font-bold">
+              <option value="ceramic">سيراميك / بورسلين</option>
+              <option value="paint">دهانات</option>
+              <option value="plaster">محارة (لياسة)</option>
+              <option value="gypsum">جبس بورد</option>
+            </select>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[#9C8E80] mb-1">المساحة (م²)</label>
+                <input id="calc-area" type="number" value="100" oninput="runQuickCalc()" class="luxe-input w-full px-4 py-2.5 rounded-2xl" />
+              </div>
+              <div>
+                <label class="block text-[#9C8E80] mb-1">نسبة الهالك (%)</label>
+                <input id="calc-waste" type="number" value="10" oninput="runQuickCalc()" class="luxe-input w-full px-4 py-2.5 rounded-2xl" />
+              </div>
+            </div>
+            <div id="calc-result" class="p-4 rounded-2xl bg-[#14110E] border border-[#C6A984]/40 text-sm font-extrabold text-[#C6A984]">
+              110.0 م² خامات شاملة الهالك
+            </div>
+          </div>
+
+          <div class="luxe-card p-5 space-y-3 text-xs">
+            <h4 class="font-extrabold text-sm text-[#C6A984]">المفكرة السريعة (Scratchpad)</h4>
+            <form onsubmit="submitQuickNote(event)" class="flex gap-2">
+              <input id="qn-text" type="text" required placeholder="سجّل فكرة أو رقم بسرعة..." class="luxe-input flex-1 px-4 py-2.5 rounded-full" />
+              <button type="submit" class="px-5 py-2.5 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold cursor-pointer">حفظ</button>
+            </form>
+            <div class="space-y-2 max-h-60 overflow-y-auto">
+              ${
+                STATE.notes
+                  .map(
+                    (n) => `
+                <div class="p-3 rounded-2xl bg-[#14110E] border border-[#2B231D] flex justify-between items-center">
+                  <span>${n.content}</span>
+                </div>`
+                  )
+                  .join('') || `<p class="text-[#9C8E80] text-center py-4">لا توجد ملاحظات محفوظة.</p>`
+              }
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function runQuickCalc() {
+      const kind = document.getElementById('calc-kind')?.value || 'ceramic';
+      const area = Number(document.getElementById('calc-area')?.value) || 0;
+      const waste = Number(document.getElementById('calc-waste')?.value) || 0;
+      const total = area * (1 + waste / 100);
+      const out = document.getElementById('calc-result');
+      if (!out) return;
+      if (kind === 'ceramic') out.textContent = `${total.toFixed(1)} م² خامات شاملة الهالك`;
+      else if (kind === 'paint') out.textContent = `${Math.max(1, Math.ceil(total / 10))} بستلة دهان تقريباً`;
+      else if (kind === 'plaster') out.textContent = `${Math.max(1, Math.ceil(total * 0.22))} شيكارة أسمنت تقريباً`;
+      else out.textContent = `${Math.max(1, Math.ceil(total / 2.88))} لوح جبس بورد تقريباً`;
+    }
+
+    // =========================================================================
+    // 6. نوافذ الإضافة السريعة (دفعة عميل، مصروف عام، عامل، خامة، مهمة، تقرير، ملف)
+    // =========================================================================
+    function openNewPaymentModal(preselectProjId = '') {
+      const projects = getAllowedProjects();
       const today = new Date().toISOString().slice(0, 10);
       openModal(`
         <div class="bg-[#1E1915] border border-[#322922] text-[#F5EFE6] rounded-t-[32px] sm:rounded-[32px] max-w-md w-full p-5 shadow-2xl space-y-3 text-xs">
           <div class="flex justify-between items-center pb-2 border-b border-[#2F2721]">
-            <div>
-              <h4 class="font-extrabold text-sm">إضافة تكلفة تراكمية</h4>
-              <p class="text-[#C6A984] font-bold">${itemTitle}</p>
-            </div>
+            <h4 class="font-extrabold text-sm text-emerald-400">تسجيل دفعة عميل</h4>
             <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-[#2A221C] cursor-pointer">✕</button>
           </div>
-          <form onsubmit="submitTx(event, '${projectId}', '${itemId}')" class="space-y-3">
-            <select id="tx-type" class="luxe-input w-full px-4 py-3 rounded-2xl font-bold">
-              <option value="materials">خامات</option>
-              <option value="labor">مصنعية</option>
-              <option value="staging">تشوين</option>
+          <form onsubmit="submitNewPayment(event)" class="space-y-3">
+            <select id="pay-proj" required class="luxe-input w-full px-4 py-3 rounded-2xl font-bold">
+              ${projects.map((p) => `<option value="${p.id}" ${p.id === preselectProjId ? 'selected' : ''}>${p.name}</option>`).join('')}
             </select>
-            <input id="tx-amount" type="number" required min="1" placeholder="المبلغ (ج.م) *" class="luxe-input w-full px-4 py-3 rounded-2xl" />
-            <input id="tx-date" type="date" required value="${today}" class="luxe-input w-full px-4 py-3 rounded-2xl" />
-            <input id="tx-desc" type="text" placeholder="البيان / ملاحظات" class="luxe-input w-full px-4 py-3 rounded-2xl" />
+            <input id="pay-amount" type="number" required min="1" placeholder="المبلغ (ج.م) *" class="luxe-input w-full px-4 py-3 rounded-2xl text-base sm:text-xs" />
+            <div class="grid grid-cols-2 gap-2">
+              <input id="pay-date" type="date" required value="${today}" class="luxe-input w-full px-3 py-2.5 rounded-2xl" />
+              <select id="pay-method" class="luxe-input w-full px-3 py-2.5 rounded-2xl font-bold">
+                ${Object.entries(PAYMENT_LABELS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+              </select>
+            </div>
+            <input id="pay-receipt" type="text" placeholder="رقم الإيصال (اختياري)" class="luxe-input w-full px-4 py-2.5 rounded-2xl" />
+            <input id="pay-notes" type="text" placeholder="ملاحظات" class="luxe-input w-full px-4 py-2.5 rounded-2xl" />
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#2A221C] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-emerald-600 text-white font-extrabold cursor-pointer">حفظ الدفعة</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitNewPayment(e) {
+      e.preventDefault();
+      try {
+        const { error } = await sb.from('client_payments').insert({
+          project_id: document.getElementById('pay-proj').value,
+          amount: Number(document.getElementById('pay-amount').value),
+          payment_date: document.getElementById('pay-date').value,
+          payment_method: document.getElementById('pay-method').value,
+          receipt_number: document.getElementById('pay-receipt').value.trim() || null,
+          notes: document.getElementById('pay-notes').value.trim()
+        });
+        if (error) throw error;
+        closeModal();
+        await refreshAllData();
+        showToast('تم تسجيل دفعة العميل وتحديث الرصيد بنجاح.');
+      } catch (err) {
+        showToast(translateError(err, 'تعذر تسجيل الدفعة.'), 'error');
+      }
+    }
+
+    function openNewExpenseModal(preselectProjId = '') {
+      const projects = getAllowedProjects();
+      const today = new Date().toISOString().slice(0, 10);
+      openModal(`
+        <div class="bg-[#1E1915] border border-[#322922] text-[#F5EFE6] rounded-t-[32px] sm:rounded-[32px] max-w-md w-full p-5 shadow-2xl space-y-3 text-xs">
+          <div class="flex justify-between items-center pb-2 border-b border-[#2F2721]">
+            <h4 class="font-extrabold text-sm text-[#C6A984]">تسجيل مصروف عام للمشروع</h4>
+            <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-[#2A221C] cursor-pointer">✕</button>
+          </div>
+          <form onsubmit="submitNewExpense(event)" class="space-y-3">
+            <select id="exp-proj" required class="luxe-input w-full px-4 py-3 rounded-2xl font-bold">
+              ${projects.map((p) => `<option value="${p.id}" ${p.id === preselectProjId ? 'selected' : ''}>${p.name}</option>`).join('')}
+            </select>
+            <div class="grid grid-cols-2 gap-2">
+              <select id="exp-cat" class="luxe-input w-full px-3 py-2.5 rounded-2xl font-bold">
+                ${Object.entries(EXPENSE_LABELS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+              </select>
+              <input id="exp-amount" type="number" required min="1" placeholder="القيمة (ج.م) *" class="luxe-input w-full px-3 py-2.5 rounded-2xl text-base sm:text-xs" />
+            </div>
+            <input id="exp-desc" type="text" required placeholder="وصف المصروف *" class="luxe-input w-full px-4 py-2.5 rounded-2xl" />
+            <div class="grid grid-cols-2 gap-2">
+              <input id="exp-date" type="date" required value="${today}" class="luxe-input w-full px-3 py-2.5 rounded-2xl" />
+              <input id="exp-person" type="text" value="${STATE.profile?.full_name || 'م. عمر رضا'}" placeholder="المسؤول" class="luxe-input w-full px-3 py-2.5 rounded-2xl" />
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#2A221C] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold cursor-pointer">حفظ المصروف</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitNewExpense(e) {
+      e.preventDefault();
+      try {
+        const { error } = await sb.from('general_expenses').insert({
+          project_id: document.getElementById('exp-proj').value,
+          category: document.getElementById('exp-cat').value,
+          amount: Number(document.getElementById('exp-amount').value),
+          description: document.getElementById('exp-desc').value.trim(),
+          expense_date: document.getElementById('exp-date').value,
+          responsible_person: document.getElementById('exp-person').value.trim()
+        });
+        if (error) throw error;
+        closeModal();
+        await refreshAllData();
+        showToast('تم تسجيل المصروف العام وتحديث رصيد المشروع.');
+      } catch (err) {
+        showToast(translateError(err, 'تعذر حفظ المصروف.'), 'error');
+      }
+    }
+
+    function openNewWorkerModal() {
+      openModal(`
+        <div class="bg-[#1E1915] border border-[#322922] text-[#F5EFE6] rounded-t-[32px] sm:rounded-[32px] max-w-md w-full p-5 shadow-2xl space-y-3 text-xs">
+          <div class="flex justify-between items-center pb-2 border-b border-[#2F2721]">
+            <h4 class="font-extrabold text-sm text-[#C6A984]">إضافة عامل / صنايعي</h4>
+            <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-[#2A221C] cursor-pointer">✕</button>
+          </div>
+          <form onsubmit="submitNewWorker(event)" class="space-y-3">
+            <input id="wk-name" type="text" required placeholder="الاسم الكامل *" class="luxe-input w-full px-4 py-2.5 rounded-2xl" />
+            <input id="wk-spec" type="text" required placeholder="التخصص (سباك، كهربائي، محارة...) *" class="luxe-input w-full px-4 py-2.5 rounded-2xl" />
+            <input id="wk-phone" type="text" required placeholder="رقم الهاتف *" class="luxe-input w-full px-4 py-2.5 rounded-2xl" />
+            <input id="wk-area" type="text" placeholder="المنطقة / العنوان" class="luxe-input w-full px-4 py-2.5 rounded-2xl" />
             <div class="flex justify-end gap-2 pt-2">
               <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#2A221C] font-bold cursor-pointer">إلغاء</button>
               <button type="submit" class="px-5 py-2 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold cursor-pointer">حفظ</button>
@@ -880,25 +1752,386 @@
       `);
     }
 
-    async function submitTx(e, projectId, itemId) {
+    async function submitNewWorker(e) {
       e.preventDefault();
+      const phone = document.getElementById('wk-phone').value.trim();
+      const digits = phone.replace(/\D/g, '');
+      const wa = digits.startsWith('0') ? '2' + digits : digits;
       try {
-        const { error } = await sb.from('item_cost_transactions').insert({
-          project_id: projectId,
-          item_id: itemId,
-          cost_type: document.getElementById('tx-type').value,
-          amount: Number(document.getElementById('tx-amount').value),
-          transaction_date: document.getElementById('tx-date').value,
-          description: document.getElementById('tx-desc').value.trim() || 'حركة تكلفة تراكمية'
+        const { error } = await sb.from('workers').insert({
+          full_name: document.getElementById('wk-name').value.trim(),
+          specialty: document.getElementById('wk-spec').value.trim(),
+          phone,
+          whatsapp: wa,
+          area_address: document.getElementById('wk-area').value.trim()
         });
         if (error) throw error;
         closeModal();
         await refreshAllData();
-        showToast('تمت إضافة التكلفة التراكمية بنجاح.');
+        showToast('تمت إضافة العامل بنجاح.');
       } catch (err) {
         showToast(translateError(err), 'error');
       }
     }
+
+    function openAssignWorkerModal(workerId, workerName) {
+      const projects = getAllowedProjects();
+      const today = new Date().toISOString().slice(0, 10);
+      openModal(`
+        <div class="bg-[#1E1915] border border-[#322922] text-[#F5EFE6] rounded-t-[32px] sm:rounded-[32px] max-w-md w-full p-5 shadow-2xl space-y-3 text-xs">
+          <div class="flex justify-between items-center pb-2 border-b border-[#2F2721]">
+            <h4 class="font-extrabold text-sm text-[#C6A984]">تعيين ${workerName} لمشروع</h4>
+            <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-[#2A221C] cursor-pointer">✕</button>
+          </div>
+          <form onsubmit="submitAssignWorker(event, '${workerId}')" class="space-y-3">
+            <select id="as-proj" required class="luxe-input w-full px-4 py-2.5 rounded-2xl font-bold">
+              ${projects.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
+            </select>
+            <input id="as-date" type="date" required value="${today}" class="luxe-input w-full px-4 py-2.5 rounded-2xl" />
+            <input id="as-rate" type="text" placeholder="الأجر أو الاتفاق" class="luxe-input w-full px-4 py-2.5 rounded-2xl" />
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#2A221C] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold cursor-pointer">حفظ</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitAssignWorker(e, workerId) {
+      e.preventDefault();
+      try {
+        const { error } = await sb.from('worker_assignments').insert({
+          worker_id: workerId,
+          project_id: document.getElementById('as-proj').value,
+          start_date: document.getElementById('as-date').value,
+          agreed_rate: document.getElementById('as-rate').value.trim()
+        });
+        if (error) throw error;
+        closeModal();
+        await refreshAllData();
+        showToast('تم تعيين العامل للمشروع بنجاح.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    function openNewMaterialModal() {
+      const projects = getAllowedProjects();
+      const today = new Date().toISOString().slice(0, 10);
+      openModal(`
+        <div class="bg-[#1E1915] border border-[#322922] text-[#F5EFE6] rounded-t-[32px] sm:rounded-[32px] max-w-md w-full p-5 shadow-2xl space-y-3.5 text-xs">
+          <div class="flex justify-between items-center pb-2.5 border-b border-[#2F2721]">
+            <div>
+              <h4 class="font-extrabold text-sm text-[#C6A984]">طلب خامة جديدة للموقع</h4>
+              <p class="text-[11px] text-[#9C8E80]">حدد المشروع والكمية وتاريخ الاحتياج</p>
+            </div>
+            <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-[#2A221C] flex items-center justify-center cursor-pointer">✕</button>
+          </div>
+          ${
+            projects.length === 0
+              ? `<div class="p-4 rounded-2xl bg-[#14110E] border border-[#2F2721] text-center space-y-3">
+                  <p class="text-[#C8BBAE] font-bold">يجب إضافة مشروع أولاً قبل تسجيل طلبات الخامات.</p>
+                  <button type="button" onclick="closeModal();openNewProjectModal();" class="px-4 py-2 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold cursor-pointer">+ إضافة مشروع الآن</button>
+                </div>`
+              : `<form onsubmit="submitNewMaterial(event)" class="space-y-3">
+                  <div>
+                    <label class="block text-[#C8BBAE] font-bold mb-1">المشروع المطلوب له الخامة *</label>
+                    <select id="mat-proj" required class="luxe-input w-full px-4 py-3 rounded-2xl font-bold text-base sm:text-xs">
+                      ${projects.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[#C8BBAE] font-bold mb-1">اسم الخامة والمواصفات *</label>
+                    <input id="mat-name" type="text" required placeholder="مثال: أسمنت بورتلاندي / مواسير 3/4 بوصة" class="luxe-input w-full px-4 py-3 rounded-2xl text-base sm:text-xs" />
+                  </div>
+                  <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label class="block text-[#C8BBAE] font-bold mb-1">الكمية المطلوبة *</label>
+                      <input id="mat-qty" type="number" required min="1" step="any" placeholder="مثال: 20" class="luxe-input w-full px-3.5 py-2.5 rounded-2xl text-base sm:text-xs" />
+                    </div>
+                    <div>
+                      <label class="block text-[#C8BBAE] font-bold mb-1">وحدة القياس *</label>
+                      <select id="mat-unit" class="luxe-input w-full px-3.5 py-2.5 rounded-2xl font-bold text-base sm:text-xs">
+                        <option value="شيكارة">شيكارة</option>
+                        <option value="متر مربع (م²)">متر مربع (م²)</option>
+                        <option value="متر طولي">متر طولي</option>
+                        <option value="كرتونة">كرتونة</option>
+                        <option value="لوح">لوح</option>
+                        <option value="علبة / بستلة">علبة / بستلة</option>
+                        <option value="لفة">لفة</option>
+                        <option value="طن">طن</option>
+                        <option value="عدد / قطعة">عدد / قطعة</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-[#C8BBAE] font-bold mb-1">تاريخ الاحتياج بالموقع *</label>
+                    <input id="mat-date" type="date" required value="${today}" class="luxe-input w-full px-4 py-2.5 rounded-2xl text-base sm:text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-[#C8BBAE] font-bold mb-1">ملاحظات للمكتب أو المورد</label>
+                    <input id="mat-notes" type="text" placeholder="اسم المورد المقترح أو تفاصيل التوريد (اختياري)" class="luxe-input w-full px-4 py-2.5 rounded-2xl text-base sm:text-xs" />
+                  </div>
+                  <div class="flex justify-end gap-2 pt-2 border-t border-[#2F2721]">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#2A221C] font-bold cursor-pointer">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold cursor-pointer">إرسال الطلب</button>
+                  </div>
+                </form>`
+          }
+        </div>
+      `);
+    }
+
+    async function submitNewMaterial(e) {
+      e.preventDefault();
+      try {
+        const { error } = await sb.from('material_requests').insert({
+          project_id: document.getElementById('mat-proj').value,
+          material_name: document.getElementById('mat-name').value.trim(),
+          quantity: Number(document.getElementById('mat-qty').value),
+          unit: document.getElementById('mat-unit').value.trim(),
+          needed_date: document.getElementById('mat-date').value,
+          engineer_notes: document.getElementById('mat-notes')?.value.trim() || '',
+          status: 'pending_review'
+        });
+        if (error) throw error;
+        closeModal();
+        await refreshAllData();
+        showToast('تم إرسال طلب الخامة بنجاح.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    async function updateMaterialStatus(id, status) {
+      try {
+        const { error } = await sb.from('material_requests').update({ status }).eq('id', id);
+        if (error) throw error;
+        await refreshAllData();
+        showToast('تم تحديث حالة طلب الخامة.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    function openNewTaskModal() {
+      const projects = getAllowedProjects();
+      const now = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      openModal(`
+        <div class="bg-[#1E1915] border border-[#322922] text-[#F5EFE6] rounded-t-[32px] sm:rounded-[32px] max-w-md w-full p-5 shadow-2xl space-y-3 text-xs">
+          <div class="flex justify-between items-center pb-2 border-b border-[#2F2721]">
+            <div>
+              <h4 class="font-extrabold text-sm text-[#C6A984]">إضافة موعد أو مهمة مع تنبيه</h4>
+              <p class="text-[11px] text-[#9C8E80]">سيصلك إشعار تلقائي في الموعد المحدد</p>
+            </div>
+            <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-[#2A221C] cursor-pointer">✕</button>
+          </div>
+          <form onsubmit="submitNewTask(event)" class="space-y-3">
+            <div>
+              <label class="block text-[#C8BBAE] font-bold mb-1">عنوان الموعد أو المهمة *</label>
+              <input id="tk-title" type="text" required placeholder="مثال: معاينة شقة العميل / استلام السباكة" class="luxe-input w-full px-4 py-2.5 rounded-2xl text-base sm:text-xs" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[#C8BBAE] font-bold mb-1">النوع</label>
+                <select id="tk-type" class="luxe-input w-full px-3 py-2.5 rounded-2xl font-bold">
+                  ${Object.entries(TASK_TYPE_LABELS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-[#C6A984] font-bold mb-1">وقت الإشعار المسبق</label>
+                <select id="tk-remind" class="luxe-input w-full px-3 py-2.5 rounded-2xl font-bold text-[#C6A984]">
+                  <option value="0">عند الموعد تماماً</option>
+                  <option value="15">قبل الموعد بـ 15 دقيقة</option>
+                  <option value="30" selected>قبل الموعد بـ 30 دقيقة</option>
+                  <option value="60">قبل الموعد بساعة</option>
+                  <option value="1440">قبل الموعد بيوم</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-[#C8BBAE] font-bold mb-1">التاريخ والوقت *</label>
+              <input id="tk-time" type="datetime-local" required value="${now}" class="luxe-input w-full px-4 py-2.5 rounded-2xl text-base sm:text-xs" />
+            </div>
+            <div>
+              <label class="block text-[#C8BBAE] font-bold mb-1">المشروع المرتبط</label>
+              <select id="tk-proj" class="luxe-input w-full px-4 py-2.5 rounded-2xl font-bold">
+                <option value="">موعد عام للمكتب</option>
+                ${projects.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-[#C8BBAE] font-bold mb-1">ملاحظات إضافية</label>
+              <input id="tk-notes" type="text" placeholder="تفاصيل المكان أو الشخص المطلوب مقابلته" class="luxe-input w-full px-4 py-2.5 rounded-2xl text-base sm:text-xs" />
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t border-[#2F2721]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#2A221C] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#C6A984] text-[#14110E] font-extrabold cursor-pointer">حفظ وتفعيل التنبيه</button>
+            </div>
+          </form>
+        </div>
+      `);
+    }
+
+    async function submitNewTask(e) {
+      e.preventDefault();
+      try {
+        if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+          try { await Notification.requestPermission(); } catch (_) {}
+        }
+        const remindMins = Number(document.getElementById('tk-remind')?.value || 30);
+        const rawNotes = (document.getElementById('tk-notes')?.value || '').trim();
+        const title = document.getElementById('tk-title').value.trim();
+        const schedIso = new Date(document.getElementById('tk-time').value).toISOString();
+
+        const { data, error } = await sb
+          .from('appointments_tasks')
+          .insert({
+            title,
+            entry_type: document.getElementById('tk-type').value,
+            scheduled_at: schedIso,
+            project_id: document.getElementById('tk-proj').value || null,
+            notes: rawNotes,
+            status: 'new'
+          })
+          .select()
+          .single();
+        if (error) throw error;
+
+        if (data?.id) {
+          saveTaskReminderOffset(data.id, remindMins);
+        }
+        closeModal();
+        await refreshAllData();
+        checkUpcomingAppointmentNotifications();
+        showToast('تم حفظ الموعد وتفعيل الإشعار التلقائي بنجاح.');
+      } catch (err) {
+        showToast(translateError(err), 'error');
+      }
+    }
+
+    // =========================================================================
+    // 7. نظام الإشعارات التلقائية للمواعيد والمهام
+    // =========================================================================
+    function getTaskReminderOffsets() {
+      try {
+        return JSON.parse(localStorage.getItem('tashtibat_task_remind_v1') || '{}');
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveTaskReminderOffset(taskId, mins) {
+      try {
+        const map = getTaskReminderOffsets();
+        map[taskId] = mins;
+        localStorage.setItem('tashtibat_task_remind_v1', JSON.stringify(map));
+      } catch (_) {}
+    }
+
+    function playNotificationChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(660, ctx.currentTime);
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.14);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.45);
+      } catch (_) {}
+    }
+
+    function dispatchAppointmentAlert(title, body) {
+      playNotificationChime();
+      showToast(`🔔 ${title}: ${body}`);
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        try {
+          new Notification(`مكتب التشطيبات • ${title}`, {
+            body,
+            dir: 'rtl',
+            lang: 'ar'
+          });
+        } catch (_) {}
+      }
+    }
+
+    async function requestAppointmentNotifications() {
+      if (typeof Notification === 'undefined') {
+        showToast('المتصفح يعمل بالتنبيهات الفورية داخل التطبيق.', 'info');
+        return;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        dispatchAppointmentAlert('تم تفعيل الإشعارات', 'ستصلك تنبيهات تلقائية بمواعيد المعاينات والزيارات والمهام.');
+        renderApp();
+      } else {
+        showToast('يرجى السماح بالإشعارات من إعدادات المتصفح لتصلك خارج التطبيق.', 'error');
+      }
+    }
+
+    function testAppointmentNotification() {
+      dispatchAppointmentAlert('تذكير تجريبي', 'نظام تنبيهات المواعيد والمهام يعمل بنجاح.');
+    }
+
+    function sendSingleTaskReminder(taskId) {
+      const task = STATE.tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      const proj = STATE.projects.find((p) => p.id === task.project_id);
+      const timeStr = new Date(task.scheduled_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' });
+      dispatchAppointmentAlert(
+        `${TASK_TYPE_LABELS[task.entry_type] || 'موعد'}: ${task.title}`,
+        `${proj ? proj.name + ' • ' : ''}${timeStr}`
+      );
+    }
+
+    function checkUpcomingAppointmentNotifications() {
+      if (!STATE.tasks || STATE.tasks.length === 0) return;
+      const now = Date.now();
+      const offsets = getTaskReminderOffsets();
+      let notifiedMap = {};
+      try {
+        notifiedMap = JSON.parse(localStorage.getItem('tashtibat_notified_tasks_v1') || '{}');
+      } catch (_) {}
+
+      let changed = false;
+      STATE.tasks.forEach((t) => {
+        if (t.status === 'completed') return;
+        const schedMs = new Date(t.scheduled_at).getTime();
+        if (Number.isNaN(schedMs)) return;
+
+        const leadMins = offsets[t.id] !== undefined ? Number(offsets[t.id]) : 30;
+        const triggerMs = schedMs - leadMins * 60000;
+        const key = `${t.id}_${leadMins}`;
+
+        // إذا حان وقت التنبيه المسبق أو حان الموعد نفسه (خلال نافذة 15 دقيقة)
+        if (now >= triggerMs && now <= schedMs + 15 * 60000 && !notifiedMap[key]) {
+          const proj = STATE.projects.find((p) => p.id === t.project_id);
+          const timeStr = new Date(schedMs).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+          dispatchAppointmentAlert(
+            `تذكير ${TASK_TYPE_LABELS[t.entry_type] || 'بموعد'}: ${t.title}`,
+            `${proj ? proj.name + ' • ' : ''}الساعة ${timeStr}`
+          );
+          notifiedMap[key] = now;
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        try {
+          localStorage.setItem('tashtibat_notified_tasks_v1', JSON.stringify(notifiedMap));
+        } catch (_) {}
+      }
+    }
+
+    setInterval(checkUpcomingAppointmentNotifications, 30000);
 
     // استعادة الجلسة تلقائياً عند فتح الصفحة
     window.addEventListener('DOMContentLoaded', async () => {
@@ -907,6 +2140,7 @@
       if (data?.session) {
         STATE.session = data.session;
         await initAfterAuth();
+        checkUpcomingAppointmentNotifications();
       }
     });
   </script>
