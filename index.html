@@ -360,6 +360,7 @@
       const designCost = (Number(project.design_3d_cost) || 0) + (Number(project.execution_plans_cost) || 0);
       const outflow = totalItems + totalExpenses + designCost;
       const contract = Number(project.contract_value) || 0;
+      const hasFixedContract = contract > 0;
       return {
         avgCompletion,
         totalItems,
@@ -368,9 +369,10 @@
         designCost,
         outflow,
         contract,
-        remainingOnClient: Math.max(0, contract - totalPayments),
+        hasFixedContract,
+        remainingOnClient: hasFixedContract ? Math.max(0, contract - totalPayments) : Math.max(0, outflow - totalPayments),
         availableBalance: totalPayments - outflow,
-        netProfit: contract - outflow
+        netProfit: hasFixedContract ? contract - outflow : totalPayments - outflow
       };
     }
 
@@ -455,29 +457,29 @@
 
     function renderHomeView() {
       const projs = getAllowedProjects();
-      let contracts = 0, collected = 0, outflow = 0, profit = 0;
+      let contracts = 0, collected = 0, outflow = 0, netBalance = 0;
       projs.forEach((p) => {
         const f = computeFinancials(p);
         contracts += f.contract;
         collected += f.totalPayments;
         outflow += f.outflow;
-        profit += f.netProfit;
+        netBalance += f.availableBalance;
       });
 
       const financeCards = canViewFinance()
         ? `
         <div class="bg-white p-5 rounded-2xl border border-slate-200">
-          <span class="text-xs font-bold text-slate-500">إجمالي قيمة العقود</span>
-          <p class="text-xl font-extrabold text-slate-900 mt-1">${formatEGP(contracts)}</p>
-          <p class="text-xs text-emerald-700 font-bold mt-1">المحصل: ${formatEGP(collected)}</p>
+          <span class="text-xs font-bold text-slate-500">إجمالي دفعات العملاء المحصلة</span>
+          <p class="text-xl font-extrabold text-emerald-700 mt-1">${formatEGP(collected)}</p>
+          ${contracts > 0 ? `<p class="text-xs text-slate-500 font-bold mt-1">عقود محددة: ${formatEGP(contracts)}</p>` : `<p class="text-xs text-slate-500 font-bold mt-1">نظام التكلفة الفعلية</p>`}
         </div>
         <div class="bg-white p-5 rounded-2xl border border-slate-200">
-          <span class="text-xs font-bold text-slate-500">إجمالي التكاليف والمصروفات</span>
+          <span class="text-xs font-bold text-slate-500">إجمالي التكاليف الفعلية والمصروفات</span>
           <p class="text-xl font-extrabold text-amber-800 mt-1">${formatEGP(outflow)}</p>
         </div>
         <div class="bg-slate-900 text-white p-5 rounded-2xl">
-          <span class="text-xs font-bold text-emerald-300">صافي الربح / الخسارة</span>
-          <p class="text-xl font-extrabold mt-1">${formatEGP(profit)}</p>
+          <span class="text-xs font-bold text-emerald-300">صافي الرصيد المتاح بالمكتب</span>
+          <p class="text-xl font-extrabold mt-1">${formatEGP(netBalance)}</p>
         </div>`
         : '';
 
@@ -613,7 +615,7 @@
                     <div class="h-full bg-emerald-600" style="width:${f.avgCompletion}%"></div>
                   </div>
                   <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs">
-                    ${canViewFinance() ? `<strong>${formatEGP(f.contract)}</strong>` : `<span>التسليم: ${p.delivery_date}</span>`}
+                    ${canViewFinance() ? `<strong>${f.hasFixedContract ? 'العقد: ' + formatEGP(f.contract) : 'التكلفة: ' + formatEGP(f.outflow)}</strong>` : `<span>التسليم: ${p.delivery_date}</span>`}
                     <span class="text-emerald-700 font-extrabold">فتح المشروع ←</span>
                   </div>
                 </div>`;
@@ -656,7 +658,7 @@
               </div>
               ${
                 canViewFinance()
-                  ? `<div><label class="block font-bold mb-1">قيمة العقد (ج.م)</label><input id="np-contract" type="number" min="0" value="0" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" /></div>`
+                  ? `<div><label class="block font-bold mb-1">قيمة العقد (ج.م) <span class="text-slate-400 font-normal">(اختياري - اتركه فارغاً للحساب الفعلي)</span></label><input id="np-contract" type="number" min="0" placeholder="اختياري" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300" /></div>`
                   : ''
               }
               <div>
@@ -804,12 +806,13 @@
       } else if (STATE.projectSubTab === 'summary') {
         bodyHtml = `
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            ${canViewFinance() ? `<div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">قيمة العقد</span><p class="text-lg font-extrabold mt-1">${formatEGP(f.contract)}</p></div>` : ''}
-            ${canViewFinance() ? `<div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">دفعات العميل</span><p class="text-lg font-extrabold text-emerald-700 mt-1">${formatEGP(f.totalPayments)}</p></div>` : ''}
+            ${canViewFinance() ? `<div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">نظام المحاسبة / العقد</span><p class="text-lg font-extrabold mt-1">${f.hasFixedContract ? formatEGP(f.contract) : 'حساب مفتوح (تكلفة فعلية)'}</p></div>` : ''}
+            ${canViewFinance() ? `<div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">إجمالي دفعات العميل</span><p class="text-lg font-extrabold text-emerald-700 mt-1">${formatEGP(f.totalPayments)}</p></div>` : ''}
             <div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">إجمالي تكاليف البنود</span><p class="text-lg font-extrabold mt-1">${formatEGP(f.totalItems)}</p></div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">المصروفات العامة والتصميم</span><p class="text-lg font-extrabold text-amber-800 mt-1">${formatEGP(f.totalExpenses + f.designCost)}</p></div>
-            ${canViewFinance() ? `<div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">المتبقي على العميل</span><p class="text-lg font-extrabold text-blue-900 mt-1">${formatEGP(f.remainingOnClient)}</p></div>` : ''}
-            ${canViewFinance() ? `<div class="bg-slate-900 text-white p-4 rounded-2xl"><span class="text-xs text-emerald-300">صافي الربح / الخسارة</span><p class="text-lg font-extrabold mt-1">${formatEGP(f.netProfit)}</p></div>` : ''}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">إجمالي التكلفة الفعلية الكلية</span><p class="text-lg font-extrabold text-slate-900 mt-1">${formatEGP(f.outflow)}</p></div>
+            ${canViewFinance() ? `<div class="bg-white p-4 rounded-2xl border border-slate-200"><span class="text-xs text-slate-500">${f.hasFixedContract ? 'المتبقي على العميل' : 'مطلوب من العميل (فرق التكلفة)'}</span><p class="text-lg font-extrabold text-blue-900 mt-1">${formatEGP(f.remainingOnClient)}</p></div>` : ''}
+            ${canViewFinance() ? `<div class="bg-slate-900 text-white p-4 rounded-2xl"><span class="text-xs text-emerald-300">${f.hasFixedContract ? 'صافي الربح / الخسارة' : 'الرصيد المتاح حالياً بالمشروع'}</span><p class="text-lg font-extrabold mt-1">${formatEGP(f.availableBalance)}</p></div>` : ''}
           </div>`;
       } else if (STATE.projectSubTab === 'reports') {
         const reps = STATE.reports.filter((r) => r.project_id === project.id);
@@ -1123,12 +1126,13 @@
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-2 text-xs">
                   <h4 class="font-extrabold text-sm pb-2 border-b border-slate-100">${escapeHtml(p.name)}</h4>
                   <div class="grid grid-cols-2 gap-2">
-                    ${canViewFinance() ? `<div class="p-2 rounded bg-slate-50">العقد: <strong>${formatEGP(f.contract)}</strong></div>` : ''}
-                    ${canViewFinance() ? `<div class="p-2 rounded bg-emerald-50">الدفعات: <strong>${formatEGP(f.totalPayments)}</strong></div>` : ''}
+                    ${canViewFinance() ? `<div class="p-2 rounded bg-slate-50">${f.hasFixedContract ? 'العقد: <strong>' + formatEGP(f.contract) + '</strong>' : 'النظام: <strong>تكلفة فعلية</strong>'}</div>` : ''}
+                    ${canViewFinance() ? `<div class="p-2 rounded bg-emerald-50">دفعات العميل: <strong>${formatEGP(f.totalPayments)}</strong></div>` : ''}
                     <div class="p-2 rounded bg-slate-50">تكلفة البنود: <strong>${formatEGP(f.totalItems)}</strong></div>
                     <div class="p-2 rounded bg-amber-50">المصروفات العامة: <strong>${formatEGP(f.totalExpenses)}</strong></div>
-                    ${canViewFinance() ? `<div class="p-2 rounded bg-blue-50">المتبقي على العميل: <strong>${formatEGP(f.remainingOnClient)}</strong></div>` : ''}
-                    ${canViewFinance() ? `<div class="p-2 rounded bg-slate-900 text-white">صافي الربح: <strong>${formatEGP(f.netProfit)}</strong></div>` : ''}
+                    <div class="p-2 rounded bg-slate-100">إجمالي التكلفة الفعلية: <strong>${formatEGP(f.outflow)}</strong></div>
+                    ${canViewFinance() ? `<div class="p-2 rounded bg-blue-50">${f.hasFixedContract ? 'المتبقي على العميل' : 'مطلوب من العميل'}: <strong>${formatEGP(f.remainingOnClient)}</strong></div>` : ''}
+                    ${canViewFinance() ? `<div class="col-span-2 p-2.5 rounded bg-slate-900 text-white flex justify-between"><span>${f.hasFixedContract ? 'صافي الربح' : 'الرصيد المتاح بالمشروع'}:</span><strong>${formatEGP(f.availableBalance)}</strong></div>` : ''}
                   </div>
                 </div>`;
               })
