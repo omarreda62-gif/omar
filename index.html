@@ -2185,81 +2185,89 @@
           <button onclick="window.print()" class="px-5 py-2.5 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] font-extrabold text-xs cursor-pointer">طباعة / تصدير التقرير (PDF)</button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          ${target.map((p) => {
-            const f = computeFinancials(p);
-            return `
-              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 shadow-2xs print-clean-card">
-                <div class="flex justify-between items-center pb-2.5 border-b border-[#E6D9CC]">
-                  <div>
-                    <h4 class="font-black text-sm text-[#2D1B14]">${p.name}</h4>
-                    <span class="text-[11px] text-[#7A6457]">العميل: ${p.client_name} • نسبة الاستوديو: <strong class="text-[#A85438]">${f.officePct}%</strong> • نسبة الإنجاز: <strong>${f.progress}%</strong></span>
-                  </div>
-                  <div class="flex items-center gap-1.5 no-print">
-                    <button onclick="openEditProjectModal('${p.id}')"
-                      class="px-3 py-1.5 rounded-full bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] border border-[#DFD2C5] text-[11px] font-extrabold cursor-pointer">
-                      تعديل النسبة / العقد
-                    </button>
-                    ${canSeeFinance() ? `
-                      <button onclick="openOfficeWithdrawModal('${p.id}', '${p.name.replace(/'/g, '')}')"
-                        class="px-3.5 py-1.5 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] text-[11px] font-extrabold cursor-pointer">
-                        + سحب للمكتب
-                      </button>` : ''}
-                  </div>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-                  <div class="p-2.5 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] block">دفعات العميل</span><strong class="text-[#2D1B14] font-extrabold">${canSeeFinance() ? formatEGP(f.paymentsTotal) : '---'}</strong></div>
-                  <div class="p-2.5 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] block">إجمالي المصروف</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(f.totalSpent)}</strong></div>
-                  <div class="p-2.5 rounded-2xl bg-[#A85438]/12 border border-[#A85438]/30"><span class="text-[#A85438] font-bold block">الرصيد المتاح (بعد خصم الاستوديو)</span><strong class="text-[#2D1B14] font-black">${canSeeFinance() ? formatEGP(f.balance) : '---'}</strong></div>
-                  ${canSeeFinance() ? `
-                    <div class="p-2.5 rounded-2xl bg-[#EFE6DD] border border-[#DFD2C5]"><span class="text-[#5C4438] block">مستحقات الاستوديو (${f.officePct}%)</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(f.officeEarned)}</strong></div>
-                    <div class="p-2.5 rounded-2xl bg-rose-50 border border-rose-200"><span class="text-rose-800 block">مسحوب للاستوديو (مخصوم)</span><strong class="text-rose-900 font-extrabold">-${formatEGP(f.officeWithdrawn)}</strong></div>
-                    <div class="p-2.5 rounded-2xl bg-[#EFE6DD] border border-[#DFD2C5]"><span class="text-[#A85438] font-bold block">المتبقي للاستوديو</span><strong class="text-[#2D1B14] font-black">${formatEGP(f.officeRemaining)}</strong></div>
-                  ` : ''}
-                </div>
-              </div>`;
-          }).join('')}
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitGlobalExpense(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit no-print shadow-2xs">
-            <h4 class="font-black text-sm text-[#A85438]">إضافة مصروف عام جديد</h4>
-            <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">المشروع *</label>
-              <select id="ge-proj" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
-                ${allowed.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
-              </select>
-            </div>
-            <div class="grid grid-cols-2 gap-2.5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- العمود الجانبي: إضافة مصروف عام جديد (يمين الصفحة في RTL) -->
+          <div class="lg:col-span-4 lg:sticky lg:top-24 no-print">
+            <form onsubmit="submitGlobalExpense(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3.5 text-xs shadow-2xs">
+              <div class="pb-2.5 border-b border-[#E6D9CC]">
+                <h4 class="font-black text-sm text-[#A85438]">إضافة مصروف عام جديد</h4>
+                <p class="text-[11px] text-[#7A6457] font-semibold mt-0.5">يُخصم تلقائياً من الرصيد المتاح للمشروع</p>
+              </div>
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">النوع</label>
-                <select id="ge-cat" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
-                  ${Object.entries(EXPENSE_CAT_AR).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+                <label class="block text-[#5C4438] font-extrabold mb-1">المشروع *</label>
+                <select id="ge-proj" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                  ${allowed.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
                 </select>
               </div>
-              <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">المبلغ (ج.م) *</label>
-                <input id="ge-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
-              </div>
-            </div>
-            <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">الوصف *</label>
-              <input id="ge-desc" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
-            </div>
-            <div class="grid grid-cols-2 gap-2.5">
-              <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">التاريخ</label>
-                <input id="ge-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-[#5C4438] font-extrabold mb-1">النوع</label>
+                  <select id="ge-cat" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                    ${Object.entries(EXPENSE_CAT_AR).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[#5C4438] font-extrabold mb-1">المبلغ (ج.م) *</label>
+                  <input id="ge-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                </div>
               </div>
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">المسؤول</label>
-                <input id="ge-person" type="text" value="${STATE.profile?.full_name || 'م. عمر رضا'}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                <label class="block text-[#5C4438] font-extrabold mb-1">الوصف *</label>
+                <input id="ge-desc" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
               </div>
-            </div>
-            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ المصروف</button>
-          </form>
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-[#5C4438] font-extrabold mb-1">التاريخ</label>
+                  <input id="ge-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                </div>
+                <div>
+                  <label class="block text-[#5C4438] font-extrabold mb-1">المسؤول</label>
+                  <input id="ge-person" type="text" value="${STATE.profile?.full_name || 'م. عمر رضا'}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                </div>
+              </div>
+              <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ المصروف</button>
+            </form>
+          </div>
 
-          <div class="lg:col-span-2 space-y-5">
+          <!-- العمود الرئيسي: بطاقات المشاريع والجداول التفصيلية المرتبة -->
+          <div class="lg:col-span-8 space-y-5">
+            <!-- بطاقات الملخص المالي للمشاريع -->
+            <div class="grid grid-cols-1 ${target.length > 1 ? 'md:grid-cols-2' : ''} gap-4">
+              ${target.map((p) => {
+                const f = computeFinancials(p);
+                return `
+                  <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 shadow-2xs print-clean-card">
+                    <div class="flex flex-wrap justify-between items-center gap-2 pb-2.5 border-b border-[#E6D9CC]">
+                      <div>
+                        <h4 class="font-black text-sm text-[#2D1B14]">${p.name}</h4>
+                        <span class="text-[11px] text-[#7A6457]">العميل: ${p.client_name} • نسبة الاستوديو: <strong class="text-[#A85438]">${f.officePct}%</strong> • نسبة الإنجاز: <strong>${f.progress}%</strong></span>
+                      </div>
+                      <div class="flex items-center gap-1.5 no-print">
+                        <button onclick="openEditProjectModal('${p.id}')"
+                          class="px-3 py-1.5 rounded-full bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] border border-[#DFD2C5] text-[11px] font-extrabold cursor-pointer">
+                          تعديل النسبة / العقد
+                        </button>
+                        ${canSeeFinance() ? `
+                          <button onclick="openOfficeWithdrawModal('${p.id}', '${p.name.replace(/'/g, '')}')"
+                            class="px-3.5 py-1.5 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] text-[11px] font-extrabold cursor-pointer">
+                            + سحب للمكتب
+                          </button>` : ''}
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                      <div class="p-3 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] block">دفعات العميل</span><strong class="text-[#2D1B14] font-extrabold">${canSeeFinance() ? formatEGP(f.paymentsTotal) : '---'}</strong></div>
+                      <div class="p-3 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] block">إجمالي المصروف</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(f.totalSpent)}</strong></div>
+                      <div class="p-3 rounded-2xl bg-[#A85438]/12 border border-[#A85438]/30"><span class="text-[#A85438] font-bold block">الرصيد المتاح (بعد خصم الاستوديو)</span><strong class="text-[#2D1B14] font-black">${canSeeFinance() ? formatEGP(f.balance) : '---'}</strong></div>
+                      ${canSeeFinance() ? `
+                        <div class="p-3 rounded-2xl bg-[#EFE6DD] border border-[#DFD2C5]"><span class="text-[#5C4438] block">مستحقات الاستوديو (${f.officePct}%)</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(f.officeEarned)}</strong></div>
+                        <div class="p-3 rounded-2xl bg-rose-50 border border-rose-200"><span class="text-rose-800 block">مسحوب للاستوديو (مخصوم)</span><strong class="text-rose-900 font-extrabold">-${formatEGP(f.officeWithdrawn)}</strong></div>
+                        <div class="p-3 rounded-2xl bg-[#EFE6DD] border border-[#DFD2C5]"><span class="text-[#A85438] font-bold block">المتبقي للاستوديو</span><strong class="text-[#2D1B14] font-black">${formatEGP(f.officeRemaining)}</strong></div>
+                      ` : ''}
+                    </div>
+                  </div>`;
+              }).join('')}
+            </div>
+
             <!-- جدول تفصيل تكاليف البنود الـ 11 (يظهر بوضوح في التقرير والطباعة) -->
             <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl overflow-hidden shadow-2xs print-clean-card">
               <div class="p-4 border-b border-[#E6D9CC] flex justify-between items-center">
