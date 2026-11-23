@@ -2,7 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#C7DBEA" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>Steel Studio • إدارة المشاريع والحسابات الهندسية</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -29,6 +33,30 @@
     :focus-visible { outline: 3px solid #2F6FA3; outline-offset: 2px; }
     #bottom-nav button { min-height: 48px; }
     @media (max-width: 1023px) { #main-content { padding-bottom: 6rem; } }
+    html, body { overflow-x: hidden; }
+    * { -webkit-tap-highlight-color: transparent; }
+    button, a, select, input, textarea, summary { touch-action: manipulation; }
+    #bottom-nav { bottom: calc(1rem + env(safe-area-inset-bottom)) !important; }
+    @media (max-width: 1023px) {
+      #main-content { padding-bottom: 7.5rem; }
+      #toast-container { bottom: auto !important; top: 0.75rem; left: 0 !important; right: 0; margin: 0 auto; }
+    }
+    @media screen and (max-width: 640px) {
+      /* نافذة منبثقة بشكل Bottom Sheet */
+      html body #modal-backdrop { align-items: flex-end; padding: 0; }
+      html body #modal-box { margin: 0; max-width: 100%; border-radius: 28px 28px 0 0; max-height: 92vh; overflow-y: auto;
+        padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+      /* الجداول تتحول لكروت */
+      #main-content table, #main-content thead, #main-content tbody, #main-content tr, #main-content td { display: block; width: 100%; }
+      #main-content thead { display: none; }
+      #main-content tr { padding: 12px 16px; border-bottom: 1px solid #EEF0F2; }
+      #main-content td { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+        padding: 5px 0 !important; white-space: normal !important; text-align: left; }
+      #main-content td[data-label]::before { content: attr(data-label); color: #6B7280; font-weight: 700; flex-shrink: 0; }
+      #main-content td:not([data-label]) { justify-content: center; }
+      .m-fill { width: 100%; }
+      .m-fill > * { flex: 1 1 45%; text-align: center; justify-content: center; }
+    }
     @media print {
       .acc-sec { display: block !important; }
       .acc-sec.grid { display: grid !important; }
@@ -86,7 +114,7 @@
   <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 sm:p-6 bg-[#F1F3F5]">
     <div class="w-full max-w-5xl bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
       <!-- اللوحة التعريفية الداكنة الدافئة -->
-      <div class="lg:col-span-5 bg-[#111111] text-[#FFFFFF] p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden">
+      <div class="lg:col-span-5 bg-[#111111] text-[#FFFFFF] p-8 sm:p-10 hidden lg:flex flex-col justify-between relative overflow-hidden">
         <div class="space-y-4 relative z-10">
           <span class="inline-block text-[11px] font-extrabold bg-white/10 text-[#BFD6E8] px-3.5 py-1 rounded-full">
             نظام إدارة المكاتب الهندسية والتشطيبات
@@ -112,6 +140,7 @@
       <!-- نموذج الدخول -->
       <div class="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center">
         <div class="max-w-md w-full mx-auto space-y-6">
+          <h1 class="lg:hidden text-3xl font-black tracking-widest text-center text-[#111111]" dir="ltr">STEEL STUDIO</h1>
           <div>
             <h2 class="text-xl sm:text-2xl font-black text-[#111111]">تسجيل الدخول إلى Steel Studio</h2>
             <p class="text-xs text-[#6B7280] font-semibold mt-1">أدخل بيانات حسابك للوصول إلى المشاريع والحسابات</p>
@@ -188,7 +217,7 @@
           </button>
           <div class="min-w-0">
             <h2 id="page-title" class="text-lg sm:text-2xl font-black text-[#111111] truncate">لوحة المتابعة الرئيسية</h2>
-            <p class="text-[11px] text-[#33414F] font-bold">Steel Studio • جميع الحسابات بالجنيه المصري (ج.م)</p>
+            <p class="hidden sm:block text-[11px] text-[#33414F] font-bold">Steel Studio • جميع الحسابات بالجنيه المصري (ج.م)</p>
           </div>
         </div>
 
@@ -1027,6 +1056,18 @@
       if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (_) {} }
     }
 
+    function enhanceTables() {
+      document.querySelectorAll('#main-content table').forEach((t) => {
+        const heads = [...t.querySelectorAll('thead th')].map((th) => th.textContent.trim());
+        t.querySelectorAll('tbody tr').forEach((tr) => {
+          [...tr.children].forEach((td, i) => {
+            if (heads[i] && !td.hasAttribute('colspan')) td.setAttribute('data-label', heads[i]);
+          });
+        });
+      });
+    }
+    new MutationObserver(enhanceTables).observe(document.getElementById('main-content'), { childList: true });
+
     function setAccountsTab(t) {
       STATE.accountsTab = t;
       renderCurrentView();
@@ -1062,7 +1103,7 @@
               </div>
               <div>
                 <label class="block font-extrabold text-[#4A4F57] mb-1">هاتف العميل *</label>
-                <input id="np-phone" type="text" required class="w-full px-3.5 py-2.5 rounded-3xl bg-white border border-[#E8EBEE]" />
+                <input id="np-phone" type="tel" inputmode="tel" required class="w-full px-3.5 py-2.5 rounded-3xl bg-white border border-[#E8EBEE]" />
               </div>
             </div>
             <div>
@@ -1176,7 +1217,7 @@
               </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2">
+            <div class="m-fill flex flex-wrap items-center gap-2">
               <button onclick="openEditProjectModal('${project.id}')"
                 class="px-4 py-2 rounded-full bg-[#F1F3F5] hover:bg-[#E6E9EC] text-[#111111] border border-[#E8EBEE] font-extrabold text-xs cursor-pointer">
                 تعديل بيانات المشروع
@@ -1245,7 +1286,7 @@
                         <p class="text-[11px] text-[#6B7280]">${it.execution_notes || 'بند تشطيبات أساسي'}</p>
                       </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
+                    <div class="m-fill flex flex-wrap items-center gap-2">
                       <div class="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-3xl border border-[#E8EBEE] text-xs">
                         <span class="font-bold text-[#4A4F57]">الإنجاز:</span>
                         <input type="number" min="0" max="100" value="${it.completion_percentage || 0}"
@@ -1346,7 +1387,8 @@
           </div>
         ` : `
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <form onsubmit="submitDailyReport(event, '${project.id}')" class="bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit">
+            <button type="button" onclick="document.getElementById('form-report').scrollIntoView({behavior:'smooth',block:'start'})" class="lg:hidden order-1 w-full py-3 rounded-full bg-[#111111] text-white text-sm font-extrabold cursor-pointer">+ تسجيل تقرير يومي</button>
+          <form onsubmit="submitDailyReport(event, '${project.id}')" id="form-report" class="order-3 lg:order-none bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit">
               <h4 class="font-black text-sm text-[#111111]">تسجيل تقرير موقع يومي</h4>
               <div class="grid grid-cols-2 gap-2.5">
                 <div>
@@ -1369,7 +1411,7 @@
               <button type="submit" class="w-full py-2.5 rounded-full bg-[#111111] text-white font-extrabold cursor-pointer">حفظ التقرير</button>
             </form>
 
-            <div class="lg:col-span-2 space-y-3">
+            <div class="order-2 lg:order-none lg:col-span-2 space-y-3">
               ${pReports.length ? pReports.map((r) => `
                 <div class="bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-2 text-xs">
                   <div class="flex flex-wrap justify-between items-center gap-2 pb-2 border-b border-[#EEF0F2]">
@@ -1473,7 +1515,7 @@
               </div>
               <div>
                 <label class="block font-extrabold text-[#4A4F57] mb-1">رقم الهاتف / واتساب</label>
-                <input id="ac-worker-phone" type="text" value="${existing?.worker_phone || ''}"
+                <input id="ac-worker-phone" type="tel" inputmode="tel" value="${existing?.worker_phone || ''}"
                   placeholder="010xxxxxxxx"
                   class="w-full px-3.5 py-2.5 rounded-3xl bg-white border border-[#E8EBEE] font-semibold" />
               </div>
@@ -1765,7 +1807,7 @@
               </div>
               <div>
                 <label class="block font-extrabold text-[#4A4F57] mb-1">هاتف العميل</label>
-                <input id="ep-phone" type="text" value="${proj.client_phone || ''}" class="w-full px-3.5 py-2.5 rounded-3xl bg-white border border-[#E8EBEE] font-semibold" />
+                <input id="ep-phone" type="tel" inputmode="tel" value="${proj.client_phone || ''}" class="w-full px-3.5 py-2.5 rounded-3xl bg-white border border-[#E8EBEE] font-semibold" />
               </div>
             </div>
             <div>
@@ -2570,7 +2612,8 @@
       const today = todayLocal();
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitGlobalPayment(event)" class="bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+          <button type="button" onclick="document.getElementById('form-payment').scrollIntoView({behavior:'smooth',block:'start'})" class="lg:hidden order-1 w-full py-3 rounded-full bg-[#111111] text-white text-sm font-extrabold cursor-pointer">+ تسجيل دفعة عميل</button>
+          <form onsubmit="submitGlobalPayment(event)" id="form-payment" class="order-3 lg:order-none bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
             <h4 class="font-black text-sm text-[#111111]">تسجيل دفعة عميل</h4>
             <div>
               <label class="block text-[#4A4F57] font-extrabold mb-1">المشروع *</label>
@@ -2603,7 +2646,7 @@
             <button type="submit" class="w-full py-2.5 rounded-full bg-[#111111] hover:bg-[#2B2B2B] text-white font-extrabold cursor-pointer">حفظ الدفعة</button>
           </form>
 
-          <div class="lg:col-span-2 bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl overflow-hidden shadow-2xs">
+          <div class="order-2 lg:order-none lg:col-span-2 bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl overflow-hidden shadow-2xs">
             <div class="p-4 border-b border-[#EEF0F2] flex justify-between items-center">
               <h4 class="font-black text-sm text-[#111111]">سجل دفعات العملاء (${STATE.payments.length})</h4>
               <span class="text-xs font-extrabold text-[#2F6FA3] bg-[#F1F3F5] px-3 py-1 rounded-xl">${formatEGP(STATE.payments.reduce((s, p) => s + (Number(p.amount) || 0), 0))}</span>
@@ -2665,7 +2708,8 @@
       const filtered = STATE.materials.filter((m) => STATE.materialsStatusFilter === 'ALL' || m.status === STATE.materialsStatusFilter);
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitMaterialReq(event)" class="bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+          <button type="button" onclick="document.getElementById('form-material').scrollIntoView({behavior:'smooth',block:'start'})" class="lg:hidden order-1 w-full py-3 rounded-full bg-[#111111] text-white text-sm font-extrabold cursor-pointer">+ طلب خامات جديد</button>
+          <form onsubmit="submitMaterialReq(event)" id="form-material" class="order-3 lg:order-none bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
             <h4 class="font-black text-sm text-[#111111]">طلب خامة جديدة للموقع</h4>
             <div>
               <label class="block text-[#4A4F57] font-extrabold mb-1">المشروع *</label>
@@ -2706,7 +2750,7 @@
             <button type="submit" class="w-full py-2.5 rounded-full bg-[#111111] hover:bg-[#2B2B2B] text-white font-extrabold cursor-pointer">إرسال طلب الخامة</button>
           </form>
 
-          <div class="lg:col-span-2 space-y-4">
+          <div class="order-2 lg:order-none lg:col-span-2 space-y-4">
             <div class="flex flex-wrap gap-2">
               ${[
                 { id: 'ALL', label: 'الكل' },
@@ -3008,7 +3052,8 @@
       const nowLocal = nowLocalInput();
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitAppointment(event)" class="order-2 lg:order-none bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+          <button type="button" onclick="document.getElementById('form-appt').scrollIntoView({behavior:'smooth',block:'start'})" class="lg:hidden order-1 w-full py-3 rounded-full bg-[#111111] text-white text-sm font-extrabold cursor-pointer">+ إضافة موعد / مهمة</button>
+          <form onsubmit="submitAppointment(event)" id="form-appt" class="order-3 lg:order-none bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
             <h4 class="font-black text-sm text-[#111111]">إضافة موعد أو مهمة جديدة</h4>
             <div>
               <label class="block text-[#4A4F57] font-extrabold mb-1">العنوان *</label>
@@ -3034,7 +3079,7 @@
             <button type="submit" class="w-full py-2.5 rounded-full bg-[#111111] hover:bg-[#2B2B2B] text-white font-extrabold cursor-pointer">حفظ الموعد</button>
           </form>
 
-          <div class="order-1 lg:order-none lg:col-span-2 space-y-3">
+          <div class="order-2 lg:order-none lg:col-span-2 space-y-3">
             ${STATE.tasks.length ? [...STATE.tasks].sort((a, b) => ((a.status === 'completed') - (b.status === 'completed')) || (new Date(a.scheduled_at) - new Date(b.scheduled_at))).map((t) => `
               <div class="bg-[#FFFFFF] border ${isTaskOverdue(t) ? 'border-rose-300 bg-rose-50/60' : isTaskToday(t) ? 'border-amber-300 bg-amber-50/60' : 'border-[#E8EBEE]'} ${t.status === 'completed' ? 'opacity-60' : ''} rounded-3xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
                 <div>
@@ -3089,7 +3134,8 @@
     function renderWorkersView(allowed) {
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitWorker(event)" class="bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+          <button type="button" onclick="document.getElementById('form-worker').scrollIntoView({behavior:'smooth',block:'start'})" class="lg:hidden order-1 w-full py-3 rounded-full bg-[#111111] text-white text-sm font-extrabold cursor-pointer">+ إضافة صنايعي</button>
+          <form onsubmit="submitWorker(event)" id="form-worker" class="order-3 lg:order-none bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
             <h4 class="font-black text-sm text-[#111111]">إضافة عامل / صنايعي للدليل</h4>
             <div>
               <label class="block text-[#4A4F57] font-extrabold mb-1">الاسم الكامل *</label>
@@ -3101,7 +3147,7 @@
             </div>
             <div>
               <label class="block text-[#4A4F57] font-extrabold mb-1">رقم الهاتف / واتساب *</label>
-              <input id="wk-phone" type="text" required class="w-full px-3.5 py-2.5 rounded-3xl bg-white border border-[#E8EBEE] text-[#111111] font-semibold" />
+              <input id="wk-phone" type="tel" inputmode="tel" required class="w-full px-3.5 py-2.5 rounded-3xl bg-white border border-[#E8EBEE] text-[#111111] font-semibold" />
             </div>
             <div>
               <label class="block text-[#4A4F57] font-extrabold mb-1">المنطقة</label>
@@ -3110,7 +3156,7 @@
             <button type="submit" class="w-full py-2.5 rounded-full bg-[#111111] hover:bg-[#2B2B2B] text-white font-extrabold cursor-pointer">حفظ في الدليل</button>
           </form>
 
-          <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="order-2 lg:order-none lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
             ${STATE.workers.length ? STATE.workers.map((w) => `
               <div class="bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 flex items-center justify-between gap-3 text-xs shadow-2xs">
                 <div>
@@ -3154,7 +3200,8 @@
     function renderTeamView() {
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitTeamMember(event)" class="bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+          <button type="button" onclick="document.getElementById('form-team').scrollIntoView({behavior:'smooth',block:'start'})" class="lg:hidden order-1 w-full py-3 rounded-full bg-[#111111] text-white text-sm font-extrabold cursor-pointer">+ إضافة عضو فريق</button>
+          <form onsubmit="submitTeamMember(event)" id="form-team" class="order-3 lg:order-none bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
             <h4 class="font-black text-sm text-[#111111]">إضافة / تحديث موظف وصلاحياته</h4>
             <div>
               <label class="block text-[#4A4F57] font-extrabold mb-1">الاسم الكامل *</label>
@@ -3179,7 +3226,7 @@
             <button type="submit" class="w-full py-2.5 rounded-full bg-[#111111] hover:bg-[#2B2B2B] text-white font-extrabold cursor-pointer">حفظ الصلاحيات</button>
           </form>
 
-          <div class="lg:col-span-2 space-y-3">
+          <div class="order-2 lg:order-none lg:col-span-2 space-y-3">
             ${STATE.profiles.map((u) => `
               <div class="bg-[#FFFFFF] border border-[#E8EBEE] rounded-3xl p-4 sm:p-5 flex justify-between items-center text-xs shadow-2xs">
                 <div>
