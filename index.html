@@ -11,14 +11,28 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     * { font-family: 'Cairo', sans-serif; }
-    body { background-color: #EFE6DD; color: #2D1B14; }
+    body { background-color: #F4F6F9; color: #12263A; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #E6D9CC; }
-    ::-webkit-scrollbar-thumb { background: #B8A394; border-radius: 9999px; }
+    ::-webkit-scrollbar-track { background: #E5EAF0; }
+    ::-webkit-scrollbar-thumb { background: #B6C2CF; border-radius: 9999px; }
+    /* ===== تحسينات سهولة الاستخدام ===== */
+    html { scroll-behavior: smooth; }
+    html body .text-xs { font-size: 0.875rem; line-height: 1.4rem; }
+    html body .text-\[11px\] { font-size: 0.8125rem; }
+    html body .text-\[10px\] { font-size: 0.75rem; }
+    html body button[class], html body a[class*="rounded-full"] { min-height: 40px; }
+    html body input[class], html body select[class], html body textarea[class] { min-height: 44px; }
+    @media (max-width: 640px) {
+      html body input[class], html body select[class], html body textarea[class] { font-size: 16px; }
+    }
+    :focus-visible { outline: 3px solid #D9531E; outline-offset: 2px; }
+    #bottom-nav button { min-height: 56px; }
+    @media (max-width: 1023px) { #main-content { padding-bottom: 6rem; } }
     @media print {
+      #bottom-nav { display: none !important; }
       .no-print { display: none !important; }
       .print-only { display: block !important; }
-      body { background: #fff !important; color: #2D1B14 !important; }
+      body { background: #fff !important; color: #12263A !important; }
       #app-shell aside,
       #app-shell header,
       #toast-container,
@@ -46,48 +60,48 @@
     }
   </style>
 </head>
-<body class="min-h-screen antialiased selection:bg-[#A85438] selection:text-white">
+<body class="min-h-screen antialiased selection:bg-[#D9531E] selection:text-white">
 
   <!-- حاوية طباعة مستخلص العميل النظيف (بدون نسبة المكتب أو السحوبات الداخلية) -->
-  <div id="client-statement-print" class="hidden bg-white text-[#2D1B14] p-8 max-w-4xl mx-auto"></div>
+  <div id="client-statement-print" class="hidden bg-white text-[#12263A] p-8 max-w-4xl mx-auto"></div>
 
   <!-- تنبيهات النظام العائمة -->
   <div id="toast-container" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2.5 max-w-sm w-full px-4 sm:px-0 pointer-events-none"></div>
 
   <!-- نافذة منبثقة عامة -->
-  <div id="modal-backdrop" class="fixed inset-0 z-50 bg-[#2D1B14]/65 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
-    <div id="modal-box" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-[32px] max-w-xl w-full p-6 sm:p-7 shadow-2xl my-8 text-right"></div>
+  <div id="modal-backdrop" class="fixed inset-0 z-50 bg-[#12263A]/65 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
+    <div id="modal-box" class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl max-w-xl w-full p-6 sm:p-7 shadow-2xl my-8 text-right"></div>
   </div>
 
   <!-- شاشة التحميل المبدئية -->
-  <div id="boot-screen" class="min-h-screen flex flex-col items-center justify-center p-6 bg-[#EFE6DD] text-center">
-    <h1 class="text-2xl font-black tracking-widest text-[#2D1B14] animate-pulse" dir="ltr">STEEL STUDIO</h1>
-    <p class="text-xs font-bold text-[#7A6457] mt-1">جاري تهيئة مساحة العمل الهندسية...</p>
+  <div id="boot-screen" class="min-h-screen flex flex-col items-center justify-center p-6 bg-[#F4F6F9] text-center">
+    <h1 class="text-2xl font-black tracking-widest text-[#12263A] animate-pulse" dir="ltr">STEEL STUDIO</h1>
+    <p class="text-xs font-bold text-[#5B6B7C] mt-1">جاري تهيئة مساحة العمل الهندسية...</p>
   </div>
 
   <!-- شاشة تسجيل الدخول -->
-  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 sm:p-6 bg-[#EFE6DD]">
-    <div class="w-full max-w-5xl bg-[#FAF6F2] border border-[#DFD2C5] rounded-[36px] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center p-4 sm:p-6 bg-[#EEF2F6]">
+    <div class="w-full max-w-5xl bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
       <!-- اللوحة التعريفية الداكنة الدافئة -->
-      <div class="lg:col-span-5 bg-[#2D1B14] text-[#FAF6F2] p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden">
+      <div class="lg:col-span-5 bg-[#12263A] text-[#FFFFFF] p-8 sm:p-10 flex flex-col justify-between relative overflow-hidden">
         <div class="space-y-4 relative z-10">
-          <span class="inline-block text-[11px] font-extrabold bg-white/10 text-[#E8B298] px-3.5 py-1 rounded-full">
+          <span class="inline-block text-[11px] font-extrabold bg-white/10 text-[#FFB48A] px-3.5 py-1 rounded-full">
             نظام إدارة المكاتب الهندسية والتشطيبات
           </span>
           <h1 class="text-2xl sm:text-3xl font-black tracking-wider leading-snug text-right" dir="ltr">STEEL STUDIO</h1>
-          <p class="text-xs sm:text-sm text-[#D8C7BA] leading-relaxed">
+          <p class="text-xs sm:text-sm text-[#C5D1DE] leading-relaxed">
             إدارة متكاملة للمشاريع، البنود الـ 11 التراكمية، مستحقات الاستوديو، تقارير الموقع اليومية، ودفعات العملاء بالجنيه المصري.
           </p>
         </div>
 
-        <div class="mt-8 pt-6 border-t border-white/10 space-y-2 text-xs text-[#C7B3A4]">
+        <div class="mt-8 pt-6 border-t border-white/10 space-y-2 text-xs text-[#B3C2D2]">
           <div class="flex items-center justify-between">
             <span>العملة المعتمدة</span>
             <strong class="text-white">الجنيه المصري (ج.م)</strong>
           </div>
           <div class="flex items-center justify-between">
             <span>المزامنة الفورية</span>
-            <strong class="text-[#E8B298]">سحابة Supabase الحية</strong>
+            <strong class="text-[#FFB48A]">سحابة Supabase الحية</strong>
           </div>
         </div>
       </div>
@@ -96,23 +110,23 @@
       <div class="lg:col-span-7 p-8 sm:p-12 flex flex-col justify-center">
         <div class="max-w-md w-full mx-auto space-y-6">
           <div>
-            <h2 class="text-xl sm:text-2xl font-black text-[#2D1B14]">تسجيل الدخول إلى Steel Studio</h2>
-            <p class="text-xs text-[#7A6457] font-semibold mt-1">أدخل بيانات حسابك للوصول إلى المشاريع والحسابات</p>
+            <h2 class="text-xl sm:text-2xl font-black text-[#12263A]">تسجيل الدخول إلى Steel Studio</h2>
+            <p class="text-xs text-[#5B6B7C] font-semibold mt-1">أدخل بيانات حسابك للوصول إلى المشاريع والحسابات</p>
           </div>
 
           <form id="login-form" class="space-y-4">
             <div>
-              <label class="block text-xs font-extrabold text-[#5C4438] mb-1.5">البريد الإلكتروني</label>
-              <input id="login-email" type="email" required value="omarreda62@gmail.com" dir="ltr"
-                class="w-full px-4 py-3.5 rounded-2xl bg-white border border-[#DFD2C5] text-sm text-left text-[#2D1B14] font-semibold outline-none focus:border-[#A85438]" />
+              <label class="block text-xs font-extrabold text-[#3F4F61] mb-1.5">البريد الإلكتروني</label>
+              <input id="login-email" type="email" required autocomplete="username" placeholder="name@example.com" dir="ltr"
+                class="w-full px-4 py-3.5 rounded-2xl bg-white border border-[#DDE3EA] text-sm text-left text-[#12263A] font-semibold outline-none focus:border-[#D9531E]" />
             </div>
             <div>
-              <label class="block text-xs font-extrabold text-[#5C4438] mb-1.5">كلمة المرور</label>
-              <input id="login-password" type="password" required placeholder="••••••••" dir="ltr"
-                class="w-full px-4 py-3.5 rounded-2xl bg-white border border-[#DFD2C5] text-sm text-left text-[#2D1B14] font-semibold outline-none focus:border-[#A85438]" />
+              <label class="block text-xs font-extrabold text-[#3F4F61] mb-1.5">كلمة المرور</label>
+              <input id="login-password" type="password" required autocomplete="current-password" placeholder="••••••••" dir="ltr"
+                class="w-full px-4 py-3.5 rounded-2xl bg-white border border-[#DDE3EA] text-sm text-left text-[#12263A] font-semibold outline-none focus:border-[#D9531E]" />
             </div>
             <button id="login-btn" type="submit"
-              class="w-full py-3.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-sm shadow-lg transition-all cursor-pointer">
+              class="w-full py-3.5 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold text-sm shadow-lg transition-all cursor-pointer">
               دخول إلى Steel Studio
             </button>
           </form>
@@ -124,17 +138,16 @@
   <!-- هيكل التطبيق الرئيسي -->
   <div id="app-shell" class="hidden min-h-screen flex-col lg:flex-row">
     <!-- القائمة الجانبية (Desktop) -->
-    <aside class="hidden lg:flex lg:flex-col lg:w-72 bg-[#2D1B14] text-[#FAF6F2] shrink-0 sticky top-0 h-screen z-30 shadow-xl no-print">
-      <div class="p-6 border-b border-white/10">
-        <h1 class="font-black text-lg tracking-wider leading-tight" dir="ltr">STEEL STUDIO</h1>
-        <span class="text-[11px] text-[#E8B298] font-bold">الهوية المعمارية • ج.م</span>
+    <aside class="hidden lg:flex lg:flex-col lg:w-72 bg-[#12263A] text-[#FFFFFF] shrink-0 sticky top-0 h-screen z-30 shadow-xl no-print">
+      <div class="px-6 py-7 border-b border-white/10">
+        <h1 class="font-black text-3xl tracking-widest leading-tight" dir="ltr">STEEL STUDIO</h1>
       </div>
 
       <div class="mx-4 mt-4 p-3.5 rounded-2xl bg-white/8 border border-white/10 flex items-center gap-3">
-        <div id="sidebar-avatar" class="w-10 h-10 rounded-2xl bg-[#A85438] text-white flex items-center justify-center font-black text-sm shrink-0">ع</div>
+        <div id="sidebar-avatar" class="w-10 h-10 rounded-2xl bg-[#D9531E] text-white flex items-center justify-center font-black text-sm shrink-0">ع</div>
         <div class="min-w-0">
           <p id="sidebar-user-name" class="text-xs font-extrabold text-white truncate">م. عمر رضا</p>
-          <p id="sidebar-user-role" class="text-[11px] text-[#E8B298] font-bold">مدير الاستوديو</p>
+          <p id="sidebar-user-role" class="text-[11px] text-[#FFB48A] font-bold">مدير الاستوديو</p>
         </div>
       </div>
 
@@ -150,10 +163,10 @@
 
     <!-- القائمة الجانبية للموبايل -->
     <div id="mobile-drawer" class="fixed inset-0 z-50 hidden lg:hidden">
-      <div onclick="toggleMobileMenu(false)" class="fixed inset-0 bg-[#2D1B14]/70"></div>
-      <div class="relative w-72 max-w-[85vw] bg-[#2D1B14] text-[#FAF6F2] h-full flex flex-col z-10 shadow-2xl">
+      <div onclick="toggleMobileMenu(false)" class="fixed inset-0 bg-[#12263A]/70"></div>
+      <div class="relative w-72 max-w-[85vw] bg-[#12263A] text-[#FFFFFF] h-full flex flex-col z-10 shadow-2xl">
         <div class="p-5 border-b border-white/10 flex items-center justify-between">
-          <span class="font-black text-sm tracking-wider" dir="ltr">STEEL STUDIO</span>
+          <span class="font-black text-xl tracking-wider" dir="ltr">STEEL STUDIO</span>
           <button onclick="toggleMobileMenu(false)" class="p-2 rounded-xl bg-white/10 text-white">✕</button>
         </div>
         <nav id="mobile-nav" class="flex-1 overflow-y-auto p-4 space-y-1.5"></nav>
@@ -165,28 +178,31 @@
 
     <!-- المحتوى الرئيسي -->
     <div class="flex-1 flex flex-col min-w-0">
-      <header class="sticky top-0 z-20 bg-[#FAF6F2]/95 backdrop-blur-xs border-b border-[#DFD2C5] px-4 sm:px-8 py-3.5 flex items-center justify-between no-print">
+      <header class="sticky top-0 z-20 bg-[#FFFFFF]/95 backdrop-blur-xs border-b border-[#DDE3EA] px-4 sm:px-8 py-3.5 flex items-center justify-between no-print">
         <div class="flex items-center gap-3 min-w-0">
-          <button onclick="toggleMobileMenu(true)" class="lg:hidden p-2.5 rounded-2xl bg-[#EFE6DD] text-[#2D1B14] border border-[#DFD2C5]">
+          <button onclick="toggleMobileMenu(true)" class="lg:hidden p-2.5 rounded-2xl bg-[#EEF2F6] text-[#12263A] border border-[#DDE3EA]">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
           <div class="min-w-0">
-            <h2 id="page-title" class="text-base sm:text-xl font-black text-[#2D1B14] truncate">لوحة المتابعة الرئيسية</h2>
-            <p class="text-[11px] text-[#7A6457] font-bold">Steel Studio • جميع الحسابات بالجنيه المصري (ج.م)</p>
+            <h2 id="page-title" class="text-base sm:text-xl font-black text-[#12263A] truncate">لوحة المتابعة الرئيسية</h2>
+            <p class="text-[11px] text-[#5B6B7C] font-bold">Steel Studio • جميع الحسابات بالجنيه المصري (ج.م)</p>
           </div>
         </div>
 
         <div class="flex items-center gap-2.5">
           <button onclick="refreshAllData()" title="تحديث البيانات"
-            class="px-3.5 py-2 rounded-full bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] border border-[#DFD2C5] text-xs font-extrabold cursor-pointer">
+            class="px-3.5 py-2 rounded-full bg-[#EEF2F6] hover:bg-[#E2E8EF] text-[#12263A] border border-[#DDE3EA] text-xs font-extrabold cursor-pointer">
             تحديث
           </button>
-          <div id="mobile-avatar" class="lg:hidden w-9 h-9 rounded-full bg-[#2D1B14] text-white flex items-center justify-center font-black text-xs">ع</div>
+          <div id="mobile-avatar" class="lg:hidden w-9 h-9 rounded-full bg-[#12263A] text-white flex items-center justify-center font-black text-xs">ع</div>
         </div>
       </header>
 
       <main id="main-content" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6"></main>
     </div>
+
+    <!-- شريط تنقل سفلي للموبايل -->
+    <nav id="bottom-nav" class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-[#FFFFFF] border-t border-[#DDE3EA] flex no-print shadow-[0_-4px_12px_rgba(45,27,20,0.08)]"></nav>
   </div>
 
   <script>
@@ -303,7 +319,8 @@
       checklists: [],
       files: [],
       notes: [],
-      officeWithdrawals: []
+      officeWithdrawals: [],
+      expandedItems: new Set()
     };
 
     // =========================================================================
@@ -401,56 +418,12 @@
       openWhatsAppUrl(proj.client_phone, msg);
     }
 
-    function sendDailyReportWhatsApp(reportId) {
-      const rep = STATE.reports.find((r) => r.id === reportId);
-      if (!rep) return;
-      const proj = STATE.projects.find((p) => p.id === rep.project_id);
-      if (!proj) return;
-      const f = computeFinancials(proj);
-
-      const msg = [
-        `السلام عليكم أستاذ / ${proj.client_name}،`,
-        `تقرير المتابعة اليومي من موقع مشروع (*${proj.name}*) بتاريخ *${rep.report_date}*:`,
-        ``,
-        `• نسبة الإنجاز الإجمالية للمشروع: *${f.progress}%*`,
-        `• ما تم تنفيذه اليوم: ${rep.work_done}`,
-        rep.obstacles ? `• ملاحظات الموقع: ${rep.obstacles}` : '',
-        ``,
-        `مع تحيات الإدارة الهندسية — *مكتب التشطيبات*.`
-      ].filter(Boolean).join('\n');
-
-      openWhatsAppUrl(proj.client_phone, msg);
-    }
-
-    function sendProjectSummaryWhatsApp(projectId) {
-      const proj = STATE.projects.find((p) => p.id === projectId);
-      if (!proj) return;
-      const f = computeFinancials(proj);
-      const clientBalance = f.paymentsTotal - f.totalSpent;
-
-      const msg = [
-        `السلام عليكم أستاذ / ${proj.client_name}،`,
-        `ملخص الموقف التنفيذي والمالي لمشروع (*${proj.name}*):`,
-        ``,
-        `• نسبة الإنجاز الحالية: *${f.progress}%*`,
-        `• إجمالي الدفعات المسددة: ${formatEGP(f.paymentsTotal)}`,
-        `• إجمالي تكلفة الأعمال المنفذة: ${formatEGP(f.totalSpent)}`,
-        clientBalance >= 0
-          ? `• الرصيد المتاح حالياً: *${formatEGP(clientBalance)}*`
-          : `• المتبقي المطلوب سداده: *${formatEGP(Math.abs(clientBalance))}*`,
-        ``,
-        `مع تحيات *مكتب التشطيبات الهندسي*.`
-      ].join('\n');
-
-      openWhatsAppUrl(proj.client_phone, msg);
-    }
-
     function showToast(msg, type = 'success') {
       const box = document.getElementById('toast-container');
       if (!box) return;
       const el = document.createElement('div');
       el.className = `pointer-events-auto px-4 py-3.5 rounded-2xl shadow-xl text-xs font-extrabold text-white flex items-center justify-between gap-3 transition-all ${
-        type === 'error' ? 'bg-rose-900 border border-rose-700' : 'bg-[#2D1B14] border border-[#A85438]'
+        type === 'error' ? 'bg-rose-900 border border-rose-700' : 'bg-[#12263A] border border-[#D9531E]'
       }`;
       el.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="opacity-70 hover:opacity-100">✕</button>`;
       box.appendChild(el);
@@ -622,7 +595,8 @@
 
     // تقسيم بند "تأسيس السباكة والكهرباء والتكييف" المدمج تلقائياً إلى 3 بنود مستقلة
     async function splitAllExistingCombinedMepItems() {
-      if (!sb) return;
+      if (!sb || STATE._mepSplitDone) return;
+      STATE._mepSplitDone = true;
       const combined = STATE.items.filter((it) =>
         (it.title || '').includes('تأسيس السباكة والكهرباء والتكييف')
       );
@@ -670,16 +644,17 @@
     // 3. شريط التنقل وإدارة الصفحات
     // =========================================================================
     const NAV_ITEMS = [
-      { id: 'home', label: 'لوحة المتابعة الرئيسية', visible: () => true },
-      { id: 'projects', label: 'المشاريع والبنود (11)', visible: () => true },
-      { id: 'accounts', label: 'الحسابات وسحوبات الاستوديو', visible: () => true },
-      { id: 'payments', label: 'دفعات العملاء', visible: () => canSeeFinance() },
-      { id: 'materials', label: 'طلبات الخامات', visible: () => true },
-      { id: 'appointments', label: 'المواعيد والمهام', visible: () => true },
-      { id: 'workers', label: 'العمال والصنايعية', visible: () => true },
-      { id: 'team', label: 'الفريق والصلاحيات', visible: () => isMainAdmin() },
-      { id: 'tools', label: 'حاسبة الكميات والمفكرة', visible: () => true }
+      { id: 'home', icon: '🏠', label: 'الرئيسية', title: 'لوحة المتابعة الرئيسية', visible: () => true },
+      { id: 'projects', icon: '🏗️', label: 'المشاريع', title: 'المشاريع والبنود', visible: () => true },
+      { id: 'accounts', icon: '💰', label: 'الحسابات', title: 'الحسابات وسحوبات الاستوديو', visible: () => true },
+      { id: 'payments', icon: '🧾', label: 'دفعات العملاء', title: 'دفعات العملاء', visible: () => canSeeFinance() },
+      { id: 'materials', icon: '📦', label: 'طلبات الخامات', title: 'طلبات الخامات', visible: () => true },
+      { id: 'appointments', icon: '📅', label: 'المواعيد والمهام', title: 'المواعيد والمهام', visible: () => true },
+      { id: 'workers', icon: '👷', label: 'العمال والصنايعية', title: 'العمال والصنايعية', visible: () => true },
+      { id: 'team', icon: '👥', label: 'الفريق والصلاحيات', title: 'الفريق والصلاحيات', visible: () => isMainAdmin() },
+      { id: 'tools', icon: '🧮', label: 'الحاسبة والمفكرة', title: 'حاسبة الكميات والمفكرة', visible: () => true }
     ];
+    const BOTTOM_NAV_IDS = ['home', 'projects', 'accounts', 'materials'];
 
     function renderNavigation() {
       const items = NAV_ITEMS.filter((n) => n.visible());
@@ -687,16 +662,27 @@
         const active = STATE.activeTab === n.id;
         return `
           <button onclick="switchTab('${n.id}')${isMobile ? '; toggleMobileMenu(false)' : ''}"
-            class="w-full text-right px-4 py-3 rounded-2xl text-xs font-extrabold transition-all cursor-pointer flex items-center justify-between ${
-              active ? 'bg-[#A85438] text-white shadow-md' : 'text-[#D8C7BA] hover:bg-white/10 hover:text-white'
+            class="w-full text-right px-4 py-3 rounded-2xl text-sm font-extrabold transition-all cursor-pointer flex items-center gap-3 ${
+              active ? 'bg-[#D9531E] text-white shadow-md' : 'text-[#C5D1DE] hover:bg-white/10 hover:text-white'
             }">
-            <span>${n.label}</span>
-            ${active ? '<span class="w-2 h-2 rounded-full bg-white"></span>' : ''}
+            <span class="text-lg" aria-hidden="true">${n.icon}</span>
+            <span class="flex-1">${n.label}</span>
           </button>`;
       }).join('');
 
       document.getElementById('desktop-nav').innerHTML = buildHtml(false);
       document.getElementById('mobile-nav').innerHTML = buildHtml(true);
+
+      const bottom = items.filter((n) => BOTTOM_NAV_IDS.includes(n.id));
+      const bn = document.getElementById('bottom-nav');
+      if (bn) {
+        bn.innerHTML = bottom.map((n) => {
+          const active = STATE.activeTab === n.id;
+          return `<button onclick="switchTab('${n.id}')" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-extrabold cursor-pointer ${active ? 'text-[#D9531E]' : 'text-[#5B6B7C]'}">
+            <span class="text-xl" aria-hidden="true">${n.icon}</span><span>${n.label}</span></button>`;
+        }).join('') + `<button onclick="toggleMobileMenu(true)" class="flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-extrabold cursor-pointer text-[#5B6B7C]">
+            <span class="text-xl" aria-hidden="true">☰</span><span>المزيد</span></button>`;
+      }
     }
 
     function switchTab(tabId) {
@@ -704,6 +690,7 @@
       if (tabId !== 'projects') STATE.selectedProjectId = null;
       renderNavigation();
       renderCurrentView();
+      window.scrollTo({ top: 0 });
     }
 
     function renderCurrentView() {
@@ -721,7 +708,7 @@
         }
       }
 
-      titleEl.textContent = currentNav ? currentNav.label : 'Steel Studio';
+      titleEl.textContent = currentNav ? (currentNav.title || currentNav.label) : 'Steel Studio';
 
       if (STATE.activeTab === 'home') main.innerHTML = renderHomeView(allowed);
       else if (STATE.activeTab === 'projects') main.innerHTML = renderProjectsListView(allowed);
@@ -754,40 +741,38 @@
       return `
         <!-- الترحيب والملخص المالي -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <div class="lg:col-span-2 bg-[#2D1B14] text-[#FAF6F2] rounded-[32px] p-6 sm:p-8 flex flex-col justify-between shadow-lg">
+          <div class="lg:col-span-2 bg-[#12263A] text-[#FFFFFF] rounded-2xl p-6 sm:p-8 flex flex-col justify-between shadow-lg">
             <div class="space-y-2.5">
-              <span class="inline-block text-[11px] font-extrabold bg-white/10 text-[#E8B298] px-3.5 py-1 rounded-full">
+              <span class="inline-block text-[11px] font-extrabold bg-white/10 text-[#FFB48A] px-3.5 py-1 rounded-full">
                 STEEL STUDIO • لوحة القيادة الهندسية
               </span>
               <h3 class="text-xl sm:text-2xl font-black leading-snug">
                 أهلاً بك، ${STATE.profile?.full_name || 'م. عمر رضا'}
               </h3>
-              <p class="text-xs sm:text-sm text-[#D8C7BA] max-w-xl leading-relaxed">
-                تابع نسب إنجاز البنود الـ 11 لكل مشروع في Steel Studio، المصروفات التراكمية، مستحقات الاستوديو، وسحوبات الاستوديو المخصومة تلقائياً.
+              <p class="text-xs sm:text-sm text-[#C5D1DE] max-w-xl leading-relaxed">
+                تابع المشاريع ونسب الإنجاز والمصروفات ومستحقات الاستوديو من مكان واحد.
               </p>
             </div>
-            <div class="flex flex-wrap gap-3 mt-6">
-              <button onclick="switchTab('projects')" class="px-5 py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs cursor-pointer">
-                المشاريع والبنود
-              </button>
-              <button onclick="switchTab('accounts')" class="px-5 py-2.5 rounded-full bg-white/12 hover:bg-white/20 text-white font-extrabold text-xs cursor-pointer">
-                الحسابات وسحوبات الاستوديو
-              </button>
+            <div class="grid grid-cols-2 gap-3 mt-6">
+              <button onclick="openNewProjectModal()" class="px-4 py-3.5 rounded-2xl bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold text-sm cursor-pointer">+ مشروع جديد</button>
+              <button onclick="switchTab('payments')" class="px-4 py-3.5 rounded-2xl bg-white/12 hover:bg-white/20 text-white font-extrabold text-sm cursor-pointer">🧾 دفعة عميل</button>
+              <button onclick="switchTab('accounts')" class="px-4 py-3.5 rounded-2xl bg-white/12 hover:bg-white/20 text-white font-extrabold text-sm cursor-pointer">💰 مصروف / سحب</button>
+              <button onclick="switchTab('materials')" class="px-4 py-3.5 rounded-2xl bg-white/12 hover:bg-white/20 text-white font-extrabold text-sm cursor-pointer">📦 طلب خامات</button>
             </div>
           </div>
 
-          <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-[32px] p-6 flex flex-col justify-between shadow-2xs">
+          <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-6 flex flex-col justify-between shadow-2xs">
             <div>
-              <span class="text-xs font-extrabold text-[#7A6457]">صافي الرصيد المتاح بالاستوديو (بعد خصم السحوبات)</span>
-              <p class="text-2xl sm:text-3xl font-black text-[#2D1B14] mt-1.5">${canSeeFinance() ? formatEGP(netBalance) : '---'}</p>
+              <span class="text-xs font-extrabold text-[#5B6B7C]">صافي الرصيد المتاح بالاستوديو (بعد خصم السحوبات)</span>
+              <p class="text-2xl sm:text-3xl font-black text-[#12263A] mt-1.5">${canSeeFinance() ? formatEGP(netBalance) : '---'}</p>
             </div>
-            <div class="space-y-2 text-xs pt-4 mt-4 border-t border-[#E6D9CC]">
-              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">إجمالي المصروف الفعلي:</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(totalSpent)}</strong></div>
-              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">إجمالي دفعات العملاء:</span><strong class="text-[#7E5238] font-extrabold">${canSeeFinance() ? formatEGP(totalPayments) : '---'}</strong></div>
+            <div class="space-y-2 text-xs pt-4 mt-4 border-t border-[#E5EAF0]">
+              <div class="flex justify-between items-center"><span class="text-[#5B6B7C] font-semibold">إجمالي المصروف الفعلي:</span><strong class="text-[#12263A] font-extrabold">${formatEGP(totalSpent)}</strong></div>
+              <div class="flex justify-between items-center"><span class="text-[#5B6B7C] font-semibold">إجمالي دفعات العملاء:</span><strong class="text-[#2F5D8A] font-extrabold">${canSeeFinance() ? formatEGP(totalPayments) : '---'}</strong></div>
               ${canSeeFinance() ? `
-              <div class="flex justify-between items-center pt-2 border-t border-[#E6D9CC]"><span class="text-[#A85438] font-bold">نسبة Steel Studio المستحقة:</span><strong class="text-[#A85438] font-extrabold">${formatEGP(totalOfficeEarned)}</strong></div>
-              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">تم سحبه للاستوديو (مخصوم من الرصيد):</span><strong class="text-rose-800 font-extrabold">-${formatEGP(totalOfficeWithdrawn)}</strong></div>
-              <div class="flex justify-between items-center"><span class="text-[#7A6457] font-semibold">المتبقي للاستوديو:</span><strong class="text-[#2D1B14] font-black">${formatEGP(officeRemaining)}</strong></div>
+              <div class="flex justify-between items-center pt-2 border-t border-[#E5EAF0]"><span class="text-[#D9531E] font-bold">نسبة Steel Studio المستحقة:</span><strong class="text-[#D9531E] font-extrabold">${formatEGP(totalOfficeEarned)}</strong></div>
+              <div class="flex justify-between items-center"><span class="text-[#5B6B7C] font-semibold">تم سحبه للاستوديو (مخصوم من الرصيد):</span><strong class="text-rose-800 font-extrabold">-${formatEGP(totalOfficeWithdrawn)}</strong></div>
+              <div class="flex justify-between items-center"><span class="text-[#5B6B7C] font-semibold">المتبقي للاستوديو:</span><strong class="text-[#12263A] font-black">${formatEGP(officeRemaining)}</strong></div>
               ` : ''}
             </div>
           </div>
@@ -795,71 +780,71 @@
 
         <!-- اختصارات سريعة واضحة -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div onclick="switchTab('projects')" class="bg-[#FAF6F2] border border-[#DFD2C5] hover:border-[#A85438] rounded-3xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
+          <div onclick="switchTab('projects')" class="bg-[#FFFFFF] border border-[#DDE3EA] hover:border-[#D9531E] rounded-2xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
             <div>
-              <span class="text-xs text-[#7A6457] font-bold block">المشاريع الجارية</span>
-              <p class="text-xl sm:text-2xl font-black text-[#2D1B14] mt-1">${allowed.length} مشروع</p>
+              <span class="text-xs text-[#5B6B7C] font-bold block">المشاريع الجارية</span>
+              <p class="text-xl sm:text-2xl font-black text-[#12263A] mt-1">${allowed.length} مشروع</p>
             </div>
-            <span class="w-10 h-10 rounded-2xl bg-[#EFE6DD] text-[#A85438] flex items-center justify-center border border-[#DFD2C5] font-black text-sm">11</span>
+            <span class="w-10 h-10 rounded-2xl bg-[#EEF2F6] text-[#D9531E] flex items-center justify-center border border-[#DDE3EA] text-lg">🏗️</span>
           </div>
 
-          <div onclick="switchTab('materials')" class="bg-[#FAF6F2] border border-[#DFD2C5] hover:border-[#A85438] rounded-3xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
+          <div onclick="switchTab('materials')" class="bg-[#FFFFFF] border border-[#DDE3EA] hover:border-[#D9531E] rounded-2xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
             <div>
-              <span class="text-xs text-[#7A6457] font-bold block">طلبات الخامات</span>
-              <p class="text-xl sm:text-2xl font-black text-[#2D1B14] mt-1">${pendingMat} قيد المراجعة</p>
+              <span class="text-xs text-[#5B6B7C] font-bold block">طلبات الخامات</span>
+              <p class="text-xl sm:text-2xl font-black text-[#12263A] mt-1">${pendingMat} قيد المراجعة</p>
             </div>
-            <span class="w-10 h-10 rounded-2xl bg-[#EFE6DD] text-[#A85438] flex items-center justify-center border border-[#DFD2C5]">
+            <span class="w-10 h-10 rounded-2xl bg-[#EEF2F6] text-[#D9531E] flex items-center justify-center border border-[#DDE3EA]">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
             </span>
           </div>
 
-          <div onclick="switchTab('payments')" class="bg-[#FAF6F2] border border-[#DFD2C5] hover:border-[#A85438] rounded-3xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
+          <div onclick="switchTab('payments')" class="bg-[#FFFFFF] border border-[#DDE3EA] hover:border-[#D9531E] rounded-2xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
             <div>
-              <span class="text-xs text-[#7A6457] font-bold block">دفعات العملاء</span>
-              <p class="text-xl sm:text-2xl font-black text-[#2D1B14] mt-1">${STATE.payments.length} دفعة</p>
+              <span class="text-xs text-[#5B6B7C] font-bold block">دفعات العملاء</span>
+              <p class="text-xl sm:text-2xl font-black text-[#12263A] mt-1">${STATE.payments.length} دفعة</p>
             </div>
-            <span class="w-10 h-10 rounded-2xl bg-[#EFE6DD] text-[#A85438] flex items-center justify-center border border-[#DFD2C5] font-black text-xs">ج.م</span>
+            <span class="w-10 h-10 rounded-2xl bg-[#EEF2F6] text-[#D9531E] flex items-center justify-center border border-[#DDE3EA] font-black text-xs">ج.م</span>
           </div>
 
-          <div onclick="switchTab('appointments')" class="bg-[#FAF6F2] border border-[#DFD2C5] hover:border-[#A85438] rounded-3xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
+          <div onclick="switchTab('appointments')" class="bg-[#FFFFFF] border border-[#DDE3EA] hover:border-[#D9531E] rounded-2xl p-4 sm:p-5 cursor-pointer transition-all shadow-2xs flex items-center justify-between">
             <div>
-              <span class="text-xs text-[#7A6457] font-bold block">المواعيد والمهام</span>
-              <p class="text-xl sm:text-2xl font-black text-[#2D1B14] mt-1">${openTasks} قائمة</p>
+              <span class="text-xs text-[#5B6B7C] font-bold block">المواعيد والمهام</span>
+              <p class="text-xl sm:text-2xl font-black text-[#12263A] mt-1">${openTasks} قائمة</p>
             </div>
-            <span class="w-10 h-10 rounded-2xl bg-[#EFE6DD] text-[#A85438] flex items-center justify-center border border-[#DFD2C5]">
+            <span class="w-10 h-10 rounded-2xl bg-[#EEF2F6] text-[#D9531E] flex items-center justify-center border border-[#DDE3EA]">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </span>
           </div>
         </div>
 
         <!-- قسم المشاريع الجارية -->
-        <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-[32px] p-6 space-y-4 shadow-2xs">
+        <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-6 space-y-4 shadow-2xs">
           <div class="flex items-center justify-between">
-            <h4 class="font-black text-base text-[#2D1B14]">المشاريع الجارية ونسب الإنجاز</h4>
-            <button onclick="switchTab('projects')" class="text-xs font-extrabold text-[#A85438] hover:underline cursor-pointer">عرض الكل ←</button>
+            <h4 class="font-black text-base text-[#12263A]">المشاريع الجارية ونسب الإنجاز</h4>
+            <button onclick="switchTab('projects')" class="text-xs font-extrabold text-[#D9531E] hover:underline cursor-pointer">عرض الكل ←</button>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             ${allowed.length ? allowed.map((p) => {
               const f = computeFinancials(p);
               return `
                 <div onclick="STATE.selectedProjectId='${p.id}'; switchTab('projects')"
-                  class="p-5 rounded-3xl bg-white border border-[#DFD2C5] hover:border-[#A85438] cursor-pointer transition-all space-y-3 shadow-2xs">
+                  class="p-5 rounded-2xl bg-white border border-[#DDE3EA] hover:border-[#D9531E] cursor-pointer transition-all space-y-3 shadow-2xs">
                   <div class="flex justify-between items-center text-xs">
-                    <span class="px-3 py-1 rounded-full bg-[#EFE6DD] text-[#5C4438] font-extrabold">${STAGE_AR[p.visual_stage] || 'جاري التنفيذ'}</span>
-                    <span class="font-black text-[#A85438]">${f.progress}%</span>
+                    <span class="px-3 py-1 rounded-full bg-[#EEF2F6] text-[#3F4F61] font-extrabold">${STAGE_AR[p.visual_stage] || 'جاري التنفيذ'}</span>
+                    <span class="font-black text-[#D9531E]">${f.progress}%</span>
                   </div>
-                  <h5 class="font-black text-sm text-[#2D1B14]">${p.name}</h5>
-                  <p class="text-xs text-[#7A6457] font-semibold">العميل: ${p.client_name}</p>
-                  <div class="w-full h-2 bg-[#EFE6DD] rounded-full overflow-hidden">
-                    <div class="h-full bg-[#A85438] rounded-full" style="width:${f.progress}%"></div>
+                  <h5 class="font-black text-sm text-[#12263A]">${p.name}</h5>
+                  <p class="text-xs text-[#5B6B7C] font-semibold">العميل: ${p.client_name}</p>
+                  <div class="w-full h-2 bg-[#EEF2F6] rounded-full overflow-hidden">
+                    <div class="h-full bg-[#D9531E] rounded-full" style="width:${f.progress}%"></div>
                   </div>
                   ${canSeeFinance() ? `
-                  <div class="pt-2 border-t border-[#EFE6DD] flex justify-between text-[11px]">
-                    <span class="text-[#7A6457]">الرصيد المتاح:</span>
-                    <strong class="text-[#2D1B14] font-black">${formatEGP(f.balance)}</strong>
+                  <div class="pt-2 border-t border-[#EEF2F6] flex justify-between text-[11px]">
+                    <span class="text-[#5B6B7C]">الرصيد المتاح:</span>
+                    <strong class="text-[#12263A] font-black">${formatEGP(f.balance)}</strong>
                   </div>` : ''}
                 </div>`;
-            }).join('') : '<p class="col-span-3 text-center text-xs font-bold text-[#7A6457] py-8">لا توجد مشاريع مسجلة حالياً.</p>'}
+            }).join('') : '<p class="col-span-3 text-center text-xs font-bold text-[#5B6B7C] py-8">لا توجد مشاريع مسجلة حالياً.</p>'}
           </div>
         </div>
       `;
@@ -877,12 +862,12 @@
       );
 
       return `
-        <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center shadow-2xs">
-          <input type="text" value="${STATE.projectSearch}" oninput="STATE.projectSearch = this.value; renderCurrentView()"
+        <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-4 flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center shadow-2xs">
+          <input type="text" value="${String(STATE.projectSearch).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" oninput="onProjectSearch(this)"
             placeholder="بحث باسم المشروع أو العميل أو العنوان..."
-            class="flex-1 max-w-md px-4 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-xs font-semibold outline-none focus:border-[#A85438]" />
+            class="flex-1 max-w-md px-4 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-xs font-semibold outline-none focus:border-[#D9531E]" />
           <button onclick="openNewProjectModal()"
-            class="px-5 py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs shadow-sm cursor-pointer">
+            class="px-5 py-2.5 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold text-xs shadow-sm cursor-pointer">
             + مشروع تشطيبات جديد
           </button>
         </div>
@@ -892,83 +877,97 @@
             const f = computeFinancials(p);
             return `
               <div onclick="STATE.selectedProjectId='${p.id}'; renderCurrentView()"
-                class="bg-[#FAF6F2] border border-[#DFD2C5] hover:border-[#A85438] rounded-[32px] p-6 cursor-pointer transition-all flex flex-col justify-between gap-4 shadow-2xs">
+                class="bg-[#FFFFFF] border border-[#DDE3EA] hover:border-[#D9531E] rounded-2xl p-6 cursor-pointer transition-all flex flex-col justify-between gap-4 shadow-2xs">
                 <div class="space-y-2.5">
                   <div class="flex justify-between items-center text-xs">
-                    <span class="px-3 py-1 rounded-full bg-[#EFE6DD] text-[#5C4438] font-extrabold">${STAGE_AR[p.visual_stage] || 'جاري التنفيذ'}</span>
-                    <span class="text-[11px] font-bold text-[#7A6457]">نسبة المكتب: ${f.officePct}%</span>
+                    <span class="px-3 py-1 rounded-full bg-[#EEF2F6] text-[#3F4F61] font-extrabold">${STAGE_AR[p.visual_stage] || 'جاري التنفيذ'}</span>
+                    <span class="text-[11px] font-bold text-[#5B6B7C]">نسبة المكتب: ${f.officePct}%</span>
                   </div>
-                  <h3 class="font-black text-base text-[#2D1B14]">${p.name}</h3>
-                  <p class="text-xs text-[#5C4438] font-bold">العميل: ${p.client_name} • ${p.client_phone || ''}</p>
-                  <p class="text-xs text-[#7A6457] truncate">${p.address || ''}</p>
+                  <h3 class="font-black text-base text-[#12263A]">${p.name}</h3>
+                  <p class="text-xs text-[#3F4F61] font-bold">العميل: ${p.client_name} • ${p.client_phone || ''}</p>
+                  <p class="text-xs text-[#5B6B7C] truncate">${p.address || ''}</p>
                   <div class="pt-2">
                     <div class="flex justify-between text-xs font-extrabold mb-1">
-                      <span class="text-[#7A6457]">نسبة الإنجاز</span>
-                      <span class="text-[#A85438]">${f.progress}%</span>
+                      <span class="text-[#5B6B7C]">نسبة الإنجاز</span>
+                      <span class="text-[#D9531E]">${f.progress}%</span>
                     </div>
-                    <div class="w-full h-2 bg-[#E6D9CC] rounded-full overflow-hidden">
-                      <div class="h-full bg-[#A85438] rounded-full" style="width:${f.progress}%"></div>
+                    <div class="w-full h-2 bg-[#E5EAF0] rounded-full overflow-hidden">
+                      <div class="h-full bg-[#D9531E] rounded-full" style="width:${f.progress}%"></div>
                     </div>
                   </div>
                 </div>
 
-                <div class="pt-3 border-t border-[#E6D9CC] flex items-center justify-between text-xs">
+                <div class="pt-3 border-t border-[#E5EAF0] flex items-center justify-between text-xs">
                   ${canSeeFinance() ? `
                     <div>
-                      <span class="text-[#7A6457] block text-[11px]">الرصيد المتاح</span>
-                      <strong class="text-[#2D1B14] font-black">${formatEGP(f.balance)}</strong>
-                    </div>` : `<div><span class="text-[#7A6457] block text-[11px]">التسليم</span><strong>${p.delivery_date || '-'}</strong></div>`}
-                  <span class="px-4 py-1.5 rounded-full bg-[#2D1B14] text-[#FAF6F2] font-extrabold">فتح المشروع ←</span>
+                      <span class="text-[#5B6B7C] block text-[11px]">الرصيد المتاح</span>
+                      <strong class="text-[#12263A] font-black">${formatEGP(f.balance)}</strong>
+                    </div>` : `<div><span class="text-[#5B6B7C] block text-[11px]">التسليم</span><strong>${p.delivery_date || '-'}</strong></div>`}
+                  <span class="px-4 py-1.5 rounded-full bg-[#12263A] text-[#FFFFFF] font-extrabold">فتح المشروع ←</span>
                 </div>
               </div>`;
-          }).join('') : '<div class="col-span-3 bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-12 text-center text-xs font-bold text-[#7A6457]">لا توجد مشاريع مطابقة لبحثك.</div>'}
+          }).join('') : '<div class="col-span-3 bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-12 text-center text-xs font-bold text-[#5B6B7C]">لا توجد مشاريع مطابقة لبحثك.</div>'}
         </div>
       `;
+    }
+
+    function onProjectSearch(el) {
+      const pos = el.selectionStart;
+      STATE.projectSearch = el.value;
+      renderCurrentView();
+      const n = document.querySelector('#main-content input[oninput^="onProjectSearch"]');
+      if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (_) {} }
+    }
+
+    function toggleItemDetails(id) {
+      if (STATE.expandedItems.has(id)) STATE.expandedItems.delete(id);
+      else STATE.expandedItems.add(id);
+      renderCurrentView();
     }
 
     function openNewProjectModal() {
       const today = new Date().toISOString().slice(0, 10);
       openModal(`
         <div class="space-y-4">
-          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E5EAF0]">
             <div>
-              <h3 class="font-black text-base text-[#2D1B14]">إنشاء مشروع تشطيبات جديد</h3>
-              <p class="text-xs text-[#A85438] font-bold">يتم توليد البنود الـ 11 الأساسية تلقائياً مع فصل السباكة والكهرباء والتكييف</p>
+              <h3 class="font-black text-base text-[#12263A]">إنشاء مشروع تشطيبات جديد</h3>
+              <p class="text-xs text-[#D9531E] font-bold">يتم توليد البنود الـ 11 الأساسية تلقائياً مع فصل السباكة والكهرباء والتكييف</p>
             </div>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] text-[#2D1B14]">✕</button>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EEF2F6] text-[#12263A]">✕</button>
           </div>
 
           <form onsubmit="submitNewProject(event)" class="space-y-3 text-xs">
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">اسم المشروع *</label>
-              <input id="np-name" type="text" required placeholder="مثال: تشطيب فيلا التجمع الخامس" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">اسم المشروع *</label>
+              <input id="np-name" type="text" required placeholder="مثال: تشطيب فيلا التجمع الخامس" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">اسم العميل *</label>
-                <input id="np-client" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">اسم العميل *</label>
+                <input id="np-client" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">هاتف العميل *</label>
-                <input id="np-phone" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">هاتف العميل *</label>
+                <input id="np-phone" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">العنوان *</label>
-              <input id="np-address" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">العنوان *</label>
+              <input id="np-address" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">قيمة العقد (ج.م)</label>
-                <input id="np-contract" type="number" min="0" value="0" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">قيمة العقد (ج.م)</label>
+                <input id="np-contract" type="number" min="0" value="0" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">نسبة المكتب (%)</label>
-                <input id="np-pct" type="number" min="0" max="100" step="0.5" value="15" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">نسبة المكتب (%)</label>
+                <input id="np-pct" type="number" min="0" max="100" step="0.5" value="15" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">المرحلة</label>
-                <select id="np-stage" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                <label class="block font-extrabold text-[#3F4F61] mb-1">المرحلة</label>
+                <select id="np-stage" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold">
                   <option value="in_beginning">في البداية</option>
                   <option value="in_progress">جاري التنفيذ</option>
                   <option value="near_delivery">قرب التسليم</option>
@@ -977,17 +976,17 @@
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">تاريخ البداية</label>
-                <input id="np-start" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">تاريخ البداية</label>
+                <input id="np-start" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">تاريخ التسليم</label>
-                <input id="np-end" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">تاريخ التسليم</label>
+                <input id="np-end" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
             </div>
-            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
-              <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-full bg-[#EFE6DD] text-[#2D1B14] font-bold">إلغاء</button>
-              <button type="submit" class="px-6 py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ المشروع والبنود الـ 11</button>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2.5 rounded-full bg-[#EEF2F6] text-[#12263A] font-bold">إلغاء</button>
+              <button type="submit" class="px-6 py-2.5 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold cursor-pointer">حفظ المشروع والبنود الـ 11</button>
             </div>
           </form>
         </div>
@@ -1051,26 +1050,26 @@
 
       return `
         <!-- ترويسة المشروع -->
-        <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-[32px] p-6 space-y-4 shadow-2xs">
+        <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-6 space-y-4 shadow-2xs">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
               <button onclick="STATE.selectedProjectId=null; renderCurrentView()"
-                class="px-4 py-2 rounded-full bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] font-extrabold text-xs cursor-pointer">
+                class="px-4 py-2 rounded-full bg-[#EEF2F6] hover:bg-[#E2E8EF] text-[#12263A] font-extrabold text-xs cursor-pointer">
                 → رجوع للمشاريع
               </button>
               <div>
-                <h3 class="text-lg sm:text-xl font-black text-[#2D1B14]">${project.name}</h3>
-                <p class="text-xs text-[#7A6457] font-semibold">العميل: ${project.client_name} • ${project.address || ''} • نسبة المكتب: <strong class="text-[#A85438]">${f.officePct}%</strong></p>
+                <h3 class="text-lg sm:text-xl font-black text-[#12263A]">${project.name}</h3>
+                <p class="text-xs text-[#5B6B7C] font-semibold">العميل: ${project.client_name} • ${project.address || ''} • نسبة المكتب: <strong class="text-[#D9531E]">${f.officePct}%</strong></p>
               </div>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
               <button onclick="openEditProjectModal('${project.id}')"
-                class="px-4 py-2 rounded-full bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] border border-[#DFD2C5] font-extrabold text-xs cursor-pointer">
+                class="px-4 py-2 rounded-full bg-[#EEF2F6] hover:bg-[#E2E8EF] text-[#12263A] border border-[#DDE3EA] font-extrabold text-xs cursor-pointer">
                 تعديل بيانات المشروع
               </button>
               <button onclick="openClientStatementModal('${project.id}')"
-                class="px-4 py-2 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] font-extrabold text-xs cursor-pointer">
+                class="px-4 py-2 rounded-full bg-[#12263A] hover:bg-[#1B3550] text-[#FFFFFF] font-extrabold text-xs cursor-pointer">
                 مستخلص للعميل (PDF)
               </button>
               <button onclick="sendProjectSummaryWhatsApp('${project.id}')"
@@ -1081,13 +1080,13 @@
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2">
-            <div class="p-3.5 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] font-semibold block">تكلفة البنود</span><strong class="text-[#2D1B14] font-extrabold text-sm">${formatEGP(f.itemsCost)}</strong></div>
-            <div class="p-3.5 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] font-semibold block">المصروفات العامة</span><strong class="text-[#2D1B14] font-extrabold text-sm">${formatEGP(f.expensesTotal)}</strong></div>
-            <div class="p-3.5 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] font-semibold block">التصميمات والمخططات</span><strong class="text-[#2D1B14] font-extrabold text-sm">${formatEGP(f.designCost)}</strong></div>
-            <div class="p-3.5 rounded-2xl bg-[#A85438]/12 border border-[#A85438]/30">
-              <span class="text-[#A85438] font-bold block">الرصيد المتاح (بعد خصم سحوبات المكتب)</span>
-              <strong class="text-[#2D1B14] font-black text-sm">${canSeeFinance() ? formatEGP(f.balance) : '---'}</strong>
-              ${canSeeFinance() && f.officeWithdrawn > 0 ? `<span class="text-[10px] text-[#7A6457] block mt-0.5">مخصوم ${formatEGP(f.officeWithdrawn)} للمكتب</span>` : ''}
+            <div class="p-3.5 rounded-2xl bg-[#EEF2F6]/70 border border-[#DDE3EA]"><span class="text-[#5B6B7C] font-semibold block">تكلفة البنود</span><strong class="text-[#12263A] font-extrabold text-sm">${formatEGP(f.itemsCost)}</strong></div>
+            <div class="p-3.5 rounded-2xl bg-[#EEF2F6]/70 border border-[#DDE3EA]"><span class="text-[#5B6B7C] font-semibold block">المصروفات العامة</span><strong class="text-[#12263A] font-extrabold text-sm">${formatEGP(f.expensesTotal)}</strong></div>
+            <div class="p-3.5 rounded-2xl bg-[#EEF2F6]/70 border border-[#DDE3EA]"><span class="text-[#5B6B7C] font-semibold block">التصميمات والمخططات</span><strong class="text-[#12263A] font-extrabold text-sm">${formatEGP(f.designCost)}</strong></div>
+            <div class="p-3.5 rounded-2xl bg-[#D9531E]/12 border border-[#D9531E]/30">
+              <span class="text-[#D9531E] font-bold block">الرصيد المتاح (بعد خصم سحوبات المكتب)</span>
+              <strong class="text-[#12263A] font-black text-sm">${canSeeFinance() ? formatEGP(f.balance) : '---'}</strong>
+              ${canSeeFinance() && f.officeWithdrawn > 0 ? `<span class="text-[10px] text-[#5B6B7C] block mt-0.5">مخصوم ${formatEGP(f.officeWithdrawn)} للمكتب</span>` : ''}
             </div>
           </div>
         </div>
@@ -1095,21 +1094,21 @@
         <!-- تبويبات المشروع -->
         <div class="flex gap-2 overflow-x-auto pb-1">
           <button onclick="STATE.projectSubTab='items'; renderCurrentView()"
-            class="px-5 py-2.5 rounded-full text-xs font-extrabold cursor-pointer ${STATE.projectSubTab === 'items' ? 'bg-[#2D1B14] text-[#FAF6F2]' : 'bg-[#FAF6F2] text-[#5C4438] border border-[#DFD2C5]'}">
+            class="px-5 py-2.5 rounded-full text-xs font-extrabold cursor-pointer ${STATE.projectSubTab === 'items' ? 'bg-[#12263A] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#3F4F61] border border-[#DDE3EA]'}">
             البنود والتكاليف التراكمية (${pItems.length})
           </button>
           <button onclick="STATE.projectSubTab='reports'; renderCurrentView()"
-            class="px-5 py-2.5 rounded-full text-xs font-extrabold cursor-pointer ${STATE.projectSubTab === 'reports' ? 'bg-[#2D1B14] text-[#FAF6F2]' : 'bg-[#FAF6F2] text-[#5C4438] border border-[#DFD2C5]'}">
+            class="px-5 py-2.5 rounded-full text-xs font-extrabold cursor-pointer ${STATE.projectSubTab === 'reports' ? 'bg-[#12263A] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#3F4F61] border border-[#DDE3EA]'}">
             تقارير الموقع اليومية (${pReports.length})
           </button>
         </div>
 
         ${STATE.projectSubTab === 'items' ? `
           <div class="space-y-4">
-            <form onsubmit="addCustomProjectItem(event, '${project.id}')" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 flex flex-col sm:flex-row gap-3">
+            <form onsubmit="addCustomProjectItem(event, '${project.id}')" class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-4 flex flex-col sm:flex-row gap-3">
               <input id="custom-item-input" type="text" required placeholder="إضافة بند مخصص جديد للمشروع..."
-                class="flex-1 px-4 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-xs font-semibold outline-none focus:border-[#A85438]" />
-              <button type="submit" class="px-5 py-2.5 rounded-full bg-[#2D1B14] text-[#FAF6F2] font-extrabold text-xs cursor-pointer">+ إضافة بند</button>
+                class="flex-1 px-4 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-xs font-semibold outline-none focus:border-[#D9531E]" />
+              <button type="submit" class="px-5 py-2.5 rounded-full bg-[#12263A] text-[#FFFFFF] font-extrabold text-xs cursor-pointer">+ إضافة بند</button>
             </form>
 
             ${pItems.map((it, idx) => {
@@ -1121,43 +1120,49 @@
               const laborPaid = Number(it.labor_cost) || 0;
               const agreedTotal = contractor ? (Number(contractor.agreed_total) || 0) : 0;
               const contractorRemaining = contractor ? (agreedTotal - laborPaid) : 0;
+              const open = STATE.expandedItems.has(it.id);
 
               return `
-                <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-[28px] p-5 space-y-4 shadow-2xs">
-                  <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E6D9CC]">
+                <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-4 shadow-2xs">
+                  <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E5EAF0]">
                     <div class="flex items-center gap-3">
-                      <span class="w-8 h-8 rounded-xl bg-[#2D1B14] text-[#FAF6F2] text-xs font-black flex items-center justify-center">${idx + 1}</span>
+                      <span class="w-8 h-8 rounded-xl bg-[#12263A] text-[#FFFFFF] text-xs font-black flex items-center justify-center">${idx + 1}</span>
                       <div>
-                        <h4 class="font-black text-sm sm:text-base text-[#2D1B14]">${it.title}</h4>
-                        <p class="text-[11px] text-[#7A6457]">${it.execution_notes || 'بند تشطيبات أساسي'}</p>
+                        <h4 class="font-black text-sm sm:text-base text-[#12263A]">${it.title}</h4>
+                        <p class="text-[11px] text-[#5B6B7C]">${it.execution_notes || 'بند تشطيبات أساسي'}</p>
                       </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                      <div class="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-2xl border border-[#DFD2C5] text-xs">
-                        <span class="font-bold text-[#5C4438]">الإنجاز:</span>
+                      <div class="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-2xl border border-[#DDE3EA] text-xs">
+                        <span class="font-bold text-[#3F4F61]">الإنجاز:</span>
                         <input type="number" min="0" max="100" value="${it.completion_percentage || 0}"
                           onchange="updateItemProgress('${it.id}', this.value)"
-                          class="w-12 text-center font-black text-[#A85438] bg-[#EFE6DD] rounded-lg py-0.5" />
+                          class="w-12 text-center font-black text-[#D9531E] bg-[#EEF2F6] rounded-lg py-0.5" />
                         <span class="font-bold">%</span>
                       </div>
                       <button onclick="openAssignContractorModal('${project.id}', '${it.id}', '${it.title.replace(/'/g, '')}')"
-                        class="px-4 py-2 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] font-extrabold text-xs cursor-pointer">
+                        class="px-4 py-2 rounded-full bg-[#12263A] hover:bg-[#1B3550] text-[#FFFFFF] font-extrabold text-xs cursor-pointer">
                         ${contractor ? 'تعديل اتفاق الصنايعي' : '+ ربط صنايعي / مقاول'}
                       </button>
                       <button onclick="openAddTxModal('${project.id}', '${it.id}', '${it.title.replace(/'/g, '')}')"
-                        class="px-4 py-2 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs cursor-pointer">
+                        class="px-4 py-2 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold text-xs cursor-pointer">
                         + إضافة تكلفة تراكمية
                       </button>
                     </div>
                   </div>
 
+                  <button onclick="toggleItemDetails('${it.id}')" class="w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-xs font-extrabold cursor-pointer hover:border-[#D9531E]">
+                    <span class="text-[#3F4F61]">إجمالي البند: <strong class="text-[#12263A] font-black">${formatEGP(total)}</strong>${contractor ? ` • الصنايعي: ${contractor.worker_name}` : ''}${txs.length ? ` • ${txs.length} حركة` : ''}</span>
+                    <span class="text-[#D9531E] shrink-0">${open ? 'إخفاء التفاصيل ▲' : 'عرض التفاصيل ▼'}</span>
+                  </button>
+                  ${open ? `
                   ${contractor ? `
-                    <div class="p-4 rounded-2xl bg-white border border-[#DFD2C5] space-y-3 text-xs">
-                      <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#EFE6DD]">
+                    <div class="p-4 rounded-2xl bg-white border border-[#DDE3EA] space-y-3 text-xs">
+                      <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#EEF2F6]">
                         <div class="flex items-center gap-2 flex-wrap">
-                          <span class="px-2.5 py-1 rounded-lg bg-[#2D1B14] text-[#FAF6F2] font-extrabold">الصنايعي المسؤول</span>
-                          <strong class="text-sm font-black text-[#2D1B14]">${contractor.worker_name}</strong>
-                          <span class="px-2.5 py-0.5 rounded-full bg-[#EFE6DD] text-[#5C4438] font-bold">
+                          <span class="px-2.5 py-1 rounded-lg bg-[#12263A] text-[#FFFFFF] font-extrabold">الصنايعي المسؤول</span>
+                          <strong class="text-sm font-black text-[#12263A]">${contractor.worker_name}</strong>
+                          <span class="px-2.5 py-0.5 rounded-full bg-[#EEF2F6] text-[#3F4F61] font-bold">
                             ${contractor.agreement_type === 'per_meter'
                               ? `بالمتر (${contractor.quantity} م × ${formatEGP(contractor.unit_price)})`
                               : 'مقطوعية'}
@@ -1171,15 +1176,15 @@
                               إرسال كشف واتساب
                             </a>` : ''}
                           <button onclick="openAddTxModal('${project.id}', '${it.id}', '${it.title.replace(/'/g, '')}', 'labor')"
-                            class="px-3 py-1.5 rounded-full bg-[#A85438]/15 hover:bg-[#A85438] text-[#A85438] hover:text-white font-extrabold cursor-pointer">
+                            class="px-3 py-1.5 rounded-full bg-[#D9531E]/15 hover:bg-[#D9531E] text-[#D9531E] hover:text-white font-extrabold cursor-pointer">
                             + صرف دفعة مصنعية
                           </button>
                         </div>
                       </div>
                       <div class="grid grid-cols-3 gap-2.5">
-                        <div class="p-2.5 rounded-xl bg-[#FAF6F2] border border-[#E6D9CC]">
-                          <span class="text-[#7A6457] block">إجمالي المتفق عليه</span>
-                          <strong class="text-[#2D1B14] font-black text-sm">${formatEGP(agreedTotal)}</strong>
+                        <div class="p-2.5 rounded-xl bg-[#FFFFFF] border border-[#E5EAF0]">
+                          <span class="text-[#5B6B7C] block">إجمالي المتفق عليه</span>
+                          <strong class="text-[#12263A] font-black text-sm">${formatEGP(agreedTotal)}</strong>
                         </div>
                         <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
                           <span class="text-emerald-800 font-bold block">ما تم صرفه له</span>
@@ -1189,30 +1194,30 @@
                           <span class="${contractorRemaining < 0 ? 'text-rose-800' : 'text-amber-900'} font-bold block">
                             ${contractorRemaining < 0 ? 'زيادة مصروفة عن الاتفاق' : 'المتبقي للصنايعي'}
                           </span>
-                          <strong class="${contractorRemaining < 0 ? 'text-rose-950' : 'text-[#2D1B14]'} font-black text-sm">${formatEGP(Math.abs(contractorRemaining))}</strong>
+                          <strong class="${contractorRemaining < 0 ? 'text-rose-950' : 'text-[#12263A]'} font-black text-sm">${formatEGP(Math.abs(contractorRemaining))}</strong>
                         </div>
                       </div>
-                      ${contractor.notes ? `<p class="text-[11px] text-[#7A6457] font-semibold">ملاحظات الاتفاق: ${contractor.notes}</p>` : ''}
+                      ${contractor.notes ? `<p class="text-[11px] text-[#5B6B7C] font-semibold">ملاحظات الاتفاق: ${contractor.notes}</p>` : ''}
                     </div>
                   ` : ''}
 
                   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                    <div class="p-3 rounded-2xl bg-white border border-[#DFD2C5]"><span class="text-[#7A6457] block">الخامات</span><strong class="text-[#2D1B14] font-extrabold text-sm">${formatEGP(it.materials_cost)}</strong></div>
-                    <div class="p-3 rounded-2xl bg-white border border-[#DFD2C5]"><span class="text-[#7A6457] block">المصنعية</span><strong class="text-[#2D1B14] font-extrabold text-sm">${formatEGP(it.labor_cost)}</strong></div>
-                    <div class="p-3 rounded-2xl bg-white border border-[#DFD2C5]"><span class="text-[#7A6457] block">التشوين</span><strong class="text-[#2D1B14] font-extrabold text-sm">${formatEGP(it.staging_cost)}</strong></div>
-                    <div class="p-3 rounded-2xl bg-[#A85438]/12 border border-[#A85438]/30"><span class="text-[#A85438] font-bold block">إجمالي البند</span><strong class="text-[#2D1B14] font-black text-sm">${formatEGP(total)}</strong></div>
+                    <div class="p-3 rounded-2xl bg-white border border-[#DDE3EA]"><span class="text-[#5B6B7C] block">الخامات</span><strong class="text-[#12263A] font-extrabold text-sm">${formatEGP(it.materials_cost)}</strong></div>
+                    <div class="p-3 rounded-2xl bg-white border border-[#DDE3EA]"><span class="text-[#5B6B7C] block">المصنعية</span><strong class="text-[#12263A] font-extrabold text-sm">${formatEGP(it.labor_cost)}</strong></div>
+                    <div class="p-3 rounded-2xl bg-white border border-[#DDE3EA]"><span class="text-[#5B6B7C] block">التشوين</span><strong class="text-[#12263A] font-extrabold text-sm">${formatEGP(it.staging_cost)}</strong></div>
+                    <div class="p-3 rounded-2xl bg-[#D9531E]/12 border border-[#D9531E]/30"><span class="text-[#D9531E] font-bold block">إجمالي البند</span><strong class="text-[#12263A] font-black text-sm">${formatEGP(total)}</strong></div>
                   </div>
 
                   ${txs.length ? `
-                    <div class="pt-2 border-t border-[#E6D9CC] space-y-1.5 text-xs">
-                      <p class="font-extrabold text-[#5C4438]">سجل الحركات التراكمية (${txs.length}):</p>
+                    <div class="pt-2 border-t border-[#E5EAF0] space-y-1.5 text-xs">
+                      <p class="font-extrabold text-[#3F4F61]">سجل الحركات التراكمية (${txs.length}):</p>
                       ${txs.map((t) => `
-                        <div class="flex flex-wrap justify-between items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-[#DFD2C5]">
-                          <span class="font-semibold text-[#2D1B14]">[${t.cost_type === 'materials' ? 'خامات' : t.cost_type === 'labor' ? 'مصنعية' : 'تشوين'}] ${t.description || ''}</span>
+                        <div class="flex flex-wrap justify-between items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-[#DDE3EA]">
+                          <span class="font-semibold text-[#12263A]">[${t.cost_type === 'materials' ? 'خامات' : t.cost_type === 'labor' ? 'مصنعية' : 'تشوين'}] ${t.description || ''}</span>
                           <div class="flex items-center gap-2">
-                            <span class="font-extrabold text-[#A85438]">${formatEGP(t.amount)} • <span class="text-[#7A6457] font-normal">${t.transaction_date}</span></span>
+                            <span class="font-extrabold text-[#D9531E]">${formatEGP(t.amount)} • <span class="text-[#5B6B7C] font-normal">${t.transaction_date}</span></span>
                             <button onclick="openEditTxModal('${t.id}')" title="تعديل الحركة"
-                              class="px-2.5 py-1 rounded-lg bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] font-bold text-[11px] cursor-pointer">
+                              class="px-2.5 py-1 rounded-lg bg-[#EEF2F6] hover:bg-[#E2E8EF] text-[#12263A] font-bold text-[11px] cursor-pointer">
                               تعديل
                             </button>
                             <button onclick="openConfirmDeleteModal('حذف حركة تكلفة', 'هل أنت متأكد من حذف هذه الحركة (${formatEGP(t.amount)})؟ سيتم خصمها من إجمالي البند والرصيد.', () => deleteItemTx('${t.id}'))" title="حذف الحركة"
@@ -1222,50 +1227,51 @@
                           </div>
                         </div>`).join('')}
                     </div>` : ''}
+                  ` : ''}
                 </div>`;
             }).join('')}
           </div>
         ` : `
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <form onsubmit="submitDailyReport(event, '${project.id}')" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit">
-              <h4 class="font-black text-sm text-[#2D1B14]">تسجيل تقرير موقع يومي</h4>
+            <form onsubmit="submitDailyReport(event, '${project.id}')" class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-3 text-xs h-fit">
+              <h4 class="font-black text-sm text-[#12263A]">تسجيل تقرير موقع يومي</h4>
               <div class="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label class="block font-bold text-[#5C4438] mb-1">التاريخ</label>
-                  <input id="rep-date" type="date" value="${today}" class="w-full px-3 py-2 rounded-xl bg-white border border-[#DFD2C5]" />
+                  <label class="block font-bold text-[#3F4F61] mb-1">التاريخ</label>
+                  <input id="rep-date" type="date" value="${today}" class="w-full px-3 py-2 rounded-xl bg-white border border-[#DDE3EA]" />
                 </div>
                 <div>
-                  <label class="block font-bold text-[#5C4438] mb-1">عدد العمال</label>
-                  <input id="rep-workers" type="number" min="0" value="4" class="w-full px-3 py-2 rounded-xl bg-white border border-[#DFD2C5]" />
+                  <label class="block font-bold text-[#3F4F61] mb-1">عدد العمال</label>
+                  <input id="rep-workers" type="number" min="0" value="4" class="w-full px-3 py-2 rounded-xl bg-white border border-[#DDE3EA]" />
                 </div>
               </div>
               <div>
-                <label class="block font-bold text-[#5C4438] mb-1">ما تم تنفيذه اليوم *</label>
-                <textarea id="rep-done" rows="3" required class="w-full px-3 py-2 rounded-xl bg-white border border-[#DFD2C5]"></textarea>
+                <label class="block font-bold text-[#3F4F61] mb-1">ما تم تنفيذه اليوم *</label>
+                <textarea id="rep-done" rows="3" required class="w-full px-3 py-2 rounded-xl bg-white border border-[#DDE3EA]"></textarea>
               </div>
               <div>
-                <label class="block font-bold text-[#5C4438] mb-1">المعوقات والملاحظات</label>
-                <input id="rep-obs" type="text" class="w-full px-3 py-2 rounded-xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-bold text-[#3F4F61] mb-1">المعوقات والملاحظات</label>
+                <input id="rep-obs" type="text" class="w-full px-3 py-2 rounded-xl bg-white border border-[#DDE3EA]" />
               </div>
-              <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] text-white font-extrabold cursor-pointer">حفظ التقرير</button>
+              <button type="submit" class="w-full py-2.5 rounded-full bg-[#D9531E] text-white font-extrabold cursor-pointer">حفظ التقرير</button>
             </form>
 
             <div class="lg:col-span-2 space-y-3">
               ${pReports.length ? pReports.map((r) => `
-                <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-2 text-xs">
-                  <div class="flex flex-wrap justify-between items-center gap-2 pb-2 border-b border-[#E6D9CC]">
-                    <span class="px-3 py-1 rounded-full bg-[#2D1B14] text-[#FAF6F2] font-extrabold">${r.report_date}</span>
+                <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-2 text-xs">
+                  <div class="flex flex-wrap justify-between items-center gap-2 pb-2 border-b border-[#E5EAF0]">
+                    <span class="px-3 py-1 rounded-full bg-[#12263A] text-[#FFFFFF] font-extrabold">${r.report_date}</span>
                     <div class="flex items-center gap-2">
-                      <span class="font-extrabold text-[#A85438]">عدد العمال: ${r.workers_count}</span>
+                      <span class="font-extrabold text-[#D9531E]">عدد العمال: ${r.workers_count}</span>
                       <button onclick="sendDailyReportWhatsApp('${r.id}')"
                         class="px-3 py-1 rounded-full bg-[#3A6B4C] hover:bg-[#2E553C] text-white font-extrabold text-[11px] cursor-pointer">
                         إرسال للعميل واتساب
                       </button>
                     </div>
                   </div>
-                  <p class="text-sm font-bold text-[#2D1B14] leading-relaxed">${r.work_done}</p>
+                  <p class="text-sm font-bold text-[#12263A] leading-relaxed">${r.work_done}</p>
                   ${r.obstacles ? `<p class="text-rose-800 bg-rose-50 p-2.5 rounded-xl">المعوقات: ${r.obstacles}</p>` : ''}
-                </div>`).join('') : '<div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-10 text-center text-xs font-bold text-[#7A6457]">لا توجد تقارير يومية مسجلة لهذا المشروع.</div>'}
+                </div>`).join('') : '<div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-10 text-center text-xs font-bold text-[#5B6B7C]">لا توجد تقارير يومية مسجلة لهذا المشروع.</div>'}
             </div>
           </div>
         `}
@@ -1276,37 +1282,37 @@
       const today = new Date().toISOString().slice(0, 10);
       openModal(`
         <div class="space-y-4 text-xs">
-          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E5EAF0]">
             <div>
-              <h4 class="font-black text-sm text-[#2D1B14]">إضافة تكلفة تراكمية للبند</h4>
-              <p class="text-[#A85438] font-bold">${itemTitle}</p>
+              <h4 class="font-black text-sm text-[#12263A]">إضافة تكلفة تراكمية للبند</h4>
+              <p class="text-[#D9531E] font-bold">${itemTitle}</p>
             </div>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD]">✕</button>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EEF2F6]">✕</button>
           </div>
           <form onsubmit="submitItemTx(event, '${projectId}', '${itemId}')" class="space-y-3">
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">نوع التكلفة</label>
-              <select id="tx-type" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+              <label class="block font-extrabold text-[#3F4F61] mb-1">نوع التكلفة</label>
+              <select id="tx-type" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold">
                 <option value="materials" ${defaultCostType === 'materials' ? 'selected' : ''}>خامات</option>
                 <option value="labor" ${defaultCostType === 'labor' ? 'selected' : ''}>مصنعية (تُخصم من مستحقات الصنايعي)</option>
                 <option value="staging" ${defaultCostType === 'staging' ? 'selected' : ''}>تشوين</option>
               </select>
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ (ج.م) *</label>
-              <input id="tx-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">المبلغ (ج.م) *</label>
+              <input id="tx-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">التاريخ</label>
-              <input id="tx-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">التاريخ</label>
+              <input id="tx-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">البيان / الوصف</label>
-              <input id="tx-desc" type="text" placeholder="مثال: دفعة صنايعي / توريد خامات" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">البيان / الوصف</label>
+              <input id="tx-desc" type="text" placeholder="مثال: دفعة صنايعي / توريد خامات" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
-            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
-              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold">إلغاء</button>
-              <button type="submit" class="px-5 py-2 rounded-full bg-[#A85438] text-white font-extrabold cursor-pointer">حفظ الحركة</button>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EEF2F6] font-bold">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#D9531E] text-white font-extrabold cursor-pointer">حفظ الحركة</button>
             </div>
           </form>
         </div>
@@ -1323,19 +1329,19 @@
 
       openModal(`
         <div class="space-y-4 text-xs">
-          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E5EAF0]">
             <div>
-              <h4 class="font-black text-sm text-[#2D1B14]">ربط صنايعي / مقاول بالبند</h4>
-              <p class="text-[#A85438] font-bold">${itemTitle}</p>
+              <h4 class="font-black text-sm text-[#12263A]">ربط صنايعي / مقاول بالبند</h4>
+              <p class="text-[#D9531E] font-bold">${itemTitle}</p>
             </div>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EEF2F6] cursor-pointer">✕</button>
           </div>
 
           <form onsubmit="submitAssignContractor(event, '${projectId}', '${itemId}')" class="space-y-3">
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">اختيار الصنايعي / المقاول من الدليل</label>
+              <label class="block font-extrabold text-[#3F4F61] mb-1">اختيار الصنايعي / المقاول من الدليل</label>
               <select id="ac-worker-select" onchange="onContractorSelectChange(this.value)"
-                class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold">
                 <option value="">-- اختر من الدليل أو اكتب اسماً جديداً بالأسفل --</option>
                 ${STATE.workers.map((w) => `
                   <option value="${w.id}" ${existing?.worker_id === w.id ? 'selected' : ''}>
@@ -1347,23 +1353,23 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">اسم الصنايعي / المقاول *</label>
+                <label class="block font-extrabold text-[#3F4F61] mb-1">اسم الصنايعي / المقاول *</label>
                 <input id="ac-worker-name" type="text" required value="${existing?.worker_name || ''}"
                   placeholder="مثال: أسطى محمود السباك"
-                  class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-semibold" />
+                  class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-semibold" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">رقم الهاتف / واتساب</label>
+                <label class="block font-extrabold text-[#3F4F61] mb-1">رقم الهاتف / واتساب</label>
                 <input id="ac-worker-phone" type="text" value="${existing?.worker_phone || ''}"
                   placeholder="010xxxxxxxx"
-                  class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-semibold" />
+                  class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-semibold" />
               </div>
             </div>
 
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">نظام الاتفاق المالي *</label>
+              <label class="block font-extrabold text-[#3F4F61] mb-1">نظام الاتفاق المالي *</label>
               <select id="ac-type" onchange="recalcContractorAgreement()"
-                class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold">
                 <option value="lump_sum" ${agType === 'lump_sum' ? 'selected' : ''}>مقطوعية (إجمالي ثابت للبند)</option>
                 <option value="per_meter" ${agType === 'per_meter' ? 'selected' : ''}>بالمتر (الكمية × سعر المتر)</option>
               </select>
@@ -1371,39 +1377,39 @@
 
             <div id="ac-meter-fields" class="${agType === 'per_meter' ? 'grid' : 'hidden'} grid-cols-2 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">الكمية التقديرية (م² / م.ط)</label>
+                <label class="block font-extrabold text-[#3F4F61] mb-1">الكمية التقديرية (م² / م.ط)</label>
                 <input id="ac-qty" type="number" step="0.1" min="0" value="${qty}" oninput="recalcContractorAgreement()"
-                  class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+                  class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">سعر المتر (ج.م)</label>
+                <label class="block font-extrabold text-[#3F4F61] mb-1">سعر المتر (ج.م)</label>
                 <input id="ac-unit-price" type="number" step="0.5" min="0" value="${unitPrice}" oninput="recalcContractorAgreement()"
-                  class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+                  class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold" />
               </div>
             </div>
 
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">إجمالي قيمة الاتفاق للصنايعي (ج.م) *</label>
+              <label class="block font-extrabold text-[#3F4F61] mb-1">إجمالي قيمة الاتفاق للصنايعي (ج.م) *</label>
               <input id="ac-total" type="number" required min="0" value="${totalVal}"
-                class="w-full px-3.5 py-2.5 rounded-2xl bg-[#EFE6DD] border border-[#DFD2C5] font-black text-sm text-[#2D1B14]" />
+                class="w-full px-3.5 py-2.5 rounded-2xl bg-[#EEF2F6] border border-[#DDE3EA] font-black text-sm text-[#12263A]" />
             </div>
 
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">شروط وملاحظات الاتفاق</label>
+              <label class="block font-extrabold text-[#3F4F61] mb-1">شروط وملاحظات الاتفاق</label>
               <input id="ac-notes" type="text" value="${existing?.notes || ''}"
                 placeholder="مثال: شامل التشوين والنظافة بعد التسليم"
-                class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
 
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E6D9CC]">
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#E5EAF0]">
               ${existing ? `
                 <button type="button" onclick="removeContractorFromItem('${itemId}')"
                   class="px-3.5 py-2 rounded-full bg-rose-50 text-rose-800 font-bold cursor-pointer">
                   إلغاء الربط
                 </button>` : '<span></span>'}
               <div class="flex gap-2">
-                <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
-                <button type="submit" class="px-5 py-2 rounded-full bg-[#2D1B14] text-white font-extrabold cursor-pointer">حفظ الاتفاق</button>
+                <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EEF2F6] font-bold cursor-pointer">إلغاء</button>
+                <button type="submit" class="px-5 py-2 rounded-full bg-[#12263A] text-white font-extrabold cursor-pointer">حفظ الاتفاق</button>
               </div>
             </div>
           </form>
@@ -1599,13 +1605,13 @@
       window._pendingDeleteAction = onConfirmFn;
       openModal(`
         <div class="space-y-4 text-xs">
-          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E5EAF0]">
             <h4 class="font-black text-sm text-rose-900">${title}</h4>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EEF2F6] cursor-pointer">✕</button>
           </div>
-          <p class="text-sm font-bold text-[#2D1B14] leading-relaxed">${message}</p>
-          <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
-            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
+          <p class="text-sm font-bold text-[#12263A] leading-relaxed">${message}</p>
+          <div class="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EEF2F6] font-bold cursor-pointer">إلغاء</button>
             <button type="button" onclick="executePendingDelete()" class="px-5 py-2 rounded-full bg-rose-700 hover:bg-rose-800 text-white font-extrabold cursor-pointer">تأكيد الحذف</button>
           </div>
         </div>
@@ -1626,62 +1632,62 @@
 
       openModal(`
         <div class="space-y-4 text-xs">
-          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E5EAF0]">
             <div>
-              <h4 class="font-black text-sm text-[#2D1B14]">تعديل بيانات المشروع ونسبة المكتب</h4>
-              <p class="text-[#A85438] font-bold">${proj.name}</p>
+              <h4 class="font-black text-sm text-[#12263A]">تعديل بيانات المشروع ونسبة المكتب</h4>
+              <p class="text-[#D9531E] font-bold">${proj.name}</p>
             </div>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EEF2F6] cursor-pointer">✕</button>
           </div>
 
           <form onsubmit="submitEditProject(event, '${proj.id}')" class="space-y-3">
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">اسم المشروع *</label>
-              <input id="ep-name" type="text" required value="${proj.name || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-semibold" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">اسم المشروع *</label>
+              <input id="ep-name" type="text" required value="${proj.name || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-semibold" />
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">اسم العميل *</label>
-                <input id="ep-client" type="text" required value="${proj.client_name || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-semibold" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">اسم العميل *</label>
+                <input id="ep-client" type="text" required value="${proj.client_name || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-semibold" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">هاتف العميل</label>
-                <input id="ep-phone" type="text" value="${proj.client_phone || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-semibold" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">هاتف العميل</label>
+                <input id="ep-phone" type="text" value="${proj.client_phone || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-semibold" />
               </div>
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">العنوان</label>
-              <input id="ep-address" type="text" value="${proj.address || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-semibold" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">العنوان</label>
+              <input id="ep-address" type="text" value="${proj.address || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-semibold" />
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">قيمة العقد (ج.م)</label>
-                <input id="ep-contract" type="number" min="0" value="${Number(proj.contract_value) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">قيمة العقد (ج.م)</label>
+                <input id="ep-contract" type="number" min="0" value="${Number(proj.contract_value) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#A85438] mb-1">نسبة المكتب (%)</label>
-                <input id="ep-pct" type="number" min="0" max="100" step="0.5" value="${pct}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#A85438] font-black text-[#A85438]" />
+                <label class="block font-extrabold text-[#D9531E] mb-1">نسبة المكتب (%)</label>
+                <input id="ep-pct" type="number" min="0" max="100" step="0.5" value="${pct}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#D9531E] font-black text-[#D9531E]" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">مرحلة التنفيذ</label>
-                <select id="ep-stage" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                <label class="block font-extrabold text-[#3F4F61] mb-1">مرحلة التنفيذ</label>
+                <select id="ep-stage" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold">
                   ${Object.entries(STAGE_AR).map(([k, v]) => `<option value="${k}" ${proj.visual_stage === k ? 'selected' : ''}>${v}</option>`).join('')}
                 </select>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">تكلفة التصميمات 3D</label>
-                <input id="ep-3d" type="number" min="0" value="${Number(proj.design_3d_cost) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">تكلفة التصميمات 3D</label>
+                <input id="ep-3d" type="number" min="0" value="${Number(proj.design_3d_cost) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">تكلفة المخططات</label>
-                <input id="ep-plans" type="number" min="0" value="${Number(proj.execution_plans_cost) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">تكلفة المخططات</label>
+                <input id="ep-plans" type="number" min="0" value="${Number(proj.execution_plans_cost) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
             </div>
-            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
-              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
-              <button type="submit" class="px-6 py-2 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ التعديلات</button>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EEF2F6] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-6 py-2 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold cursor-pointer">حفظ التعديلات</button>
             </div>
           </form>
         </div>
@@ -1749,34 +1755,34 @@
       if (!tx) return;
       openModal(`
         <div class="space-y-4 text-xs">
-          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
-            <h4 class="font-black text-sm text-[#2D1B14]">تعديل حركة التكلفة التراكمية</h4>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+          <div class="flex justify-between items-center pb-3 border-b border-[#E5EAF0]">
+            <h4 class="font-black text-sm text-[#12263A]">تعديل حركة التكلفة التراكمية</h4>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EEF2F6] cursor-pointer">✕</button>
           </div>
           <form onsubmit="submitEditTx(event, '${tx.id}', '${tx.item_id}')" class="space-y-3">
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">نوع التكلفة</label>
-              <select id="etx-type" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+              <label class="block font-extrabold text-[#3F4F61] mb-1">نوع التكلفة</label>
+              <select id="etx-type" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold">
                 <option value="materials" ${tx.cost_type === 'materials' ? 'selected' : ''}>خامات</option>
                 <option value="labor" ${tx.cost_type === 'labor' ? 'selected' : ''}>مصنعية</option>
                 <option value="staging" ${tx.cost_type === 'staging' ? 'selected' : ''}>تشوين</option>
               </select>
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ (ج.م) *</label>
-              <input id="etx-amount" type="number" required min="1" value="${Number(tx.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">المبلغ (ج.م) *</label>
+              <input id="etx-amount" type="number" required min="1" value="${Number(tx.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold" />
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">التاريخ</label>
-              <input id="etx-date" type="date" value="${tx.transaction_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">التاريخ</label>
+              <input id="etx-date" type="date" value="${tx.transaction_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">البيان / الوصف</label>
-              <input id="etx-desc" type="text" value="${tx.description || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">البيان / الوصف</label>
+              <input id="etx-desc" type="text" value="${tx.description || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
-            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
-              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
-              <button type="submit" class="px-5 py-2 rounded-full bg-[#A85438] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EEF2F6] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#D9531E] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
             </div>
           </form>
         </div>
@@ -1825,34 +1831,34 @@
       if (!exp) return;
       openModal(`
         <div class="space-y-4 text-xs">
-          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
-            <h4 class="font-black text-sm text-[#2D1B14]">تعديل مصروف عام</h4>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+          <div class="flex justify-between items-center pb-3 border-b border-[#E5EAF0]">
+            <h4 class="font-black text-sm text-[#12263A]">تعديل مصروف عام</h4>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EEF2F6] cursor-pointer">✕</button>
           </div>
           <form onsubmit="submitEditExpense(event, '${exp.id}')" class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">النوع</label>
-                <select id="eexp-cat" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                <label class="block font-extrabold text-[#3F4F61] mb-1">النوع</label>
+                <select id="eexp-cat" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold">
                   ${Object.entries(EXPENSE_CAT_AR).map(([k, v]) => `<option value="${k}" ${exp.category === k ? 'selected' : ''}>${v}</option>`).join('')}
                 </select>
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ (ج.م) *</label>
-                <input id="eexp-amount" type="number" required min="1" value="${Number(exp.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">المبلغ (ج.م) *</label>
+                <input id="eexp-amount" type="number" required min="1" value="${Number(exp.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold" />
               </div>
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">الوصف *</label>
-              <input id="eexp-desc" type="text" required value="${exp.description || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">الوصف *</label>
+              <input id="eexp-desc" type="text" required value="${exp.description || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">التاريخ</label>
-              <input id="eexp-date" type="date" value="${exp.expense_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">التاريخ</label>
+              <input id="eexp-date" type="date" value="${exp.expense_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
-            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
-              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
-              <button type="submit" class="px-5 py-2 rounded-full bg-[#A85438] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EEF2F6] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#D9531E] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
             </div>
           </form>
         </div>
@@ -1895,36 +1901,36 @@
       if (!pay) return;
       openModal(`
         <div class="space-y-4 text-xs">
-          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
-            <h4 class="font-black text-sm text-[#2D1B14]">تعديل دفعة عميل</h4>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+          <div class="flex justify-between items-center pb-3 border-b border-[#E5EAF0]">
+            <h4 class="font-black text-sm text-[#12263A]">تعديل دفعة عميل</h4>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EEF2F6] cursor-pointer">✕</button>
           </div>
           <form onsubmit="submitEditPayment(event, '${pay.id}')" class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ (ج.م) *</label>
-                <input id="epay-amount" type="number" required min="1" value="${Number(pay.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">المبلغ (ج.م) *</label>
+                <input id="epay-amount" type="number" required min="1" value="${Number(pay.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">التاريخ</label>
-                <input id="epay-date" type="date" value="${pay.payment_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">التاريخ</label>
+                <input id="epay-date" type="date" value="${pay.payment_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">طريقة الدفع</label>
-                <select id="epay-method" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+                <label class="block font-extrabold text-[#3F4F61] mb-1">طريقة الدفع</label>
+                <select id="epay-method" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold">
                   ${Object.entries(PAYMENT_METHOD_AR).map(([k, v]) => `<option value="${k}" ${pay.payment_method === k ? 'selected' : ''}>${v}</option>`).join('')}
                 </select>
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">رقم الإيصال</label>
-                <input id="epay-receipt" type="text" value="${pay.receipt_number || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">رقم الإيصال</label>
+                <input id="epay-receipt" type="text" value="${pay.receipt_number || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
             </div>
-            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
-              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
-              <button type="submit" class="px-5 py-2 rounded-full bg-[#A85438] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EEF2F6] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#D9531E] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
             </div>
           </form>
         </div>
@@ -1967,32 +1973,32 @@
       if (!wd) return;
       openModal(`
         <div class="space-y-4 text-xs">
-          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
-            <h4 class="font-black text-sm text-[#2D1B14]">تعديل سحب للمكتب</h4>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] cursor-pointer">✕</button>
+          <div class="flex justify-between items-center pb-3 border-b border-[#E5EAF0]">
+            <h4 class="font-black text-sm text-[#12263A]">تعديل سحب للمكتب</h4>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EEF2F6] cursor-pointer">✕</button>
           </div>
           <form onsubmit="submitEditWithdrawal(event, '${wd.id}')" class="space-y-3">
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">القائم بالسحب</label>
-              <input id="ewd-by" type="text" required value="${wd.withdrawn_by || 'مهندس عمر'}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">القائم بالسحب</label>
+              <input id="ewd-by" type="text" required value="${wd.withdrawn_by || 'مهندس عمر'}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold" />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ المسحوب (ج.م) *</label>
-                <input id="ewd-amount" type="number" required min="1" value="${Number(wd.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">المبلغ المسحوب (ج.م) *</label>
+                <input id="ewd-amount" type="number" required min="1" value="${Number(wd.amount) || 0}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">التاريخ</label>
-                <input id="ewd-date" type="date" value="${wd.withdrawal_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">التاريخ</label>
+                <input id="ewd-date" type="date" value="${wd.withdrawal_date || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">ملاحظات</label>
-              <input id="ewd-notes" type="text" value="${wd.notes || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">ملاحظات</label>
+              <input id="ewd-notes" type="text" value="${wd.notes || ''}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
-            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
-              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold cursor-pointer">إلغاء</button>
-              <button type="submit" class="px-5 py-2 rounded-full bg-[#2D1B14] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EEF2F6] font-bold cursor-pointer">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#12263A] text-white font-extrabold cursor-pointer">حفظ التعديل</button>
             </div>
           </form>
         </div>
@@ -2055,17 +2061,17 @@
       const today = new Date().toISOString().slice(0, 10);
       openModal(`
         <div class="space-y-4 text-xs">
-          <div class="flex justify-between items-center pb-3 border-b border-[#E6D9CC]">
+          <div class="flex justify-between items-center pb-3 border-b border-[#E5EAF0]">
             <div>
-              <h4 class="font-black text-sm text-[#2D1B14]">تسجيل سحب للمكتب</h4>
-              <p class="text-[#A85438] font-bold">${projectName}</p>
+              <h4 class="font-black text-sm text-[#12263A]">تسجيل سحب للمكتب</h4>
+              <p class="text-[#D9531E] font-bold">${projectName}</p>
             </div>
-            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD]">✕</button>
+            <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EEF2F6]">✕</button>
           </div>
           <form onsubmit="submitOfficeWithdrawal(event, '${projectId}')" class="space-y-3">
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">القائم بالسحب *</label>
-              <select id="wd-by" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] font-bold">
+              <label class="block font-extrabold text-[#3F4F61] mb-1">القائم بالسحب *</label>
+              <select id="wd-by" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] font-bold">
                 <option value="مهندس عمر">مهندس عمر</option>
                 <option value="المكتب">المكتب</option>
                 <option value="شريك / إدارة">شريك / إدارة</option>
@@ -2073,24 +2079,24 @@
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">المبلغ المسحوب (ج.م) *</label>
-                <input id="wd-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">المبلغ المسحوب (ج.م) *</label>
+                <input id="wd-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
               <div>
-                <label class="block font-extrabold text-[#5C4438] mb-1">تاريخ السحب</label>
-                <input id="wd-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+                <label class="block font-extrabold text-[#3F4F61] mb-1">تاريخ السحب</label>
+                <input id="wd-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
               </div>
             </div>
             <div>
-              <label class="block font-extrabold text-[#5C4438] mb-1">ملاحظات</label>
-              <input id="wd-notes" type="text" placeholder="مثال: دفعة من أتعاب الإشراف" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5]" />
+              <label class="block font-extrabold text-[#3F4F61] mb-1">ملاحظات</label>
+              <input id="wd-notes" type="text" placeholder="مثال: دفعة من أتعاب الإشراف" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA]" />
             </div>
             <div class="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 font-bold">
               سيتم خصم هذا المبلغ مباشرة من الرصيد المتاح للمشروع ومن مستحقات المكتب.
             </div>
-            <div class="flex justify-end gap-2 pt-3 border-t border-[#E6D9CC]">
-              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EFE6DD] font-bold">إلغاء</button>
-              <button type="submit" class="px-5 py-2 rounded-full bg-[#2D1B14] text-white font-extrabold cursor-pointer">تأكيد السحب والخصم</button>
+            <div class="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-full bg-[#EEF2F6] font-bold">إلغاء</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-[#12263A] text-white font-extrabold cursor-pointer">تأكيد السحب والخصم</button>
             </div>
           </form>
         </div>
@@ -2170,74 +2176,74 @@
 
       return `
         <!-- ترويسة رسمية تظهر عند الطباعة / التصدير PDF فقط -->
-        <div class="hidden print-only pb-5 mb-6 border-b-2 border-[#2D1B14]">
+        <div class="hidden print-only pb-5 mb-6 border-b-2 border-[#12263A]">
           <div class="flex items-start justify-between">
             <div>
-              <h1 class="text-2xl font-black tracking-wider text-[#2D1B14]" dir="ltr">STEEL STUDIO</h1>
-              <p class="text-xs font-bold text-[#A85438] mt-0.5">التصميم المعماري والتشطيبات المتكاملة • التقرير المالي الداخلي</p>
+              <h1 class="text-2xl font-black tracking-wider text-[#12263A]" dir="ltr">STEEL STUDIO</h1>
+              <p class="text-xs font-bold text-[#D9531E] mt-0.5">التصميم المعماري والتشطيبات المتكاملة • التقرير المالي الداخلي</p>
             </div>
             <div class="text-left text-xs space-y-1">
-              <span class="inline-block px-3 py-1 rounded-full bg-[#EFE6DD] text-[#2D1B14] font-black">
+              <span class="inline-block px-3 py-1 rounded-full bg-[#EEF2F6] text-[#12263A] font-black">
                 كشف الحسابات والمصروفات وسحوبات الاستوديو
               </span>
-              <p class="text-[#7A6457] font-bold">النطاق: ${scopeTitle} • التاريخ: ${printDateStr}</p>
+              <p class="text-[#5B6B7C] font-bold">النطاق: ${scopeTitle} • التاريخ: ${printDateStr}</p>
             </div>
           </div>
         </div>
 
-        <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 flex flex-wrap items-center justify-between gap-3 no-print shadow-2xs">
+        <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 no-print shadow-2xs">
           <div class="flex items-center gap-2.5 text-xs">
-            <span class="text-[#5C4438] font-extrabold">تصفية حسب المشروع:</span>
+            <span class="text-[#3F4F61] font-extrabold">تصفية حسب المشروع:</span>
             <select onchange="STATE.accountsProjectFilter = this.value; renderCurrentView()"
-              class="px-4 py-2 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+              class="px-4 py-2 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold">
               <option value="ALL" ${STATE.accountsProjectFilter === 'ALL' ? 'selected' : ''}>جميع المشاريع</option>
               ${allowed.map((p) => `<option value="${p.id}" ${STATE.accountsProjectFilter === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
             </select>
           </div>
-          <button onclick="window.print()" class="px-5 py-2.5 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] font-extrabold text-xs cursor-pointer">طباعة / تصدير التقرير (PDF)</button>
+          <button onclick="window.print()" class="px-5 py-2.5 rounded-full bg-[#12263A] hover:bg-[#1B3550] text-[#FFFFFF] font-extrabold text-xs cursor-pointer">طباعة / تصدير التقرير (PDF)</button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <!-- العمود الجانبي: إضافة مصروف عام جديد (يمين الصفحة في RTL) -->
           <div class="lg:col-span-4 lg:sticky lg:top-24 no-print">
-            <form onsubmit="submitGlobalExpense(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3.5 text-xs shadow-2xs">
-              <div class="pb-2.5 border-b border-[#E6D9CC]">
-                <h4 class="font-black text-sm text-[#A85438]">إضافة مصروف عام جديد</h4>
-                <p class="text-[11px] text-[#7A6457] font-semibold mt-0.5">يُخصم تلقائياً من الرصيد المتاح للمشروع</p>
+            <form onsubmit="submitGlobalExpense(event)" class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-3.5 text-xs shadow-2xs">
+              <div class="pb-2.5 border-b border-[#E5EAF0]">
+                <h4 class="font-black text-sm text-[#D9531E]">إضافة مصروف عام جديد</h4>
+                <p class="text-[11px] text-[#5B6B7C] font-semibold mt-0.5">يُخصم تلقائياً من الرصيد المتاح للمشروع</p>
               </div>
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">المشروع *</label>
-                <select id="ge-proj" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                <label class="block text-[#3F4F61] font-extrabold mb-1">المشروع *</label>
+                <select id="ge-proj" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold">
                   ${allowed.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
                 </select>
               </div>
               <div class="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label class="block text-[#5C4438] font-extrabold mb-1">النوع</label>
-                  <select id="ge-cat" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                  <label class="block text-[#3F4F61] font-extrabold mb-1">النوع</label>
+                  <select id="ge-cat" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold">
                     ${Object.entries(EXPENSE_CAT_AR).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
                   </select>
                 </div>
                 <div>
-                  <label class="block text-[#5C4438] font-extrabold mb-1">المبلغ (ج.م) *</label>
-                  <input id="ge-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                  <label class="block text-[#3F4F61] font-extrabold mb-1">المبلغ (ج.م) *</label>
+                  <input id="ge-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
                 </div>
               </div>
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">الوصف *</label>
-                <input id="ge-desc" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                <label class="block text-[#3F4F61] font-extrabold mb-1">الوصف *</label>
+                <input id="ge-desc" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
               </div>
               <div class="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label class="block text-[#5C4438] font-extrabold mb-1">التاريخ</label>
-                  <input id="ge-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                  <label class="block text-[#3F4F61] font-extrabold mb-1">التاريخ</label>
+                  <input id="ge-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
                 </div>
                 <div>
-                  <label class="block text-[#5C4438] font-extrabold mb-1">المسؤول</label>
-                  <input id="ge-person" type="text" value="${STATE.profile?.full_name || 'م. عمر رضا'}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                  <label class="block text-[#3F4F61] font-extrabold mb-1">المسؤول</label>
+                  <input id="ge-person" type="text" value="${STATE.profile?.full_name || 'م. عمر رضا'}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
                 </div>
               </div>
-              <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ المصروف</button>
+              <button type="submit" class="w-full py-2.5 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold cursor-pointer">حفظ المصروف</button>
             </form>
           </div>
 
@@ -2248,32 +2254,32 @@
               ${target.map((p) => {
                 const f = computeFinancials(p);
                 return `
-                  <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 shadow-2xs print-clean-card">
-                    <div class="flex flex-wrap justify-between items-center gap-2 pb-2.5 border-b border-[#E6D9CC]">
+                  <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-3 shadow-2xs print-clean-card">
+                    <div class="flex flex-wrap justify-between items-center gap-2 pb-2.5 border-b border-[#E5EAF0]">
                       <div>
-                        <h4 class="font-black text-sm text-[#2D1B14]">${p.name}</h4>
-                        <span class="text-[11px] text-[#7A6457]">العميل: ${p.client_name} • نسبة الاستوديو: <strong class="text-[#A85438]">${f.officePct}%</strong> • نسبة الإنجاز: <strong>${f.progress}%</strong></span>
+                        <h4 class="font-black text-sm text-[#12263A]">${p.name}</h4>
+                        <span class="text-[11px] text-[#5B6B7C]">العميل: ${p.client_name} • نسبة الاستوديو: <strong class="text-[#D9531E]">${f.officePct}%</strong> • نسبة الإنجاز: <strong>${f.progress}%</strong></span>
                       </div>
                       <div class="flex items-center gap-1.5 no-print">
                         <button onclick="openEditProjectModal('${p.id}')"
-                          class="px-3 py-1.5 rounded-full bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] border border-[#DFD2C5] text-[11px] font-extrabold cursor-pointer">
+                          class="px-3 py-1.5 rounded-full bg-[#EEF2F6] hover:bg-[#E2E8EF] text-[#12263A] border border-[#DDE3EA] text-[11px] font-extrabold cursor-pointer">
                           تعديل النسبة / العقد
                         </button>
                         ${canSeeFinance() ? `
                           <button onclick="openOfficeWithdrawModal('${p.id}', '${p.name.replace(/'/g, '')}')"
-                            class="px-3.5 py-1.5 rounded-full bg-[#2D1B14] hover:bg-[#3B231A] text-[#FAF6F2] text-[11px] font-extrabold cursor-pointer">
+                            class="px-3.5 py-1.5 rounded-full bg-[#12263A] hover:bg-[#1B3550] text-[#FFFFFF] text-[11px] font-extrabold cursor-pointer">
                             + سحب للمكتب
                           </button>` : ''}
                       </div>
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-                      <div class="p-3 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] block">دفعات العميل</span><strong class="text-[#2D1B14] font-extrabold">${canSeeFinance() ? formatEGP(f.paymentsTotal) : '---'}</strong></div>
-                      <div class="p-3 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5]"><span class="text-[#7A6457] block">إجمالي المصروف</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(f.totalSpent)}</strong></div>
-                      <div class="p-3 rounded-2xl bg-[#A85438]/12 border border-[#A85438]/30"><span class="text-[#A85438] font-bold block">الرصيد المتاح (بعد خصم الاستوديو)</span><strong class="text-[#2D1B14] font-black">${canSeeFinance() ? formatEGP(f.balance) : '---'}</strong></div>
+                      <div class="p-3 rounded-2xl bg-[#EEF2F6]/70 border border-[#DDE3EA]"><span class="text-[#5B6B7C] block">دفعات العميل</span><strong class="text-[#12263A] font-extrabold">${canSeeFinance() ? formatEGP(f.paymentsTotal) : '---'}</strong></div>
+                      <div class="p-3 rounded-2xl bg-[#EEF2F6]/70 border border-[#DDE3EA]"><span class="text-[#5B6B7C] block">إجمالي المصروف</span><strong class="text-[#12263A] font-extrabold">${formatEGP(f.totalSpent)}</strong></div>
+                      <div class="p-3 rounded-2xl bg-[#D9531E]/12 border border-[#D9531E]/30"><span class="text-[#D9531E] font-bold block">الرصيد المتاح (بعد خصم الاستوديو)</span><strong class="text-[#12263A] font-black">${canSeeFinance() ? formatEGP(f.balance) : '---'}</strong></div>
                       ${canSeeFinance() ? `
-                        <div class="p-3 rounded-2xl bg-[#EFE6DD] border border-[#DFD2C5]"><span class="text-[#5C4438] block">مستحقات الاستوديو (${f.officePct}%)</span><strong class="text-[#2D1B14] font-extrabold">${formatEGP(f.officeEarned)}</strong></div>
+                        <div class="p-3 rounded-2xl bg-[#EEF2F6] border border-[#DDE3EA]"><span class="text-[#3F4F61] block">مستحقات الاستوديو (${f.officePct}%)</span><strong class="text-[#12263A] font-extrabold">${formatEGP(f.officeEarned)}</strong></div>
                         <div class="p-3 rounded-2xl bg-rose-50 border border-rose-200"><span class="text-rose-800 block">مسحوب للاستوديو (مخصوم)</span><strong class="text-rose-900 font-extrabold">-${formatEGP(f.officeWithdrawn)}</strong></div>
-                        <div class="p-3 rounded-2xl bg-[#EFE6DD] border border-[#DFD2C5]"><span class="text-[#A85438] font-bold block">المتبقي للاستوديو</span><strong class="text-[#2D1B14] font-black">${formatEGP(f.officeRemaining)}</strong></div>
+                        <div class="p-3 rounded-2xl bg-[#EEF2F6] border border-[#DDE3EA]"><span class="text-[#D9531E] font-bold block">المتبقي للاستوديو</span><strong class="text-[#12263A] font-black">${formatEGP(f.officeRemaining)}</strong></div>
                       ` : ''}
                     </div>
                   </div>`;
@@ -2281,16 +2287,16 @@
             </div>
 
             <!-- جدول تفصيل تكاليف البنود الـ 11 (يظهر بوضوح في التقرير والطباعة) -->
-            <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl overflow-hidden shadow-2xs print-clean-card">
-              <div class="p-4 border-b border-[#E6D9CC] flex justify-between items-center">
-                <h4 class="font-black text-sm text-[#2D1B14]">تفصيل تكاليف البنود الهندسية (${filteredItems.filter((it) => ((Number(it.materials_cost)||0) + (Number(it.labor_cost)||0) + (Number(it.staging_cost)||0)) > 0).length} بند نشط)</h4>
-                <span class="text-xs font-extrabold text-[#2D1B14] bg-[#EFE6DD] px-3 py-1 rounded-xl">
+            <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl overflow-hidden shadow-2xs print-clean-card">
+              <div class="p-4 border-b border-[#E5EAF0] flex justify-between items-center">
+                <h4 class="font-black text-sm text-[#12263A]">تفصيل تكاليف البنود الهندسية (${filteredItems.filter((it) => ((Number(it.materials_cost)||0) + (Number(it.labor_cost)||0) + (Number(it.staging_cost)||0)) > 0).length} بند نشط)</h4>
+                <span class="text-xs font-extrabold text-[#12263A] bg-[#EEF2F6] px-3 py-1 rounded-xl">
                   ${formatEGP(filteredItems.reduce((s, it) => s + (Number(it.materials_cost)||0) + (Number(it.labor_cost)||0) + (Number(it.staging_cost)||0), 0))}
                 </span>
               </div>
               <div class="overflow-x-auto">
                 <table class="w-full text-right text-xs">
-                  <thead class="bg-[#EFE6DD] text-[#5C4438] font-extrabold">
+                  <thead class="bg-[#EEF2F6] text-[#3F4F61] font-extrabold">
                     <tr>
                       <th class="p-3">المشروع</th>
                       <th class="p-3">البند</th>
@@ -2301,7 +2307,7 @@
                       <th class="p-3">الإجمالي</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-[#E6D9CC]">
+                  <tbody class="divide-y divide-[#E5EAF0]">
                     ${(() => {
                       const activeItems = filteredItems.filter((it) => ((Number(it.materials_cost)||0) + (Number(it.labor_cost)||0) + (Number(it.staging_cost)||0)) > 0);
                       return activeItems.length ? activeItems.map((it) => {
@@ -2310,97 +2316,97 @@
                         const st = Number(it.staging_cost) || 0;
                         return `
                           <tr>
-                            <td class="p-3 font-bold text-[#7A6457]">${allowed.find((p) => p.id === it.project_id)?.name || 'مشروع'}</td>
-                            <td class="p-3 font-extrabold text-[#2D1B14]">${it.title}</td>
-                            <td class="p-3 font-bold text-[#5C4438]">${it.completion_percentage || 0}%</td>
-                            <td class="p-3 text-[#2D1B14]">${formatEGP(m)}</td>
-                            <td class="p-3 text-[#2D1B14]">${formatEGP(l)}</td>
-                            <td class="p-3 text-[#2D1B14]">${formatEGP(st)}</td>
-                            <td class="p-3 font-black text-[#A85438] whitespace-nowrap">${formatEGP(m + l + st)}</td>
+                            <td class="p-3 font-bold text-[#5B6B7C]">${allowed.find((p) => p.id === it.project_id)?.name || 'مشروع'}</td>
+                            <td class="p-3 font-extrabold text-[#12263A]">${it.title}</td>
+                            <td class="p-3 font-bold text-[#3F4F61]">${it.completion_percentage || 0}%</td>
+                            <td class="p-3 text-[#12263A]">${formatEGP(m)}</td>
+                            <td class="p-3 text-[#12263A]">${formatEGP(l)}</td>
+                            <td class="p-3 text-[#12263A]">${formatEGP(st)}</td>
+                            <td class="p-3 font-black text-[#D9531E] whitespace-nowrap">${formatEGP(m + l + st)}</td>
                           </tr>`;
-                      }).join('') : '<tr><td colspan="7" class="p-6 text-center text-[#7A6457] font-bold">لا توجد تكاليف مسجلة على البنود حتى الآن.</td></tr>';
+                      }).join('') : '<tr><td colspan="7" class="p-6 text-center text-[#5B6B7C] font-bold">لا توجد تكاليف مسجلة على البنود حتى الآن.</td></tr>';
                     })()}
                   </tbody>
                 </table>
               </div>
             </div>
 
-            <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl overflow-hidden shadow-2xs print-clean-card">
-              <div class="p-4 border-b border-[#E6D9CC] flex justify-between items-center">
-                <h4 class="font-black text-sm text-[#2D1B14]">سجل المصروفات العامة (${filteredExpenses.length})</h4>
-                <span class="text-xs font-extrabold text-[#A85438] bg-[#EFE6DD] px-3 py-1 rounded-xl">${formatEGP(filteredExpenses.reduce((s, e) => s + (Number(e.amount) || 0), 0))}</span>
+            <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl overflow-hidden shadow-2xs print-clean-card">
+              <div class="p-4 border-b border-[#E5EAF0] flex justify-between items-center">
+                <h4 class="font-black text-sm text-[#12263A]">سجل المصروفات العامة (${filteredExpenses.length})</h4>
+                <span class="text-xs font-extrabold text-[#D9531E] bg-[#EEF2F6] px-3 py-1 rounded-xl">${formatEGP(filteredExpenses.reduce((s, e) => s + (Number(e.amount) || 0), 0))}</span>
               </div>
               <div class="overflow-x-auto">
                 <table class="w-full text-right text-xs">
-                  <thead class="bg-[#EFE6DD] text-[#5C4438] font-extrabold">
+                  <thead class="bg-[#EEF2F6] text-[#3F4F61] font-extrabold">
                     <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">النوع</th><th class="p-3.5">الوصف</th><th class="p-3.5">القيمة</th><th class="p-3.5 no-print">إجراءات</th></tr>
                   </thead>
-                  <tbody class="divide-y divide-[#E6D9CC]">
+                  <tbody class="divide-y divide-[#E5EAF0]">
                     ${filteredExpenses.length ? filteredExpenses.map((e) => `
                       <tr>
-                        <td class="p-3.5 text-[#7A6457] whitespace-nowrap">${e.expense_date}</td>
-                        <td class="p-3.5 font-extrabold text-[#2D1B14]">${allowed.find((p) => p.id === e.project_id)?.name || 'مشروع'}</td>
-                        <td class="p-3.5 text-[#5C4438]">${EXPENSE_CAT_AR[e.category] || e.category}</td>
-                        <td class="p-3.5 text-[#2D1B14]">${e.description}</td>
-                        <td class="p-3.5 font-black text-[#A85438] whitespace-nowrap">${formatEGP(e.amount)}</td>
+                        <td class="p-3.5 text-[#5B6B7C] whitespace-nowrap">${e.expense_date}</td>
+                        <td class="p-3.5 font-extrabold text-[#12263A]">${allowed.find((p) => p.id === e.project_id)?.name || 'مشروع'}</td>
+                        <td class="p-3.5 text-[#3F4F61]">${EXPENSE_CAT_AR[e.category] || e.category}</td>
+                        <td class="p-3.5 text-[#12263A]">${e.description}</td>
+                        <td class="p-3.5 font-black text-[#D9531E] whitespace-nowrap">${formatEGP(e.amount)}</td>
                         <td class="p-3.5 whitespace-nowrap no-print">
-                          <button onclick="openEditExpenseModal('${e.id}')" class="px-2.5 py-1 rounded-lg bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] font-bold text-[11px] cursor-pointer">تعديل</button>
+                          <button onclick="openEditExpenseModal('${e.id}')" class="px-2.5 py-1 rounded-lg bg-[#EEF2F6] hover:bg-[#E2E8EF] text-[#12263A] font-bold text-[11px] cursor-pointer">تعديل</button>
                           <button onclick="openConfirmDeleteModal('حذف مصروف عام', 'هل أنت متأكد من حذف هذا المصروف (${formatEGP(e.amount)})؟', () => deleteExpense('${e.id}'))" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[11px] cursor-pointer">حذف</button>
                         </td>
-                      </tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-[#7A6457] font-bold">لا توجد مصروفات عامة مسجلة.</td></tr>'}
+                      </tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-[#5B6B7C] font-bold">لا توجد مصروفات عامة مسجلة.</td></tr>'}
                   </tbody>
                 </table>
               </div>
             </div>
 
             ${canSeeFinance() ? `
-            <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl overflow-hidden shadow-2xs print-clean-card">
-              <div class="p-4 border-b border-[#E6D9CC] flex justify-between items-center">
-                <h4 class="font-black text-sm text-[#2D1B14]">سجل سحوبات الاستوديو (${filteredWithdrawals.length})</h4>
+            <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl overflow-hidden shadow-2xs print-clean-card">
+              <div class="p-4 border-b border-[#E5EAF0] flex justify-between items-center">
+                <h4 class="font-black text-sm text-[#12263A]">سجل سحوبات الاستوديو (${filteredWithdrawals.length})</h4>
                 <span class="text-xs font-extrabold text-rose-800 bg-rose-50 px-3 py-1 rounded-xl">-${formatEGP(filteredWithdrawals.reduce((s, w) => s + (Number(w.amount) || 0), 0))}</span>
               </div>
               <div class="overflow-x-auto">
                 <table class="w-full text-right text-xs">
-                  <thead class="bg-[#EFE6DD] text-[#5C4438] font-extrabold">
+                  <thead class="bg-[#EEF2F6] text-[#3F4F61] font-extrabold">
                     <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">القائم بالسحب</th><th class="p-3.5">ملاحظات</th><th class="p-3.5">المبلغ</th><th class="p-3.5 no-print">إجراءات</th></tr>
                   </thead>
-                  <tbody class="divide-y divide-[#E6D9CC]">
+                  <tbody class="divide-y divide-[#E5EAF0]">
                     ${filteredWithdrawals.length ? filteredWithdrawals.map((w) => `
                       <tr>
-                        <td class="p-3.5 text-[#7A6457] whitespace-nowrap">${w.withdrawal_date}</td>
-                        <td class="p-3.5 font-extrabold text-[#2D1B14]">${allowed.find((p) => p.id === w.project_id)?.name || 'مشروع'}</td>
-                        <td class="p-3.5"><span class="px-2.5 py-0.5 rounded-lg bg-[#2D1B14] text-[#FAF6F2] font-bold">${w.withdrawn_by || 'مهندس عمر'}</span></td>
-                        <td class="p-3.5 text-[#5C4438]">${w.notes || '-'}</td>
+                        <td class="p-3.5 text-[#5B6B7C] whitespace-nowrap">${w.withdrawal_date}</td>
+                        <td class="p-3.5 font-extrabold text-[#12263A]">${allowed.find((p) => p.id === w.project_id)?.name || 'مشروع'}</td>
+                        <td class="p-3.5"><span class="px-2.5 py-0.5 rounded-lg bg-[#12263A] text-[#FFFFFF] font-bold">${w.withdrawn_by || 'مهندس عمر'}</span></td>
+                        <td class="p-3.5 text-[#3F4F61]">${w.notes || '-'}</td>
                         <td class="p-3.5 font-black text-rose-800 whitespace-nowrap">-${formatEGP(w.amount)}</td>
                         <td class="p-3.5 whitespace-nowrap no-print">
-                          <button onclick="openEditWithdrawalModal('${w.id}')" class="px-2.5 py-1 rounded-lg bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] font-bold text-[11px] cursor-pointer">تعديل</button>
+                          <button onclick="openEditWithdrawalModal('${w.id}')" class="px-2.5 py-1 rounded-lg bg-[#EEF2F6] hover:bg-[#E2E8EF] text-[#12263A] font-bold text-[11px] cursor-pointer">تعديل</button>
                           <button onclick="openConfirmDeleteModal('حذف سحب للمكتب', 'هل أنت متأكد من حذف حركة السحب (${formatEGP(w.amount)})؟ سيعود المبلغ للرصيد المتاح.', () => deleteOfficeWithdrawal('${w.id}'))" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[11px] cursor-pointer">حذف</button>
                         </td>
-                      </tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-[#7A6457] font-bold">لا توجد سحوبات مسجلة للاستوديو حتى الآن.</td></tr>'}
+                      </tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-[#5B6B7C] font-bold">لا توجد سحوبات مسجلة للاستوديو حتى الآن.</td></tr>'}
                   </tbody>
                 </table>
               </div>
             </div>
 
-            <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl overflow-hidden shadow-2xs print-clean-card">
-              <div class="p-4 border-b border-[#E6D9CC] flex justify-between items-center">
-                <h4 class="font-black text-sm text-[#2D1B14]">سجل دفعات العميل (${filteredPayments.length})</h4>
+            <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl overflow-hidden shadow-2xs print-clean-card">
+              <div class="p-4 border-b border-[#E5EAF0] flex justify-between items-center">
+                <h4 class="font-black text-sm text-[#12263A]">سجل دفعات العميل (${filteredPayments.length})</h4>
                 <span class="text-xs font-extrabold text-[#3A6B4C] bg-emerald-50 px-3 py-1 rounded-xl">${formatEGP(filteredPayments.reduce((s, p) => s + (Number(p.amount) || 0), 0))}</span>
               </div>
               <div class="overflow-x-auto">
                 <table class="w-full text-right text-xs">
-                  <thead class="bg-[#EFE6DD] text-[#5C4438] font-extrabold">
+                  <thead class="bg-[#EEF2F6] text-[#3F4F61] font-extrabold">
                     <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">طريقة السداد</th><th class="p-3.5">الإيصال</th><th class="p-3.5">المبلغ</th></tr>
                   </thead>
-                  <tbody class="divide-y divide-[#E6D9CC]">
+                  <tbody class="divide-y divide-[#E5EAF0]">
                     ${filteredPayments.length ? filteredPayments.map((pay) => `
                       <tr>
-                        <td class="p-3.5 text-[#7A6457] whitespace-nowrap">${pay.payment_date}</td>
-                        <td class="p-3.5 font-extrabold text-[#2D1B14]">${allowed.find((p) => p.id === pay.project_id)?.name || 'مشروع'}</td>
-                        <td class="p-3.5 text-[#5C4438]">${PAYMENT_METHOD_AR[pay.payment_method] || pay.payment_method}</td>
-                        <td class="p-3.5 text-[#7A6457]">${pay.receipt_number || '-'}</td>
+                        <td class="p-3.5 text-[#5B6B7C] whitespace-nowrap">${pay.payment_date}</td>
+                        <td class="p-3.5 font-extrabold text-[#12263A]">${allowed.find((p) => p.id === pay.project_id)?.name || 'مشروع'}</td>
+                        <td class="p-3.5 text-[#3F4F61]">${PAYMENT_METHOD_AR[pay.payment_method] || pay.payment_method}</td>
+                        <td class="p-3.5 text-[#5B6B7C]">${pay.receipt_number || '-'}</td>
                         <td class="p-3.5 font-black text-[#3A6B4C] whitespace-nowrap">${formatEGP(pay.amount)}</td>
-                      </tr>`).join('') : '<tr><td colspan="5" class="p-8 text-center text-[#7A6457] font-bold">لا توجد دفعات عملاء مسجلة.</td></tr>'}
+                      </tr>`).join('') : '<tr><td colspan="5" class="p-8 text-center text-[#5B6B7C] font-bold">لا توجد دفعات عملاء مسجلة.</td></tr>'}
                   </tbody>
                 </table>
               </div>
@@ -2409,7 +2415,7 @@
         </div>
 
         <!-- تذييل التقرير المطبوع -->
-        <div class="hidden print-only pt-4 mt-6 border-t border-[#E6D9CC] flex justify-between items-center text-[11px] text-[#7A6457] font-bold">
+        <div class="hidden print-only pt-4 mt-6 border-t border-[#E5EAF0] flex justify-between items-center text-[11px] text-[#5B6B7C] font-bold">
           <span>صادر آلياً من نظام إدارة المشاريع والحسابات الهندسية — Steel Studio</span>
           <span>اعتماد الإدارة المالية والهندسية: ..............................</span>
         </div>
@@ -2443,66 +2449,66 @@
       const today = new Date().toISOString().slice(0, 10);
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitGlobalPayment(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
-            <h4 class="font-black text-sm text-[#2D1B14]">تسجيل دفعة عميل</h4>
+          <form onsubmit="submitGlobalPayment(event)" class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+            <h4 class="font-black text-sm text-[#12263A]">تسجيل دفعة عميل</h4>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">المشروع *</label>
-              <select id="gp-proj" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+              <label class="block text-[#3F4F61] font-extrabold mb-1">المشروع *</label>
+              <select id="gp-proj" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold">
                 ${allowed.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
               </select>
             </div>
             <div class="grid grid-cols-2 gap-2.5">
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">المبلغ (ج.م) *</label>
-                <input id="gp-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                <label class="block text-[#3F4F61] font-extrabold mb-1">المبلغ (ج.م) *</label>
+                <input id="gp-amount" type="number" required min="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
               </div>
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">التاريخ</label>
-                <input id="gp-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                <label class="block text-[#3F4F61] font-extrabold mb-1">التاريخ</label>
+                <input id="gp-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
               </div>
             </div>
             <div class="grid grid-cols-2 gap-2.5">
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">طريقة الدفع</label>
-                <select id="gp-method" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                <label class="block text-[#3F4F61] font-extrabold mb-1">طريقة الدفع</label>
+                <select id="gp-method" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold">
                   ${Object.entries(PAYMENT_METHOD_AR).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
                 </select>
               </div>
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">رقم الإيصال</label>
-                <input id="gp-receipt" type="text" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                <label class="block text-[#3F4F61] font-extrabold mb-1">رقم الإيصال</label>
+                <input id="gp-receipt" type="text" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
               </div>
             </div>
-            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ الدفعة</button>
+            <button type="submit" class="w-full py-2.5 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold cursor-pointer">حفظ الدفعة</button>
           </form>
 
-          <div class="lg:col-span-2 bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl overflow-hidden shadow-2xs">
-            <div class="p-4 border-b border-[#E6D9CC] flex justify-between items-center">
-              <h4 class="font-black text-sm text-[#2D1B14]">سجل دفعات العملاء (${STATE.payments.length})</h4>
-              <span class="text-xs font-extrabold text-[#A85438] bg-[#EFE6DD] px-3 py-1 rounded-xl">${formatEGP(STATE.payments.reduce((s, p) => s + (Number(p.amount) || 0), 0))}</span>
+          <div class="lg:col-span-2 bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl overflow-hidden shadow-2xs">
+            <div class="p-4 border-b border-[#E5EAF0] flex justify-between items-center">
+              <h4 class="font-black text-sm text-[#12263A]">سجل دفعات العملاء (${STATE.payments.length})</h4>
+              <span class="text-xs font-extrabold text-[#D9531E] bg-[#EEF2F6] px-3 py-1 rounded-xl">${formatEGP(STATE.payments.reduce((s, p) => s + (Number(p.amount) || 0), 0))}</span>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-right text-xs">
-                <thead class="bg-[#EFE6DD] text-[#5C4438] font-extrabold">
+                <thead class="bg-[#EEF2F6] text-[#3F4F61] font-extrabold">
                   <tr><th class="p-3.5">التاريخ</th><th class="p-3.5">المشروع</th><th class="p-3.5">الطريقة</th><th class="p-3.5">الإيصال</th><th class="p-3.5">المبلغ</th><th class="p-3.5">إجراءات</th></tr>
                 </thead>
-                <tbody class="divide-y divide-[#E6D9CC]">
+                <tbody class="divide-y divide-[#E5EAF0]">
                   ${STATE.payments.length ? STATE.payments.map((pay) => `
                     <tr>
-                      <td class="p-3.5 text-[#7A6457]">${pay.payment_date}</td>
-                      <td class="p-3.5 font-extrabold text-[#2D1B14]">${allowed.find((p) => p.id === pay.project_id)?.name || 'مشروع'}</td>
-                      <td class="p-3.5 text-[#5C4438]">${PAYMENT_METHOD_AR[pay.payment_method] || pay.payment_method}</td>
-                      <td class="p-3.5 text-[#7A6457]">${pay.receipt_number || '-'}</td>
-                      <td class="p-3.5 font-black text-[#A85438]">${formatEGP(pay.amount)}</td>
+                      <td class="p-3.5 text-[#5B6B7C]">${pay.payment_date}</td>
+                      <td class="p-3.5 font-extrabold text-[#12263A]">${allowed.find((p) => p.id === pay.project_id)?.name || 'مشروع'}</td>
+                      <td class="p-3.5 text-[#3F4F61]">${PAYMENT_METHOD_AR[pay.payment_method] || pay.payment_method}</td>
+                      <td class="p-3.5 text-[#5B6B7C]">${pay.receipt_number || '-'}</td>
+                      <td class="p-3.5 font-black text-[#D9531E]">${formatEGP(pay.amount)}</td>
                       <td class="p-3.5 whitespace-nowrap space-x-1 space-x-reverse">
                         <button onclick="sendPaymentWhatsApp('${pay.id}')" title="إرسال إيصال وتفاصيل الرصيد عبر واتساب"
                           class="px-2.5 py-1 rounded-lg bg-[#3A6B4C] hover:bg-[#2E553C] text-white font-bold text-[11px] cursor-pointer">
                           واتساب
                         </button>
-                        <button onclick="openEditPaymentModal('${pay.id}')" class="px-2.5 py-1 rounded-lg bg-[#EFE6DD] hover:bg-[#E4D7CA] text-[#2D1B14] font-bold text-[11px] cursor-pointer">تعديل</button>
+                        <button onclick="openEditPaymentModal('${pay.id}')" class="px-2.5 py-1 rounded-lg bg-[#EEF2F6] hover:bg-[#E2E8EF] text-[#12263A] font-bold text-[11px] cursor-pointer">تعديل</button>
                         <button onclick="openConfirmDeleteModal('حذف دفعة عميل', 'هل أنت متأكد من حذف دفعة العميل (${formatEGP(pay.amount)})؟', () => deleteClientPayment('${pay.id}'))" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-[11px] cursor-pointer">حذف</button>
                       </td>
-                    </tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-[#7A6457] font-bold">لا توجد دفعات عملاء مسجلة.</td></tr>'}
+                    </tr>`).join('') : '<tr><td colspan="6" class="p-8 text-center text-[#5B6B7C] font-bold">لا توجد دفعات عملاء مسجلة.</td></tr>'}
                 </tbody>
               </table>
             </div>
@@ -2538,26 +2544,26 @@
       const filtered = STATE.materials.filter((m) => STATE.materialsStatusFilter === 'ALL' || m.status === STATE.materialsStatusFilter);
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitMaterialReq(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
-            <h4 class="font-black text-sm text-[#2D1B14]">طلب خامة جديدة للموقع</h4>
+          <form onsubmit="submitMaterialReq(event)" class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+            <h4 class="font-black text-sm text-[#12263A]">طلب خامة جديدة للموقع</h4>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">المشروع *</label>
-              <select id="mr-proj" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+              <label class="block text-[#3F4F61] font-extrabold mb-1">المشروع *</label>
+              <select id="mr-proj" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold">
                 ${allowed.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
               </select>
             </div>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">اسم الخامة *</label>
-              <input id="mr-name" type="text" required placeholder="مثال: أسمنت / مواسير / سلك كهرباء" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <label class="block text-[#3F4F61] font-extrabold mb-1">اسم الخامة *</label>
+              <input id="mr-name" type="text" required placeholder="مثال: أسمنت / مواسير / سلك كهرباء" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
             </div>
             <div class="grid grid-cols-2 gap-2.5">
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">الكمية *</label>
-                <input id="mr-qty" type="number" required min="1" value="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+                <label class="block text-[#3F4F61] font-extrabold mb-1">الكمية *</label>
+                <input id="mr-qty" type="number" required min="1" value="1" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
               </div>
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">الوحدة</label>
-                <select id="mr-unit" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+                <label class="block text-[#3F4F61] font-extrabold mb-1">الوحدة</label>
+                <select id="mr-unit" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold">
                   <option value="شيكارة">شيكارة</option>
                   <option value="متر">متر</option>
                   <option value="لوح">لوح</option>
@@ -2569,14 +2575,14 @@
               </div>
             </div>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">تاريخ الاحتياج</label>
-              <input id="mr-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <label class="block text-[#3F4F61] font-extrabold mb-1">تاريخ الاحتياج</label>
+              <input id="mr-date" type="date" value="${today}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
             </div>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">ملاحظات للمكتب / المورد</label>
-              <input id="mr-notes" type="text" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <label class="block text-[#3F4F61] font-extrabold mb-1">ملاحظات للمكتب / المورد</label>
+              <input id="mr-notes" type="text" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
             </div>
-            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">إرسال طلب الخامة</button>
+            <button type="submit" class="w-full py-2.5 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold cursor-pointer">إرسال طلب الخامة</button>
           </form>
 
           <div class="lg:col-span-2 space-y-4">
@@ -2592,8 +2598,8 @@
                 <button onclick="STATE.materialsStatusFilter='${st.id}'; renderCurrentView()"
                   class="px-4 py-2 rounded-full text-xs font-extrabold cursor-pointer ${
                     STATE.materialsStatusFilter === st.id
-                      ? 'bg-[#2D1B14] text-[#FAF6F2]'
-                      : 'bg-[#FAF6F2] text-[#5C4438] border border-[#DFD2C5]'
+                      ? 'bg-[#12263A] text-[#FFFFFF]'
+                      : 'bg-[#FFFFFF] text-[#3F4F61] border border-[#DDE3EA]'
                   }">
                   ${st.label}
                 </button>
@@ -2601,23 +2607,23 @@
             </div>
 
             ${filtered.length ? filtered.map((m) => `
-              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
+              <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
                 <div>
-                  <h4 class="font-black text-sm text-[#2D1B14]">${m.material_name} (${m.quantity} ${m.unit})</h4>
-                  <p class="text-[#7A6457] font-semibold mt-0.5">${allowed.find((p) => p.id === m.project_id)?.name || 'مشروع'} • تاريخ الاحتياج: ${m.needed_date || '-'}</p>
-                  ${m.engineer_notes ? `<p class="text-[#5C4438] mt-1 bg-white px-3 py-1.5 rounded-xl border border-[#E6D9CC]">${m.engineer_notes}</p>` : ''}
+                  <h4 class="font-black text-sm text-[#12263A]">${m.material_name} (${m.quantity} ${m.unit})</h4>
+                  <p class="text-[#5B6B7C] font-semibold mt-0.5">${allowed.find((p) => p.id === m.project_id)?.name || 'مشروع'} • تاريخ الاحتياج: ${m.needed_date || '-'}</p>
+                  ${m.engineer_notes ? `<p class="text-[#3F4F61] mt-1 bg-white px-3 py-1.5 rounded-xl border border-[#E5EAF0]">${m.engineer_notes}</p>` : ''}
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="px-3 py-1 rounded-full bg-[#EFE6DD] text-[#2D1B14] font-extrabold border border-[#DFD2C5]">${MATERIAL_STATUS_AR[m.status] || m.status}</span>
+                  <span class="px-3 py-1 rounded-full bg-[#EEF2F6] text-[#12263A] font-extrabold border border-[#DDE3EA]">${MATERIAL_STATUS_AR[m.status] || m.status}</span>
                   ${isMainAdmin() && m.status === 'pending_review' ? `
                     <button onclick="updateMatStatus('${m.id}', 'approved')" class="px-3.5 py-1.5 rounded-full bg-[#3A6B4C] text-white font-bold cursor-pointer">اعتماد</button>
                     <button onclick="updateMatStatus('${m.id}', 'rejected')" class="px-3.5 py-1.5 rounded-full bg-rose-700 text-white font-bold cursor-pointer">رفض</button>
                   ` : ''}
                   ${(m.status === 'approved' || m.status === 'in_transit') ? `
-                    <button onclick="updateMatStatus('${m.id}', 'received')" class="px-3.5 py-1.5 rounded-full bg-[#2D1B14] text-white font-bold cursor-pointer">تم الاستلام</button>
+                    <button onclick="updateMatStatus('${m.id}', 'received')" class="px-3.5 py-1.5 rounded-full bg-[#12263A] text-white font-bold cursor-pointer">تم الاستلام</button>
                   ` : ''}
                 </div>
-              </div>`).join('') : '<div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-10 text-center text-xs font-bold text-[#7A6457]">لا توجد طلبات خامات في هذا التصنيف.</div>'}
+              </div>`).join('') : '<div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-10 text-center text-xs font-bold text-[#5B6B7C]">لا توجد طلبات خامات في هذا التصنيف.</div>'}
           </div>
         </div>
       `;
@@ -2680,85 +2686,85 @@
           ? Number(it.total_cost)
           : mat + lab + stg;
         return `
-          <tr class="border-b border-[#E6D9CC]">
-            <td class="p-3 font-bold text-[#7A6457]">${idx + 1}</td>
-            <td class="p-3 font-extrabold text-[#2D1B14]">${it.title}</td>
-            <td class="p-3 text-center font-bold text-[#5C4438]">${it.completion_percentage || 0}%</td>
-            <td class="p-3 text-[#5C4438]">${formatEGP(mat)}</td>
-            <td class="p-3 text-[#5C4438]">${formatEGP(lab + stg)}</td>
-            <td class="p-3 font-black text-[#2D1B14]">${formatEGP(rowTotal)}</td>
+          <tr class="border-b border-[#E5EAF0]">
+            <td class="p-3 font-bold text-[#5B6B7C]">${idx + 1}</td>
+            <td class="p-3 font-extrabold text-[#12263A]">${it.title}</td>
+            <td class="p-3 text-center font-bold text-[#3F4F61]">${it.completion_percentage || 0}%</td>
+            <td class="p-3 text-[#3F4F61]">${formatEGP(mat)}</td>
+            <td class="p-3 text-[#3F4F61]">${formatEGP(lab + stg)}</td>
+            <td class="p-3 font-black text-[#12263A]">${formatEGP(rowTotal)}</td>
           </tr>
         `;
       }).join('');
 
       const paymentsRows = pPayments.length
         ? pPayments.map((pay, idx) => `
-            <tr class="border-b border-[#E6D9CC]">
-              <td class="p-2.5 text-[#7A6457] font-bold">${idx + 1}</td>
-              <td class="p-2.5 text-[#2D1B14] font-semibold">${pay.payment_date}</td>
-              <td class="p-2.5 text-[#5C4438]">${PAYMENT_METHOD_AR[pay.payment_method] || pay.payment_method}</td>
-              <td class="p-2.5 text-[#7A6457]">${pay.receipt_number || '-'}</td>
-              <td class="p-2.5 font-extrabold text-[#2D1B14]">${formatEGP(pay.amount)}</td>
+            <tr class="border-b border-[#E5EAF0]">
+              <td class="p-2.5 text-[#5B6B7C] font-bold">${idx + 1}</td>
+              <td class="p-2.5 text-[#12263A] font-semibold">${pay.payment_date}</td>
+              <td class="p-2.5 text-[#3F4F61]">${PAYMENT_METHOD_AR[pay.payment_method] || pay.payment_method}</td>
+              <td class="p-2.5 text-[#5B6B7C]">${pay.receipt_number || '-'}</td>
+              <td class="p-2.5 font-extrabold text-[#12263A]">${formatEGP(pay.amount)}</td>
             </tr>
           `).join('')
-        : '<tr><td colspan="5" class="p-4 text-center text-[#7A6457] font-semibold">لا توجد دفعات مسجلة حتى تاريخه.</td></tr>';
+        : '<tr><td colspan="5" class="p-4 text-center text-[#5B6B7C] font-semibold">لا توجد دفعات مسجلة حتى تاريخه.</td></tr>';
 
       return `
         <div class="space-y-6 text-right" dir="rtl">
           <!-- ترويسة المكتب الهندسي -->
-          <div class="flex flex-wrap items-start justify-between gap-4 pb-5 border-b-2 border-[#2D1B14]">
+          <div class="flex flex-wrap items-start justify-between gap-4 pb-5 border-b-2 border-[#12263A]">
             <div>
-              <h2 class="text-xl font-black tracking-wider text-[#2D1B14]" dir="ltr">STEEL STUDIO</h2>
-              <p class="text-xs font-bold text-[#A85438]">التصميم المعماري والتشطيبات المتكاملة</p>
+              <h2 class="text-xl font-black tracking-wider text-[#12263A]" dir="ltr">STEEL STUDIO</h2>
+              <p class="text-xs font-bold text-[#D9531E]">التصميم المعماري والتشطيبات المتكاملة</p>
             </div>
             <div class="text-left text-xs space-y-1">
-              <span class="inline-block px-3 py-1 rounded-full bg-[#EFE6DD] text-[#2D1B14] font-black">
+              <span class="inline-block px-3 py-1 rounded-full bg-[#EEF2F6] text-[#12263A] font-black">
                 مستخلص وكشف حساب عميل رقم #${statementNumber}
               </span>
-              <p class="text-[#7A6457] font-bold">تاريخ الإصدار: ${todayStr}</p>
+              <p class="text-[#5B6B7C] font-bold">تاريخ الإصدار: ${todayStr}</p>
             </div>
           </div>
 
           <!-- بيانات العميل والمشروع -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FAF6F2] border border-[#DFD2C5] rounded-2xl p-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-4 text-xs">
             <div class="space-y-1">
-              <p class="text-[#7A6457] font-bold">السيد / العميل:</p>
-              <p class="text-sm font-black text-[#2D1B14]">${project.client_name}</p>
-              <p class="text-[#5C4438] font-semibold">${project.client_phone || ''}</p>
+              <p class="text-[#5B6B7C] font-bold">السيد / العميل:</p>
+              <p class="text-sm font-black text-[#12263A]">${project.client_name}</p>
+              <p class="text-[#3F4F61] font-semibold">${project.client_phone || ''}</p>
             </div>
             <div class="space-y-1">
-              <p class="text-[#7A6457] font-bold">المشروع / الموقع:</p>
-              <p class="text-sm font-black text-[#2D1B14]">${project.name}</p>
-              <p class="text-[#5C4438] font-semibold">${project.address || ''} • نسبة الإنجاز: ${f.progress}%</p>
+              <p class="text-[#5B6B7C] font-bold">المشروع / الموقع:</p>
+              <p class="text-sm font-black text-[#12263A]">${project.name}</p>
+              <p class="text-[#3F4F61] font-semibold">${project.address || ''} • نسبة الإنجاز: ${f.progress}%</p>
             </div>
           </div>
 
           <!-- ملخص الموقف المالي للعميل (نظيف تماماً من أي أرباح أو سحوبات للمكتب) -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <div class="p-3.5 rounded-2xl bg-[#FAF6F2] border border-[#DFD2C5]">
-              <span class="text-[#7A6457] font-bold block">إجمالي الدفعات المسددة</span>
-              <strong class="text-base font-black text-[#2D1B14] mt-1 block">${formatEGP(f.paymentsTotal)}</strong>
+            <div class="p-3.5 rounded-2xl bg-[#FFFFFF] border border-[#DDE3EA]">
+              <span class="text-[#5B6B7C] font-bold block">إجمالي الدفعات المسددة</span>
+              <strong class="text-base font-black text-[#12263A] mt-1 block">${formatEGP(f.paymentsTotal)}</strong>
             </div>
-            <div class="p-3.5 rounded-2xl bg-[#FAF6F2] border border-[#DFD2C5]">
-              <span class="text-[#7A6457] font-bold block">إجمالي الأعمال المنفذة</span>
-              <strong class="text-base font-black text-[#2D1B14] mt-1 block">${formatEGP(f.totalSpent)}</strong>
+            <div class="p-3.5 rounded-2xl bg-[#FFFFFF] border border-[#DDE3EA]">
+              <span class="text-[#5B6B7C] font-bold block">إجمالي الأعمال المنفذة</span>
+              <strong class="text-base font-black text-[#12263A] mt-1 block">${formatEGP(f.totalSpent)}</strong>
             </div>
-            <div class="p-3.5 rounded-2xl bg-[#FAF6F2] border border-[#DFD2C5]">
-              <span class="text-[#7A6457] font-bold block">رصيد دائن للعميل</span>
+            <div class="p-3.5 rounded-2xl bg-[#FFFFFF] border border-[#DDE3EA]">
+              <span class="text-[#5B6B7C] font-bold block">رصيد دائن للعميل</span>
               <strong class="text-base font-black text-emerald-800 mt-1 block">${formatEGP(creditForClient)}</strong>
             </div>
-            <div class="p-3.5 rounded-2xl bg-[#A85438]/12 border border-[#A85438]/40">
-              <span class="text-[#A85438] font-extrabold block">المبلغ المطلوب سداده</span>
-              <strong class="text-base font-black text-[#2D1B14] mt-1 block">${formatEGP(dueFromClient)}</strong>
+            <div class="p-3.5 rounded-2xl bg-[#D9531E]/12 border border-[#D9531E]/40">
+              <span class="text-[#D9531E] font-extrabold block">المبلغ المطلوب سداده</span>
+              <strong class="text-base font-black text-[#12263A] mt-1 block">${formatEGP(dueFromClient)}</strong>
             </div>
           </div>
 
           <!-- جدول تفصيل الأعمال المنفذة حسب البنود -->
           <div class="space-y-2">
-            <h4 class="text-xs font-black text-[#2D1B14]">أولاً: بيان الأعمال المنفذة والتكاليف حسب البنود</h4>
-            <div class="border border-[#DFD2C5] rounded-2xl overflow-hidden">
+            <h4 class="text-xs font-black text-[#12263A]">أولاً: بيان الأعمال المنفذة والتكاليف حسب البنود</h4>
+            <div class="border border-[#DDE3EA] rounded-2xl overflow-hidden">
               <table class="w-full text-right text-xs">
-                <thead class="bg-[#EFE6DD] text-[#2D1B14] font-extrabold">
+                <thead class="bg-[#EEF2F6] text-[#12263A] font-extrabold">
                   <tr>
                     <th class="p-3">#</th>
                     <th class="p-3">البند الهندسي</th>
@@ -2771,19 +2777,19 @@
                 <tbody>
                   ${itemsRows}
                   ${f.expensesTotal > 0 ? `
-                    <tr class="border-b border-[#E6D9CC] bg-[#FAF6F2]">
-                      <td class="p-3 font-bold text-[#7A6457]">+</td>
-                      <td class="p-3 font-extrabold text-[#2D1B14]" colspan="4">مصروفات الموقع والنقل والتشغيل العامة</td>
-                      <td class="p-3 font-black text-[#2D1B14]">${formatEGP(f.expensesTotal)}</td>
+                    <tr class="border-b border-[#E5EAF0] bg-[#FFFFFF]">
+                      <td class="p-3 font-bold text-[#5B6B7C]">+</td>
+                      <td class="p-3 font-extrabold text-[#12263A]" colspan="4">مصروفات الموقع والنقل والتشغيل العامة</td>
+                      <td class="p-3 font-black text-[#12263A]">${formatEGP(f.expensesTotal)}</td>
                     </tr>` : ''}
                   ${f.designCost > 0 ? `
-                    <tr class="border-b border-[#E6D9CC] bg-[#FAF6F2]">
-                      <td class="p-3 font-bold text-[#7A6457]">+</td>
-                      <td class="p-3 font-extrabold text-[#2D1B14]" colspan="4">التصميمات المعمارية (3D) والمخططات التنفيذية</td>
-                      <td class="p-3 font-black text-[#2D1B14]">${formatEGP(f.designCost)}</td>
+                    <tr class="border-b border-[#E5EAF0] bg-[#FFFFFF]">
+                      <td class="p-3 font-bold text-[#5B6B7C]">+</td>
+                      <td class="p-3 font-extrabold text-[#12263A]" colspan="4">التصميمات المعمارية (3D) والمخططات التنفيذية</td>
+                      <td class="p-3 font-black text-[#12263A]">${formatEGP(f.designCost)}</td>
                     </tr>` : ''}
                 </tbody>
-                <tfoot class="bg-[#2D1B14] text-[#FAF6F2] font-black">
+                <tfoot class="bg-[#12263A] text-[#FFFFFF] font-black">
                   <tr>
                     <td class="p-3" colspan="5">إجمالي تكلفة الأعمال المنفذة حتى تاريخه</td>
                     <td class="p-3">${formatEGP(f.totalSpent)}</td>
@@ -2795,10 +2801,10 @@
 
           <!-- جدول الدفعات المستلمة من العميل -->
           <div class="space-y-2">
-            <h4 class="text-xs font-black text-[#2D1B14]">ثانياً: بيان الدفعات المسددة من العميل</h4>
-            <div class="border border-[#DFD2C5] rounded-2xl overflow-hidden">
+            <h4 class="text-xs font-black text-[#12263A]">ثانياً: بيان الدفعات المسددة من العميل</h4>
+            <div class="border border-[#DDE3EA] rounded-2xl overflow-hidden">
               <table class="w-full text-right text-xs">
-                <thead class="bg-[#EFE6DD] text-[#2D1B14] font-extrabold">
+                <thead class="bg-[#EEF2F6] text-[#12263A] font-extrabold">
                   <tr>
                     <th class="p-2.5">#</th>
                     <th class="p-2.5">تاريخ السداد</th>
@@ -2808,7 +2814,7 @@
                   </tr>
                 </thead>
                 <tbody>${paymentsRows}</tbody>
-                <tfoot class="bg-[#EFE6DD] text-[#2D1B14] font-black">
+                <tfoot class="bg-[#EEF2F6] text-[#12263A] font-black">
                   <tr>
                     <td class="p-2.5" colspan="4">إجمالي الدفعات المسددة من العميل</td>
                     <td class="p-2.5">${formatEGP(f.paymentsTotal)}</td>
@@ -2819,7 +2825,7 @@
           </div>
 
           <!-- التذييل والتوقيع -->
-          <div class="pt-4 border-t border-[#E6D9CC] flex justify-between items-center text-[11px] text-[#7A6457] font-bold">
+          <div class="pt-4 border-t border-[#E5EAF0] flex justify-between items-center text-[11px] text-[#5B6B7C] font-bold">
             <span>حُرر هذا المستخلص آلياً من نظام إدارة Steel Studio • جميع المبالغ بالجنيه المصري (ج.م)</span>
             <span>توقيع الإدارة الهندسية: ..............................</span>
           </div>
@@ -2837,21 +2843,21 @@
       const statementHTML = buildClientStatementHTML(project, '01');
       openModal(`
         <div class="space-y-4">
-          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E6D9CC]">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E5EAF0]">
             <div>
-              <h3 class="font-black text-base text-[#2D1B14]">معاينة مستخلص العميل قبل التصدير</h3>
-              <p class="text-xs text-[#7A6457] font-semibold">كشف حساب نظيف للعميل — لا يظهر فيه أي نسبة للمكتب أو سحوبات داخلية</p>
+              <h3 class="font-black text-base text-[#12263A]">معاينة مستخلص العميل قبل التصدير</h3>
+              <p class="text-xs text-[#5B6B7C] font-semibold">كشف حساب نظيف للعميل — لا يظهر فيه أي نسبة للمكتب أو سحوبات داخلية</p>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="printCleanClientStatement('${project.id}')"
-                class="px-5 py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold text-xs cursor-pointer">
+                class="px-5 py-2.5 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold text-xs cursor-pointer">
                 طباعة / حفظ كـ PDF
               </button>
-              <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EFE6DD] text-[#2D1B14] cursor-pointer">✕</button>
+              <button onclick="closeModal()" class="p-2 rounded-xl bg-[#EEF2F6] text-[#12263A] cursor-pointer">✕</button>
             </div>
           </div>
 
-          <div class="bg-white border border-[#DFD2C5] rounded-2xl p-4 sm:p-6 max-h-[70vh] overflow-y-auto">
+          <div class="bg-white border border-[#DDE3EA] rounded-2xl p-4 sm:p-6 max-h-[70vh] overflow-y-auto">
             ${statementHTML}
           </div>
         </div>
@@ -2881,44 +2887,44 @@
       const nowLocal = new Date().toISOString().slice(0, 16);
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitAppointment(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
-            <h4 class="font-black text-sm text-[#2D1B14]">إضافة موعد أو مهمة جديدة</h4>
+          <form onsubmit="submitAppointment(event)" class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+            <h4 class="font-black text-sm text-[#12263A]">إضافة موعد أو مهمة جديدة</h4>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">العنوان *</label>
-              <input id="ap-title" type="text" required placeholder="مثال: معاينة شقة / استلام محارة" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <label class="block text-[#3F4F61] font-extrabold mb-1">العنوان *</label>
+              <input id="ap-title" type="text" required placeholder="مثال: معاينة شقة / استلام محارة" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
             </div>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">النوع</label>
-              <select id="ap-type" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+              <label class="block text-[#3F4F61] font-extrabold mb-1">النوع</label>
+              <select id="ap-type" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold">
                 ${Object.entries(TASK_TYPE_AR).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
               </select>
             </div>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">التاريخ والوقت *</label>
-              <input id="ap-date" type="datetime-local" required value="${nowLocal}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <label class="block text-[#3F4F61] font-extrabold mb-1">التاريخ والوقت *</label>
+              <input id="ap-date" type="datetime-local" required value="${nowLocal}" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
             </div>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">المشروع المرتبط</label>
-              <select id="ap-proj" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+              <label class="block text-[#3F4F61] font-extrabold mb-1">المشروع المرتبط</label>
+              <select id="ap-proj" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold">
                 <option value="">عام / بدون مشروع</option>
                 ${allowed.map((p) => `<option value="${p.id}">${p.name}</option>`).join('')}
               </select>
             </div>
-            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ الموعد</button>
+            <button type="submit" class="w-full py-2.5 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold cursor-pointer">حفظ الموعد</button>
           </form>
 
           <div class="lg:col-span-2 space-y-3">
             ${STATE.tasks.length ? STATE.tasks.map((t) => `
-              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
+              <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-2xs">
                 <div>
-                  <span class="px-3 py-0.5 rounded-full bg-[#2D1B14] text-[#FAF6F2] text-[10px] font-extrabold">${TASK_TYPE_AR[t.entry_type] || t.entry_type}</span>
-                  <h4 class="font-black text-sm text-[#2D1B14] mt-1.5">${t.title}</h4>
-                  <p class="text-[#7A6457] font-semibold mt-0.5">${new Date(t.scheduled_at).toLocaleString('ar-EG')} • ${allowed.find((p) => p.id === t.project_id)?.name || 'عام'}</p>
+                  <span class="px-3 py-0.5 rounded-full bg-[#12263A] text-[#FFFFFF] text-[10px] font-extrabold">${TASK_TYPE_AR[t.entry_type] || t.entry_type}</span>
+                  <h4 class="font-black text-sm text-[#12263A] mt-1.5">${t.title}</h4>
+                  <p class="text-[#5B6B7C] font-semibold mt-0.5">${new Date(t.scheduled_at).toLocaleString('ar-EG')} • ${allowed.find((p) => p.id === t.project_id)?.name || 'عام'}</p>
                 </div>
-                <select onchange="updateAppointmentStatus('${t.id}', this.value)" class="px-3.5 py-2 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-extrabold">
+                <select onchange="updateAppointmentStatus('${t.id}', this.value)" class="px-3.5 py-2 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-extrabold">
                   ${Object.entries(TASK_STATUS_AR).map(([k, v]) => `<option value="${k}" ${t.status === k ? 'selected' : ''}>${v}</option>`).join('')}
                 </select>
-              </div>`).join('') : '<div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-10 text-center text-xs font-bold text-[#7A6457]">لا توجد مواعيد أو مهام مسجلة حالياً.</div>'}
+              </div>`).join('') : '<div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-10 text-center text-xs font-bold text-[#5B6B7C]">لا توجد مواعيد أو مهام مسجلة حالياً.</div>'}
           </div>
         </div>
       `;
@@ -2961,37 +2967,37 @@
     function renderWorkersView(allowed) {
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitWorker(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
-            <h4 class="font-black text-sm text-[#2D1B14]">إضافة عامل / صنايعي للدليل</h4>
+          <form onsubmit="submitWorker(event)" class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+            <h4 class="font-black text-sm text-[#12263A]">إضافة عامل / صنايعي للدليل</h4>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">الاسم الكامل *</label>
-              <input id="wk-name" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <label class="block text-[#3F4F61] font-extrabold mb-1">الاسم الكامل *</label>
+              <input id="wk-name" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
             </div>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">التخصص (سباك، كهربائي، محارة...) *</label>
-              <input id="wk-spec" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <label class="block text-[#3F4F61] font-extrabold mb-1">التخصص (سباك، كهربائي، محارة...) *</label>
+              <input id="wk-spec" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
             </div>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">رقم الهاتف / واتساب *</label>
-              <input id="wk-phone" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <label class="block text-[#3F4F61] font-extrabold mb-1">رقم الهاتف / واتساب *</label>
+              <input id="wk-phone" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
             </div>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">المنطقة</label>
-              <input id="wk-area" type="text" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <label class="block text-[#3F4F61] font-extrabold mb-1">المنطقة</label>
+              <input id="wk-area" type="text" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
             </div>
-            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ في الدليل</button>
+            <button type="submit" class="w-full py-2.5 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold cursor-pointer">حفظ في الدليل</button>
           </form>
 
           <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
             ${STATE.workers.length ? STATE.workers.map((w) => `
-              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 flex items-center justify-between gap-3 text-xs shadow-2xs">
+              <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 flex items-center justify-between gap-3 text-xs shadow-2xs">
                 <div>
-                  <h4 class="font-black text-sm text-[#2D1B14]">${w.full_name}</h4>
-                  <p class="text-[#A85438] font-extrabold mt-0.5">${w.specialty}</p>
-                  <p class="text-[#7A6457] font-semibold mt-0.5">${w.phone} ${w.area_address ? '• ' + w.area_address : ''}</p>
+                  <h4 class="font-black text-sm text-[#12263A]">${w.full_name}</h4>
+                  <p class="text-[#D9531E] font-extrabold mt-0.5">${w.specialty}</p>
+                  <p class="text-[#5B6B7C] font-semibold mt-0.5">${w.phone} ${w.area_address ? '• ' + w.area_address : ''}</p>
                 </div>
                 <a href="https://wa.me/${w.whatsapp}" target="_blank" class="px-4 py-2 rounded-full bg-[#3A6B4C] hover:bg-[#2E553C] text-white font-extrabold">واتساب</a>
-              </div>`).join('') : '<div class="col-span-2 bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-10 text-center text-xs font-bold text-[#7A6457]">لا يوجد عمال أو صنايعية مسجلون بعد.</div>'}
+              </div>`).join('') : '<div class="col-span-2 bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-10 text-center text-xs font-bold text-[#5B6B7C]">لا يوجد عمال أو صنايعية مسجلون بعد.</div>'}
           </div>
         </div>
       `;
@@ -3026,38 +3032,38 @@
     function renderTeamView() {
       return `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <form onsubmit="submitTeamMember(event)" class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3 text-xs h-fit shadow-2xs">
-            <h4 class="font-black text-sm text-[#2D1B14]">إضافة / تحديث موظف وصلاحياته</h4>
+          <form onsubmit="submitTeamMember(event)" class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-3 text-xs h-fit shadow-2xs">
+            <h4 class="font-black text-sm text-[#12263A]">إضافة / تحديث موظف وصلاحياته</h4>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">الاسم الكامل *</label>
-              <input id="tm-name" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
+              <label class="block text-[#3F4F61] font-extrabold mb-1">الاسم الكامل *</label>
+              <input id="tm-name" type="text" required class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
             </div>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">البريد الإلكتروني *</label>
-              <input id="tm-email" type="email" required dir="ltr" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] text-left font-semibold" />
+              <label class="block text-[#3F4F61] font-extrabold mb-1">البريد الإلكتروني *</label>
+              <input id="tm-email" type="email" required dir="ltr" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] text-left font-semibold" />
             </div>
             <div>
-              <label class="block text-[#5C4438] font-extrabold mb-1">الدور الوظيفي</label>
-              <select id="tm-role" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+              <label class="block text-[#3F4F61] font-extrabold mb-1">الدور الوظيفي</label>
+              <select id="tm-role" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold">
                 <option value="engineer">مهندس موقع</option>
                 <option value="accountant">محاسب</option>
                 <option value="admin">مدير مكتب</option>
               </select>
             </div>
-            <label class="flex items-center gap-2 font-bold text-[#5C4438] cursor-pointer pt-1">
+            <label class="flex items-center gap-2 font-bold text-[#3F4F61] cursor-pointer pt-1">
               <input id="tm-fin" type="checkbox" />
               <span>السماح برؤية التفاصيل المالية ونسبة المكتب</span>
             </label>
-            <button type="submit" class="w-full py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ الصلاحيات</button>
+            <button type="submit" class="w-full py-2.5 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold cursor-pointer">حفظ الصلاحيات</button>
           </form>
 
           <div class="lg:col-span-2 space-y-3">
             ${STATE.profiles.map((u) => `
-              <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-4 sm:p-5 flex justify-between items-center text-xs shadow-2xs">
+              <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-4 sm:p-5 flex justify-between items-center text-xs shadow-2xs">
                 <div>
-                  <h4 class="font-black text-sm text-[#2D1B14]">${u.full_name}</h4>
-                  <p class="text-[#7A6457]" dir="ltr">${u.email}</p>
-                  <p class="text-[#A85438] font-extrabold mt-1">الدور: ${u.role === 'admin' ? 'مدير' : u.role === 'accountant' ? 'محاسب' : 'مهندس موقع'}</p>
+                  <h4 class="font-black text-sm text-[#12263A]">${u.full_name}</h4>
+                  <p class="text-[#5B6B7C]" dir="ltr">${u.email}</p>
+                  <p class="text-[#D9531E] font-extrabold mt-1">الدور: ${u.role === 'admin' ? 'مدير' : u.role === 'accountant' ? 'محاسب' : 'مهندس موقع'}</p>
                 </div>
               </div>`).join('')}
           </div>
@@ -3102,9 +3108,9 @@
     function renderToolsView(allowed) {
       return `
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
-          <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3.5 shadow-2xs">
-            <h4 class="font-black text-sm text-[#2D1B14]">حاسبة كميات التشطيبات</h4>
-            <select id="calc-kind" onchange="updateQtyCalc()" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold">
+          <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-3.5 shadow-2xs">
+            <h4 class="font-black text-sm text-[#12263A]">حاسبة كميات التشطيبات</h4>
+            <select id="calc-kind" onchange="updateQtyCalc()" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold">
               <option value="ceramic">سيراميك / بورسلين</option>
               <option value="paint">دهانات</option>
               <option value="plaster">محارة</option>
@@ -3112,26 +3118,26 @@
             </select>
             <div class="grid grid-cols-2 gap-2.5">
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">المساحة (م²)</label>
-                <input id="calc-area" type="number" value="120" oninput="updateQtyCalc()" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold" />
+                <label class="block text-[#3F4F61] font-extrabold mb-1">المساحة (م²)</label>
+                <input id="calc-area" type="number" value="120" oninput="updateQtyCalc()" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold" />
               </div>
               <div>
-                <label class="block text-[#5C4438] font-extrabold mb-1">نسبة الهالك (%)</label>
-                <input id="calc-waste" type="number" value="10" oninput="updateQtyCalc()" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-bold" />
+                <label class="block text-[#3F4F61] font-extrabold mb-1">نسبة الهالك (%)</label>
+                <input id="calc-waste" type="number" value="10" oninput="updateQtyCalc()" class="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-bold" />
               </div>
             </div>
-            <div id="calc-out" class="p-4 rounded-2xl bg-[#2D1B14] text-[#FAF6F2] font-black text-sm">132.0 م² خامات شاملة الهالك (10%)</div>
+            <div id="calc-out" class="p-4 rounded-2xl bg-[#12263A] text-[#FFFFFF] font-black text-sm">132.0 م² خامات شاملة الهالك (10%)</div>
           </div>
 
-          <div class="bg-[#FAF6F2] border border-[#DFD2C5] rounded-3xl p-5 space-y-3.5 shadow-2xs">
-            <h4 class="font-black text-sm text-[#2D1B14]">المفكرة السريعة (Scratchpad)</h4>
+          <div class="bg-[#FFFFFF] border border-[#DDE3EA] rounded-2xl p-5 space-y-3.5 shadow-2xs">
+            <h4 class="font-black text-sm text-[#12263A]">المفكرة السريعة (Scratchpad)</h4>
             <form onsubmit="submitQuickNote(event)" class="flex gap-2">
-              <input id="qn-text" type="text" required placeholder="اكتب ملاحظة سريعة أو مقاس..." class="flex-1 px-3.5 py-2.5 rounded-2xl bg-white border border-[#DFD2C5] text-[#2D1B14] font-semibold" />
-              <button type="submit" class="px-5 py-2.5 rounded-full bg-[#A85438] hover:bg-[#8E432A] text-white font-extrabold cursor-pointer">حفظ</button>
+              <input id="qn-text" type="text" required placeholder="اكتب ملاحظة سريعة أو مقاس..." class="flex-1 px-3.5 py-2.5 rounded-2xl bg-white border border-[#DDE3EA] text-[#12263A] font-semibold" />
+              <button type="submit" class="px-5 py-2.5 rounded-full bg-[#D9531E] hover:bg-[#B94416] text-white font-extrabold cursor-pointer">حفظ</button>
             </form>
             <div class="space-y-2 max-h-56 overflow-y-auto">
               ${STATE.notes.filter((n) => !String(n.content || '').startsWith('[STUDIO_WD]')).map((n) => `
-                <div class="p-3 rounded-2xl bg-[#EFE6DD]/70 border border-[#DFD2C5] font-bold text-[#2D1B14]">${n.content}</div>
+                <div class="p-3 rounded-2xl bg-[#EEF2F6]/70 border border-[#DDE3EA] font-bold text-[#12263A]">${n.content}</div>
               `).join('')}
             </div>
           </div>
@@ -3334,6 +3340,13 @@
       } finally {
         btn.disabled = false;
       }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { closeModal(); toggleMobileMenu(false); }
+    });
+    document.getElementById('modal-backdrop').addEventListener('mousedown', (e) => {
+      if (e.target.id === 'modal-backdrop') closeModal();
     });
 
     (async function initApp() {
